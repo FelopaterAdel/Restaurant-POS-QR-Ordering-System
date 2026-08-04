@@ -11,3 +11,5 @@ apps/backend/dist
 apps/backend/coverage
 apps/backend/.env
 docs/Conventional-Commits
+docs/Conventional -Commits.md
+docs/Roadmap.md
