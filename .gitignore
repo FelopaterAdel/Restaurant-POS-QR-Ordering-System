@@ -13,3 +13,6 @@ apps/backend/.env
 docs/Conventional-Commits
 docs/Conventional -Commits.md
 docs/Roadmap.md
+packages/database/.agents
+packages/database/.claude
+packages/database/.windsurf
