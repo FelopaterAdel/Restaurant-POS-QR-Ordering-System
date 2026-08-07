@@ -18,22 +18,22 @@ export interface UpdateUserInput {
 }
 
 export class UserRepository {
-  constructor(private readonly prisma: PrismaClient = prisma) {}
+  constructor(private readonly client: PrismaClient = prisma) {}
 
   async findById(id: string) {
-    return this.prisma.user.findUnique({
+    return this.client.user.findUnique({
       where: { id },
     });
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
+    return this.client.user.findUnique({
       where: { email },
     });
   }
 
   async create(data: CreateUserInput) {
-    return this.prisma.user.create({
+    return this.client.user.create({
       data: {
         email: data.email,
         name: data.name,
@@ -45,7 +45,7 @@ export class UserRepository {
   }
 
   async update(id: string, data: UpdateUserInput) {
-    return this.prisma.user.update({
+    return this.client.user.update({
       where: { id },
       data: {
         email: data.email,
@@ -58,7 +58,7 @@ export class UserRepository {
   }
 
   async delete(id: string) {
-    return this.prisma.user.update({
+    return this.client.user.update({
       where: { id },
       data: { status: "INACTIVE" },
     });
