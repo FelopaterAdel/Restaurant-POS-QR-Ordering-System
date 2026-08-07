@@ -32,9 +32,10 @@ model User {
   email        String     @unique
   name         String
   password     String
-  role         UserRole   @default(CASHIER)
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  role         UserRole    @default(CASHIER)
+  status       UserStatus  @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
 }

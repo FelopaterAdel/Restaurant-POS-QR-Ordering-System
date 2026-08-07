@@ -15,6 +15,7 @@ export interface UpdateUserInput {
   password?: string;
   role?: UserRole;
   status?: UserStatus;
+  lastLoginAt?: Date;
 }
 
 export class UserRepository {
@@ -53,7 +54,15 @@ export class UserRepository {
         password: data.password,
         role: data.role,
         status: data.status,
+        lastLoginAt: data.lastLoginAt,
       },
+    });
+  }
+
+  async updateLastLoginAt(id: string, lastLoginAt: Date) {
+    return this.client.user.update({
+      where: { id },
+      data: { lastLoginAt },
     });
   }
 
