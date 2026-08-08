@@ -32,6 +32,10 @@ enum TableStatus {
   DISABLED
 }
 
+enum OrderStatus {
+  PENDING
+}
+
 
 model User {
   id           String          @id @default(cuid())
@@ -90,6 +94,8 @@ model Product {
 
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
+  orderItems OrderItem[]
+
   @@index([categoryId])
   @@index([isAvailable])
 }
@@ -104,5 +110,41 @@ model RestaurantTable {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  orders Order[]
+
   @@index([status])
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  tableId     String
+  status      OrderStatus @default(PENDING)
+  totalAmount Decimal
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  items OrderItem[]
+
+  @@index([tableId])
+  @@index([status])
+}
+
+model OrderItem {
+  id         String  @id @default(cuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Decimal
+  totalPrice Decimal
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
+  @@index([productId])
 }
