@@ -1,8 +1,9 @@
-import jwt, { type SignOptions } from 'jsonwebtoken';
+import jwt, { type SignOptions } from "jsonwebtoken";
+import type { UserRole } from "@restaurant/database";
 
 export interface TokenPayload {
-  userId: string;
-  email: string;
+  sub: string;
+  role: UserRole;
 }
 
 export interface DecodedToken extends TokenPayload {
@@ -13,14 +14,14 @@ export interface DecodedToken extends TokenPayload {
 export class JWTService {
   private readonly accessSecret: string;
   private readonly refreshSecret: string;
-  private readonly accessExpiresIn: SignOptions['expiresIn'];
-  private readonly refreshExpiresIn: SignOptions['expiresIn'];
+  private readonly accessExpiresIn: SignOptions["expiresIn"];
+  private readonly refreshExpiresIn: SignOptions["expiresIn"];
 
   constructor(
     accessSecret: string,
     refreshSecret: string,
-    accessExpiresIn: SignOptions['expiresIn'] = '15m',
-    refreshExpiresIn: SignOptions['expiresIn'] = '7d'
+    accessExpiresIn: SignOptions["expiresIn"] = "15m",
+    refreshExpiresIn: SignOptions["expiresIn"] = "7d",
   ) {
     this.accessSecret = accessSecret;
     this.refreshSecret = refreshSecret;
@@ -43,7 +44,7 @@ export class JWTService {
   verifyAccessToken(token: string): DecodedToken | null {
     try {
       return jwt.verify(token, this.accessSecret) as DecodedToken;
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -51,7 +52,7 @@ export class JWTService {
   verifyRefreshToken(token: string): DecodedToken | null {
     try {
       return jwt.verify(token, this.refreshSecret) as DecodedToken;
-    } catch (error) {
+    } catch {
       return null;
     }
   }

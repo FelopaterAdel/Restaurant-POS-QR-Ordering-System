@@ -28,14 +28,29 @@ enum UserStatus {
 
 
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
+  id           String          @id @default(cuid())
+  email        String          @unique
   name         String
   password     String
-  role         UserRole    @default(CASHIER)
-  status       UserStatus  @default(ACTIVE)
+  role         UserRole        @default(CASHIER)
+  status       UserStatus      @default(ACTIVE)
   lastLoginAt  DateTime?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+  revokedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
