@@ -1,5 +1,5 @@
 import { prisma } from "@restaurant/database";
-import type { Prisma, PrismaClient } from "@restaurant/database";
+import type { OrderStatus, Prisma, PrismaClient } from "@restaurant/database";
 
 export interface CreateOrderItemInput {
   productId: string;
@@ -13,6 +13,28 @@ export interface CreateOrderWithItemsInput {
   totalAmount: Prisma.Decimal;
   items: CreateOrderItemInput[];
 }
+
+const orderInclude = {
+  items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+  table: {
+    select: {
+      number: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: typeof orderInclude;
+}>;
 
 export class OrderRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
@@ -44,19 +66,33 @@ export class OrderRepository {
             })),
           },
         },
-        include: {
-          items: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                },
-              },
-            },
-          },
-        },
+        include: orderInclude,
       });
+    });
+  }
+
+  async findById(id: string): Promise<OrderWithRelations | null> {
+    return this.client.order.findUnique({
+      where: { id },
+      include: orderInclude,
+    });
+  }
+
+  async findMany(): Promise<OrderWithRelations[]> {
+    return this.client.order.findMany({
+      include: orderInclude,
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
+  async updateStatus(
+    id: string,
+    status: OrderStatus,
+  ): Promise<OrderWithRelations> {
+    return this.client.order.update({
+      where: { id },
+      data: { status },
+      include: orderInclude,
     });
   }
 }

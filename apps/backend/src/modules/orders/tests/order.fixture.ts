@@ -1,10 +1,17 @@
-import { OrderStatus, Prisma, TableStatus } from "@restaurant/database";
+import {
+  OrderStatus,
+  Prisma,
+  TableStatus,
+  UserRole,
+  UserStatus,
+} from "@restaurant/database";
 import type {
   Order,
   OrderItem,
   Product,
   RestaurantTable,
 } from "@restaurant/database";
+import type { AuthenticatedUser } from "../../../types/auth.js";
 
 export function buildTable(
   overrides: Partial<RestaurantTable> = {},
@@ -45,6 +52,10 @@ export interface OrderWithItems extends Order {
   items: OrderItemWithProduct[];
 }
 
+export interface OrderWithTable extends OrderWithItems {
+  table: Pick<RestaurantTable, "number">;
+}
+
 export function buildOrderItem(
   overrides: Partial<OrderItemWithProduct> = {},
 ): OrderItemWithProduct {
@@ -62,9 +73,22 @@ export function buildOrderItem(
   };
 }
 
+export function buildUser(
+  overrides: Partial<AuthenticatedUser> = {},
+): AuthenticatedUser {
+  return {
+    id: "user_1",
+    name: "Test User",
+    email: "user@test.com",
+    role: UserRole.OWNER,
+    status: UserStatus.ACTIVE,
+    ...overrides,
+  };
+}
+
 export function buildOrder(
-  overrides: Partial<OrderWithItems> = {},
-): OrderWithItems {
+  overrides: Partial<OrderWithTable> = {},
+): OrderWithTable {
   return {
     id: "order_1",
     tableId: "table_1",
@@ -73,6 +97,7 @@ export function buildOrder(
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     items: [],
+    table: { number: 5 },
     ...overrides,
   };
 }
