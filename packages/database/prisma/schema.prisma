@@ -26,6 +26,12 @@ enum UserStatus {
   SUSPENDED
 }
 
+enum TableStatus {
+  AVAILABLE
+  OCCUPIED
+  DISABLED
+}
+
 
 model User {
   id           String          @id @default(cuid())
@@ -86,4 +92,17 @@ model Product {
 
   @@index([categoryId])
   @@index([isAvailable])
+}
+
+model RestaurantTable {
+  id        String      @id @default(cuid())
+  number    Int         @unique
+  name      String
+  qrCode    String      @unique
+  status    TableStatus @default(AVAILABLE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
 }
