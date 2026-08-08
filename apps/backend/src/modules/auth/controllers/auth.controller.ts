@@ -1,9 +1,14 @@
 import { NextFunction, Request, Response } from "express";
+import { LogoutUseCase } from "../use-cases/logout.use-case.js";
 import {
   AccountNotActiveError,
   InvalidCredentialsError,
   LoginUseCase,
 } from "../use-cases/login.use-case.js";
+import {
+  InvalidRefreshTokenError,
+  RefreshTokenUseCase,
+} from "../use-cases/refresh-token.use-case.js";
 import {
   EmailAlreadyExistsError,
   RegisterUseCase,
@@ -11,6 +16,8 @@ import {
 
 const loginUseCase = new LoginUseCase();
 const registerUseCase = new RegisterUseCase();
+const refreshTokenUseCase = new RefreshTokenUseCase();
+const logoutUseCase = new LogoutUseCase();
 
 export async function login(req: Request, res: Response, next: NextFunction) {
   try {
@@ -45,6 +52,36 @@ export async function register(req: Request, res: Response, next: NextFunction) 
     if (error instanceof EmailAlreadyExistsError) {
       return res.status(409).json({ success: false, message: error.message });
     }
+    next(error);
+  }
+}
+
+export async function refresh(req: Request, res: Response, next: NextFunction) {
+  try {
+    const result = await refreshTokenUseCase.execute(req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Token refreshed successfully",
+      data: result,
+    });
+  } catch (error) {
+    if (error instanceof InvalidRefreshTokenError) {
+      return res.status(401).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+}
+
+export async function logout(req: Request, res: Response, next: NextFunction) {
+  try {
+    await logoutUseCase.execute(req.body);
+
+    res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+  } catch (error) {
     next(error);
   }
 }
