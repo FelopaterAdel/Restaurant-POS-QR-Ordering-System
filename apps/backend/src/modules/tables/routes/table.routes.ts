@@ -8,6 +8,7 @@ import {
   createTable,
   disableTable,
   getTable,
+  getTableQr,
   listTables,
   updateTable,
 } from "../controllers/table.controller.js";
@@ -31,6 +32,12 @@ router.get(
   authMiddleware(),
   requireRole(...readRoles),
   listTables as RequestHandler,
+);
+router.get(
+  "/:id/qr",
+  authMiddleware(),
+  requireRole(...readRoles),
+  getTableQr as RequestHandler,
 );
 router.get(
   "/:id",

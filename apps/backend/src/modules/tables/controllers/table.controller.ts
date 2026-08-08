@@ -9,12 +9,14 @@ import {
   GetTableUseCase,
   TableNotFoundError,
 } from "../use-cases/get-table.use-case.js";
+import { GetTableQrUseCase } from "../use-cases/get-table-qr.use-case.js";
 import { ListTablesUseCase } from "../use-cases/list-tables.use-case.js";
 import { UpdateTableUseCase } from "../use-cases/update-table.use-case.js";
 
 const createTableUseCase = new CreateTableUseCase();
 const listTablesUseCase = new ListTablesUseCase();
 const getTableUseCase = new GetTableUseCase();
+const getTableQrUseCase = new GetTableQrUseCase();
 const updateTableUseCase = new UpdateTableUseCase();
 const disableTableUseCase = new DisableTableUseCase();
 
@@ -70,6 +72,28 @@ export async function getTable(
       message: "Table retrieved successfully",
       data: table,
     });
+  } catch (error) {
+    if (error instanceof TableNotFoundError) {
+      return res.status(404).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
+}
+
+export async function getTableQr(
+  req: AuthenticatedRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const png = await getTableQrUseCase.execute(req.params.id);
+
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="table-${req.params.id}-qr.png"`,
+    );
+    res.status(200).send(png);
   } catch (error) {
     if (error instanceof TableNotFoundError) {
       return res.status(404).json({ success: false, message: error.message });

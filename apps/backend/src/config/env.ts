@@ -19,4 +19,5 @@ export const env = {
       "7d") as SignOptions["expiresIn"],
   },
   bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 12),
+  publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:3000",
 };
