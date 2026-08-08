@@ -1,5 +1,6 @@
 import {
   OrderStatus,
+  PaymentStatus,
   Prisma,
   TableStatus,
   UserRole,
@@ -94,6 +95,7 @@ export function buildOrder(
     tableId: "table_1",
     status: OrderStatus.PENDING,
     totalAmount: new Prisma.Decimal(300),
+    paymentStatus: PaymentStatus.PENDING,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     items: [],

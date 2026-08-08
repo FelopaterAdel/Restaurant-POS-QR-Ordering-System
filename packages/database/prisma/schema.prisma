@@ -41,6 +41,17 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum PaymentMethod {
+  CASH
+  CARD
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  VOIDED
+}
+
 
 model User {
   id           String          @id @default(cuid())
@@ -121,18 +132,37 @@ model RestaurantTable {
 }
 
 model Order {
-  id          String      @id @default(cuid())
-  tableId     String
-  status      OrderStatus @default(PENDING)
-  totalAmount Decimal
+  id            String        @id @default(cuid())
+  tableId       String
+  status        OrderStatus   @default(PENDING)
+  totalAmount   Decimal
+  paymentStatus PaymentStatus @default(PENDING)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
-  items OrderItem[]
+  table    RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+  items    OrderItem[]
+  payments Payment[]
 
   @@index([tableId])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model Payment {
+  id        String         @id @default(cuid())
+  orderId   String
+  amount    Decimal
+  method    PaymentMethod
+  status    PaymentStatus  @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@index([orderId])
   @@index([status])
 }
 

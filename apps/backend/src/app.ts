@@ -5,6 +5,7 @@ import healthRouter from "./modules/health/health.routes.js";
 import publicMenuRouter from "./modules/public-menu/routes/public-menu.routes.js";
 import orderRouter from "./modules/orders/routes/order.routes.js";
 import publicOrderRouter from "./modules/orders/routes/public-order.routes.js";
+import paymentRouter from "./modules/payments/routes/payment.routes.js";
 import productRouter from "./modules/products/routes/product.routes.js";
 import tableRouter from "./modules/tables/routes/table.routes.js";
 import usersRouter from "./modules/users/routes/users.routes.js";
@@ -20,6 +21,7 @@ app.use("/api/v1/tables", tableRouter);
 app.use("/api/v1/public/menu", publicMenuRouter);
 app.use("/api/v1/public/orders", publicOrderRouter);
 app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/orders", paymentRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);

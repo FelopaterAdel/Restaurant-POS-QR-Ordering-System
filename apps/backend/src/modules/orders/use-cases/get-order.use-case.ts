@@ -1,4 +1,4 @@
-import type { OrderStatus } from "@restaurant/database";
+import type { OrderStatus, PaymentStatus } from "@restaurant/database";
 import {
   OrderRepository,
   type OrderWithRelations,
@@ -25,6 +25,7 @@ export interface OrderDTO {
   tableId: string;
   tableNumber: number;
   status: OrderStatus;
+  paymentStatus: PaymentStatus;
   totalAmount: number;
   createdAt: Date;
   updatedAt: Date;
@@ -37,6 +38,7 @@ export function toOrderDTO(order: OrderWithRelations): OrderDTO {
     tableId: order.tableId,
     tableNumber: order.table.number,
     status: order.status,
+    paymentStatus: order.paymentStatus,
     totalAmount: Number(order.totalAmount),
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,

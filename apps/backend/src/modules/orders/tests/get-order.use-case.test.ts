@@ -1,4 +1,4 @@
-import { OrderStatus, Prisma } from "@restaurant/database";
+import { OrderStatus, PaymentStatus, Prisma } from "@restaurant/database";
 import { describe, expect, it, vi } from "vitest";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
@@ -43,6 +43,7 @@ describe("GetOrderUseCase", () => {
       tableId: "table_1",
       tableNumber: 5,
       status: OrderStatus.CONFIRMED,
+      paymentStatus: PaymentStatus.PENDING,
       totalAmount: 330,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
