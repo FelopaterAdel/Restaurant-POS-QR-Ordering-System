@@ -27,6 +27,12 @@ export class UserRepository {
     });
   }
 
+  async findAll() {
+    return this.client.user.findMany({
+      orderBy: { createdAt: "asc" },
+    });
+  }
+
   async findByEmail(email: string) {
     return this.client.user.findUnique({
       where: { email },

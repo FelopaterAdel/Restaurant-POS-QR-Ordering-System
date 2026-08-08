@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { LogoutUseCase } from "../use-cases/logout.use-case.js";
 import {
   AccountNotActiveError,
@@ -84,4 +85,16 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
   } catch (error) {
     next(error);
   }
+}
+
+export async function me(
+  req: AuthenticatedRequest,
+  res: Response,
+  _next: NextFunction,
+) {
+  res.status(200).json({
+    success: true,
+    message: "User retrieved successfully",
+    data: req.user,
+  });
 }
