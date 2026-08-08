@@ -5,6 +5,7 @@ import { authMiddleware } from "../../../middleware/auth.middleware.js";
 import { requireRole } from "../../../middleware/role.middleware.js";
 import { validate } from "../../../middleware/validate.middleware.js";
 import {
+  completeOrder,
   getOrder,
   listOrders,
   updateOrderStatus,
@@ -28,6 +29,8 @@ const changeStatusRoles = [
   UserRole.WAITER,
 ];
 
+const completeRoles = [UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER];
+
 router.get(
   "/",
   authMiddleware(),
@@ -46,6 +49,12 @@ router.patch(
   requireRole(...changeStatusRoles),
   validate(updateOrderStatusSchema, "body"),
   updateOrderStatus as RequestHandler,
+);
+router.post(
+  "/:id/complete",
+  authMiddleware(),
+  requireRole(...completeRoles),
+  completeOrder as RequestHandler,
 );
 
 export default router;

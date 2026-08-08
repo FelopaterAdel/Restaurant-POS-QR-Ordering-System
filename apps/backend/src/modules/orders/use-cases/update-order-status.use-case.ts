@@ -17,6 +17,7 @@ const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PREPARING]: [OrderStatus.READY, OrderStatus.CANCELLED],
   [OrderStatus.READY]: [OrderStatus.SERVED],
   [OrderStatus.SERVED]: [],
+  [OrderStatus.COMPLETED]: [],
   [OrderStatus.CANCELLED]: [],
 };
 

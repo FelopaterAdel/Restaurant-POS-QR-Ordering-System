@@ -1,5 +1,5 @@
-import { prisma } from "@restaurant/database";
-import type { OrderStatus, Prisma, PrismaClient } from "@restaurant/database";
+import { OrderStatus, prisma, TableStatus } from "@restaurant/database";
+import type { Prisma, PrismaClient } from "@restaurant/database";
 
 export interface CreateOrderItemInput {
   productId: string;
@@ -93,6 +93,26 @@ export class OrderRepository {
       where: { id },
       data: { status },
       include: orderInclude,
+    });
+  }
+
+  async completeOrderAndReleaseTable(input: {
+    orderId: string;
+    tableId: string;
+  }): Promise<OrderWithRelations> {
+    return this.client.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: input.orderId },
+        data: { status: OrderStatus.COMPLETED },
+        include: orderInclude,
+      });
+
+      await tx.restaurantTable.update({
+        where: { id: input.tableId },
+        data: { status: TableStatus.AVAILABLE },
+      });
+
+      return order;
     });
   }
 }
