@@ -36,6 +36,38 @@ export type OrderWithRelations = Prisma.OrderGetPayload<{
   include: typeof orderInclude;
 }>;
 
+const staffOrderInclude = {
+  items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+  table: {
+    select: {
+      id: true,
+      number: true,
+    },
+  },
+  payments: {
+    orderBy: { createdAt: "desc" as const },
+    select: {
+      status: true,
+      method: true,
+      amount: true,
+      paidAt: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export type StaffOrderWithRelations = Prisma.OrderGetPayload<{
+  include: typeof staffOrderInclude;
+}>;
+
 export class OrderRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
@@ -75,6 +107,15 @@ export class OrderRepository {
     return this.client.order.findUnique({
       where: { id },
       include: orderInclude,
+    });
+  }
+
+  async findStaffDetailsById(
+    id: string,
+  ): Promise<StaffOrderWithRelations | null> {
+    return this.client.order.findUnique({
+      where: { id },
+      include: staffOrderInclude,
     });
   }
 
