@@ -54,3 +54,15 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name])
+}

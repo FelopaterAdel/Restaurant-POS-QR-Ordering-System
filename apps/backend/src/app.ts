@@ -1,5 +1,6 @@
 import express, { type ErrorRequestHandler } from "express";
 import authRouter from "./modules/auth/routes/auth.routes.js";
+import categoryRouter from "./modules/categories/routes/category.routes.js";
 import healthRouter from "./modules/health/health.routes.js";
 import usersRouter from "./modules/users/routes/users.routes.js";
 
@@ -8,6 +9,7 @@ app.use(express.json());
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/categories", categoryRouter);
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
   console.error(err);
