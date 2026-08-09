@@ -1,7 +1,10 @@
 import { Prisma, type User, type UserRole } from "@restaurant/database";
 import { PasswordService } from "../../../infra/security/password.service.js";
-import { UserRepository } from "../../users/repositories/user.repository.js";
-import { registerSchema, type RegisterDTO } from "../schemas/register.schema.js";
+import { UserRepository } from "../repositories/user.repository.js";
+import {
+  createUserSchema,
+  type CreateUserInput,
+} from "../schemas/create-user.schema.js";
 
 export class EmailAlreadyExistsError extends Error {
   constructor() {
@@ -18,7 +21,7 @@ export interface SafeUser {
   status: User["status"];
 }
 
-export class RegisterUseCase {
+export class CreateUserUseCase {
   private readonly userRepository: UserRepository;
   private readonly passwordService: PasswordService;
 
@@ -30,8 +33,8 @@ export class RegisterUseCase {
     this.passwordService = passwordService;
   }
 
-  async execute(input: RegisterDTO): Promise<SafeUser> {
-    const data = registerSchema.parse(input);
+  async execute(input: CreateUserInput): Promise<SafeUser> {
+    const data = createUserSchema.parse(input);
 
     const existing = await this.userRepository.findByEmail(data.email);
     if (existing) {
@@ -46,7 +49,7 @@ export class RegisterUseCase {
   }
 
   private async createUser(
-    data: RegisterDTO,
+    data: CreateUserInput,
     hashedPassword: string,
   ): Promise<User> {
     try {
@@ -54,7 +57,7 @@ export class RegisterUseCase {
         email: data.email,
         name: data.name,
         password: hashedPassword,
-        role: "OWNER",
+        role: data.role,
       });
     } catch (error) {
       if (

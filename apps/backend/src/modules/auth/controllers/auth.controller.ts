@@ -1,5 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
+import {
+  BootstrapOwnerUseCase,
+  OwnerAlreadyExistsError,
+} from "../use-cases/bootstrap-owner.use-case.js";
 import { LogoutUseCase } from "../use-cases/logout.use-case.js";
 import {
   AccountNotActiveError,
@@ -10,13 +14,9 @@ import {
   InvalidRefreshTokenError,
   RefreshTokenUseCase,
 } from "../use-cases/refresh-token.use-case.js";
-import {
-  EmailAlreadyExistsError,
-  RegisterUseCase,
-} from "../use-cases/register.use-case.js";
 
 const loginUseCase = new LoginUseCase();
-const registerUseCase = new RegisterUseCase();
+const bootstrapOwnerUseCase = new BootstrapOwnerUseCase();
 const refreshTokenUseCase = new RefreshTokenUseCase();
 const logoutUseCase = new LogoutUseCase();
 
@@ -34,23 +34,27 @@ export async function login(req: Request, res: Response, next: NextFunction) {
       return res.status(401).json({ success: false, message: error.message });
     }
     if (error instanceof AccountNotActiveError) {
-      return res.status(403).json({ success: false, message: error.message });
+      return res.status(401).json({ success: false, message: error.message });
     }
     next(error);
   }
 }
 
-export async function register(req: Request, res: Response, next: NextFunction) {
+export async function bootstrapOwner(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
   try {
-    const user = await registerUseCase.execute(req.body);
+    const user = await bootstrapOwnerUseCase.execute(req.body);
 
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
+      message: "Owner bootstrap completed successfully",
       data: user,
     });
   } catch (error) {
-    if (error instanceof EmailAlreadyExistsError) {
+    if (error instanceof OwnerAlreadyExistsError) {
       return res.status(409).json({ success: false, message: error.message });
     }
     next(error);

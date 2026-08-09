@@ -3,13 +3,23 @@ import type { RequestHandler } from "express";
 import { UserRole } from "@restaurant/database";
 import { authMiddleware } from "../../../middleware/auth.middleware.js";
 import { requireRole } from "../../../middleware/role.middleware.js";
+import { validate } from "../../../middleware/validate.middleware.js";
 import {
+  createUser,
   deleteUser,
   listUsers,
 } from "../controllers/users.controller.js";
+import { createUserSchema } from "../schemas/create-user.schema.js";
 
 const router = Router();
 
+router.post(
+  "/",
+  authMiddleware(),
+  requireRole(UserRole.OWNER),
+  validate(createUserSchema, "body"),
+  createUser as RequestHandler,
+);
 router.get(
   "/",
   authMiddleware(),

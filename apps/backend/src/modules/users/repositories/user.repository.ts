@@ -39,6 +39,12 @@ export class UserRepository {
     });
   }
 
+  async findOwner() {
+    return this.client.user.findFirst({
+      where: { role: "OWNER" },
+    });
+  }
+
   async create(data: CreateUserInput) {
     return this.client.user.create({
       data: {

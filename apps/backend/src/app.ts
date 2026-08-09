@@ -1,4 +1,7 @@
+import cors from "cors";
 import express, { type ErrorRequestHandler } from "express";
+import helmet from "helmet";
+import { env } from "./config/env.js";
 import authRouter from "./modules/auth/routes/auth.routes.js";
 import categoryRouter from "./modules/categories/routes/category.routes.js";
 import dashboardRouter from "./modules/dashboard/routes/dashboard.routes.js";
@@ -15,7 +18,23 @@ import tableRouter from "./modules/tables/routes/table.routes.js";
 import usersRouter from "./modules/users/routes/users.routes.js";
 
 const app = express();
+app.use(helmet());
 app.use(express.json());
+app.use(cors({ origin: resolveCorsOrigins(env.corsOrigin) }));
+
+function resolveCorsOrigins(value: string): string | string[] | boolean {
+  if (value === "*") {
+    return true;
+  }
+
+  const origins = value
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
+  return origins.length === 1 ? origins[0] : origins;
+}
+
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", usersRouter);

@@ -2,8 +2,13 @@ import type { NextFunction, Response } from "express";
 import type { User } from "@restaurant/database";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { UserRepository } from "../repositories/user.repository.js";
+import {
+  CreateUserUseCase,
+  EmailAlreadyExistsError,
+} from "../use-cases/create-user.use-case.js";
 
 const userRepository = new UserRepository();
+const createUserUseCase = new CreateUserUseCase();
 
 function toSafeUser(user: User) {
   return {
@@ -16,6 +21,27 @@ function toSafeUser(user: User) {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
+}
+
+export async function createUser(
+  req: AuthenticatedRequest,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const user = await createUserUseCase.execute(req.body);
+
+    res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: user,
+    });
+  } catch (error) {
+    if (error instanceof EmailAlreadyExistsError) {
+      return res.status(409).json({ success: false, message: error.message });
+    }
+    next(error);
+  }
 }
 
 export async function listUsers(

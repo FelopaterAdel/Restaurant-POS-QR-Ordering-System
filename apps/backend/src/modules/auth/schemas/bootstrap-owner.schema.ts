@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const registerSchema = z.object({
+export const bootstrapOwnerSchema = z.object({
   name: z
     .string()
     .trim()
@@ -22,5 +22,5 @@ export const registerSchema = z.object({
     .regex(/[^A-Za-z0-9]/, "Password must contain a special character"),
 });
 
-export type RegisterDTO = z.infer<typeof registerSchema>;
-export type RegisterInput = z.input<typeof registerSchema>;
+export type BootstrapOwnerDTO = z.infer<typeof bootstrapOwnerSchema>;
+export type BootstrapOwnerInput = z.input<typeof bootstrapOwnerSchema>;

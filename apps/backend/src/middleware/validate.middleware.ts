@@ -22,7 +22,7 @@ export interface ValidationResponse {
  * @returns Express middleware function
  *
  * @example
- * router.post('/register', validate(registerSchema, 'body'), controller.register);
+ * router.post('/bootstrap/owner', validate(bootstrapOwnerSchema, 'body'), controller.bootstrapOwner);
  */
 export function validate(schema: ZodSchema, source: ValidateSource = "body") {
   return async (req: Request, res: Response, next: NextFunction) => {
