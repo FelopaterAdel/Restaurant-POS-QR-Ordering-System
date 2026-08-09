@@ -1,15 +1,20 @@
 import { randomBytes } from "node:crypto";
 import { Prisma } from "@restaurant/database";
 import type { RestaurantTable } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { TableRepository } from "../repositories/table.repository.js";
 import {
   createTableSchema,
   type CreateTableDTO,
 } from "../schemas/create-table.schema.js";
 
-export class TableNumberAlreadyExistsError extends Error {
+export class TableNumberAlreadyExistsError extends ConflictError {
   constructor() {
-    super("A table with this number already exists");
+    super(
+      AppErrorCode.TABLE_NUMBER_ALREADY_EXISTS,
+      "A table with this number already exists",
+    );
     this.name = "TableNumberAlreadyExistsError";
   }
 }

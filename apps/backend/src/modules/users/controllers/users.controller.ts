@@ -1,10 +1,11 @@
 import type { NextFunction, Response } from "express";
 import type { User } from "@restaurant/database";
+import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import {
   CreateUserUseCase,
-  EmailAlreadyExistsError,
+  UserNotFoundError,
 } from "../use-cases/create-user.use-case.js";
 
 const userRepository = new UserRepository();
@@ -28,20 +29,8 @@ export async function createUser(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const user = await createUserUseCase.execute(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "User created successfully",
-      data: user,
-    });
-  } catch (error) {
-    if (error instanceof EmailAlreadyExistsError) {
-      return res.status(409).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const user = await createUserUseCase.execute(req.body);
+  sendSuccess(res, user, 201);
 }
 
 export async function listUsers(
@@ -49,17 +38,8 @@ export async function listUsers(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const users = await userRepository.findAll();
-
-    res.status(200).json({
-      success: true,
-      message: "Users retrieved successfully",
-      data: users.map(toSafeUser),
-    });
-  } catch (error) {
-    next(error);
-  }
+  const users = await userRepository.findAll();
+  sendSuccess(res, users.map(toSafeUser));
 }
 
 export async function deleteUser(
@@ -67,25 +47,14 @@ export async function deleteUser(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const { id } = req.params;
+  const { id } = req.params;
 
-    const existing = await userRepository.findById(id);
-    if (!existing) {
-      res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
-      return;
-    }
-
-    await userRepository.delete(id);
-
-    res.status(200).json({
-      success: true,
-      message: "User deactivated successfully",
-    });
-  } catch (error) {
-    next(error);
+  const existing = await userRepository.findById(id);
+  if (!existing) {
+    throw new UserNotFoundError();
   }
+
+  await userRepository.delete(id);
+
+  sendSuccess(res, null);
 }

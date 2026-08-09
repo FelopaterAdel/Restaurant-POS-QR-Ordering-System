@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { NextFunction, Request, Response } from "express";
 import { UserRole, UserStatus } from "@restaurant/database";
+import { UnauthorizedError } from "../errors/app-error.js";
 import type { JWTService } from "../infra/auth/jwt.service.js";
 import type { UserRepository } from "../modules/users/repositories/user.repository.js";
 import { authMiddleware } from "./auth.middleware.js";
@@ -38,6 +39,14 @@ function createMiddleware(options: {
   return { middleware, jwtService, userRepository };
 }
 
+function expectUnauthorized(next: NextFunction) {
+  const nextMock = next as unknown as ReturnType<typeof vi.fn>;
+  expect(nextMock).toHaveBeenCalledOnce();
+  const error = nextMock.mock.calls[0][0];
+  expect(error).toBeInstanceOf(UnauthorizedError);
+  expect(error.statusCode).toBe(401);
+}
+
 describe("authMiddleware", () => {
   it("sets req.user and calls next for a valid token", async () => {
     const { req, res, next } = createMocks();
@@ -66,11 +75,8 @@ describe("authMiddleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
-    expect(next).not.toHaveBeenCalled();
+    expectUnauthorized(next);
+    expect(res.status).not.toHaveBeenCalled();
   });
 
   it("returns 401 for an invalid or expired token", async () => {
@@ -80,10 +86,7 @@ describe("authMiddleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
+    expectUnauthorized(next);
   });
 
   it("returns 401 when the token has no subject", async () => {
@@ -96,7 +99,7 @@ describe("authMiddleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
+    expectUnauthorized(next);
   });
 
   it("returns 401 when the user no longer exists", async () => {
@@ -109,7 +112,7 @@ describe("authMiddleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
+    expectUnauthorized(next);
   });
 
   it("returns 401 when the account is not active", async () => {
@@ -123,7 +126,6 @@ describe("authMiddleware", () => {
 
     await middleware(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expectUnauthorized(next);
   });
 });

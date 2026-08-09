@@ -1,9 +1,11 @@
 import type { Product } from "@restaurant/database";
+import { NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { ProductRepository } from "../repositories/product.repository.js";
 
-export class ProductNotFoundError extends Error {
+export class ProductNotFoundError extends NotFoundError {
   constructor() {
-    super("Product not found");
+    super(AppErrorCode.PRODUCT_NOT_FOUND, "Product not found");
     this.name = "ProductNotFoundError";
   }
 }

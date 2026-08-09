@@ -1,9 +1,11 @@
 import type { Category } from "@restaurant/database";
+import { NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { CategoryRepository } from "../repositories/category.repository.js";
 
-export class CategoryNotFoundError extends Error {
+export class CategoryNotFoundError extends NotFoundError {
   constructor() {
-    super("Category not found");
+    super(AppErrorCode.CATEGORY_NOT_FOUND, "Category not found");
     this.name = "CategoryNotFoundError";
   }
 }

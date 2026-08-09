@@ -1,4 +1,6 @@
 import type { Product } from "@restaurant/database";
+import { ConflictError, NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { CategoryRepository } from "../../categories/repositories/category.repository.js";
 import { ProductRepository } from "../repositories/product.repository.js";
 import {
@@ -6,16 +8,16 @@ import {
   type CreateProductDTO,
 } from "../schemas/create-product.schema.js";
 
-export class CategoryNotFoundError extends Error {
+export class CategoryNotFoundError extends NotFoundError {
   constructor() {
-    super("Category not found");
+    super(AppErrorCode.CATEGORY_NOT_FOUND, "Category not found");
     this.name = "CategoryNotFoundError";
   }
 }
 
-export class CategoryDisabledError extends Error {
+export class CategoryDisabledError extends ConflictError {
   constructor() {
-    super("Category is disabled");
+    super(AppErrorCode.CATEGORY_DISABLED, "Category is disabled");
     this.name = "CategoryDisabledError";
   }
 }

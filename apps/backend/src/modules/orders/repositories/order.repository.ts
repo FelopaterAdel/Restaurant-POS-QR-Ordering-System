@@ -112,6 +112,11 @@ export interface OrderHistoryPageResult {
   total: number;
 }
 
+export interface OrderListPageResult {
+  items: OrderWithRelations[];
+  total: number;
+}
+
 export class OrderRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
@@ -175,6 +180,26 @@ export class OrderRepository {
       include: orderInclude,
       orderBy: { createdAt: "desc" },
     });
+  }
+
+  async findOrdersPage(input: {
+    page: number;
+    limit: number;
+  }): Promise<OrderListPageResult> {
+    const where: Prisma.OrderWhereInput = {};
+
+    const [items, total] = await this.client.$transaction([
+      this.client.order.findMany({
+        where,
+        include: orderInclude,
+        orderBy: { createdAt: "desc" },
+        skip: (input.page - 1) * input.limit,
+        take: input.limit,
+      }),
+      this.client.order.count({ where }),
+    ]);
+
+    return { items, total };
   }
 
   async findQueuePage(

@@ -1,34 +1,43 @@
 import { OrderStatus, Prisma, TableStatus } from "@restaurant/database";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
   createOrderSchema,
   type CreateOrderDTO,
 } from "../schemas/create-order.schema.js";
 
-export class TableNotFoundError extends Error {
+export class TableNotFoundError extends NotFoundError {
   constructor() {
-    super("Table not found");
+    super(AppErrorCode.TABLE_NOT_FOUND, "Table not found");
     this.name = "TableNotFoundError";
   }
 }
 
-export class TableDisabledError extends Error {
+export class TableDisabledError extends ConflictError {
   constructor() {
-    super("Table is disabled");
+    super(AppErrorCode.TABLE_DISABLED, "Table is disabled");
     this.name = "TableDisabledError";
   }
 }
 
-export class ProductNotFoundError extends Error {
+export class ProductNotFoundError extends BadRequestError {
   constructor(productId: string) {
-    super(`Product not found: ${productId}`);
+    super(AppErrorCode.PRODUCT_NOT_FOUND, `Product not found: ${productId}`);
     this.name = "ProductNotFoundError";
   }
 }
 
-export class ProductUnavailableError extends Error {
+export class ProductUnavailableError extends BadRequestError {
   constructor(productId: string) {
-    super(`Product is not available: ${productId}`);
+    super(
+      AppErrorCode.PRODUCT_UNAVAILABLE,
+      `Product is not available: ${productId}`,
+    );
     this.name = "ProductUnavailableError";
   }
 }

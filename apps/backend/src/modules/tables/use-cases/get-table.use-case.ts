@@ -1,9 +1,11 @@
 import type { RestaurantTable } from "@restaurant/database";
+import { NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { TableRepository } from "../repositories/table.repository.js";
 
-export class TableNotFoundError extends Error {
+export class TableNotFoundError extends NotFoundError {
   constructor() {
-    super("Table not found");
+    super(AppErrorCode.TABLE_NOT_FOUND, "Table not found");
     this.name = "TableNotFoundError";
   }
 }

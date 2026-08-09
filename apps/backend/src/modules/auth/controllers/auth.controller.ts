@@ -1,19 +1,10 @@
 import { NextFunction, Request, Response } from "express";
+import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
-import {
-  BootstrapOwnerUseCase,
-  OwnerAlreadyExistsError,
-} from "../use-cases/bootstrap-owner.use-case.js";
+import { BootstrapOwnerUseCase } from "../use-cases/bootstrap-owner.use-case.js";
 import { LogoutUseCase } from "../use-cases/logout.use-case.js";
-import {
-  AccountNotActiveError,
-  InvalidCredentialsError,
-  LoginUseCase,
-} from "../use-cases/login.use-case.js";
-import {
-  InvalidRefreshTokenError,
-  RefreshTokenUseCase,
-} from "../use-cases/refresh-token.use-case.js";
+import { LoginUseCase } from "../use-cases/login.use-case.js";
+import { RefreshTokenUseCase } from "../use-cases/refresh-token.use-case.js";
 
 const loginUseCase = new LoginUseCase();
 const bootstrapOwnerUseCase = new BootstrapOwnerUseCase();
@@ -21,23 +12,8 @@ const refreshTokenUseCase = new RefreshTokenUseCase();
 const logoutUseCase = new LogoutUseCase();
 
 export async function login(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = await loginUseCase.execute(req.body);
-
-    res.status(200).json({
-      success: true,
-      message: "Login successful",
-      data: result,
-    });
-  } catch (error) {
-    if (error instanceof InvalidCredentialsError) {
-      return res.status(401).json({ success: false, message: error.message });
-    }
-    if (error instanceof AccountNotActiveError) {
-      return res.status(401).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const result = await loginUseCase.execute(req.body);
+  sendSuccess(res, result);
 }
 
 export async function bootstrapOwner(
@@ -45,50 +21,18 @@ export async function bootstrapOwner(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const user = await bootstrapOwnerUseCase.execute(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "Owner bootstrap completed successfully",
-      data: user,
-    });
-  } catch (error) {
-    if (error instanceof OwnerAlreadyExistsError) {
-      return res.status(409).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const user = await bootstrapOwnerUseCase.execute(req.body);
+  sendSuccess(res, user, 201);
 }
 
 export async function refresh(req: Request, res: Response, next: NextFunction) {
-  try {
-    const result = await refreshTokenUseCase.execute(req.body);
-
-    res.status(200).json({
-      success: true,
-      message: "Token refreshed successfully",
-      data: result,
-    });
-  } catch (error) {
-    if (error instanceof InvalidRefreshTokenError) {
-      return res.status(401).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const result = await refreshTokenUseCase.execute(req.body);
+  sendSuccess(res, result);
 }
 
 export async function logout(req: Request, res: Response, next: NextFunction) {
-  try {
-    await logoutUseCase.execute(req.body);
-
-    res.status(200).json({
-      success: true,
-      message: "Logged out successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
+  await logoutUseCase.execute(req.body);
+  sendSuccess(res, null);
 }
 
 export async function me(
@@ -96,9 +40,5 @@ export async function me(
   res: Response,
   _next: NextFunction,
 ) {
-  res.status(200).json({
-    success: true,
-    message: "User retrieved successfully",
-    data: req.user,
-  });
+  sendSuccess(res, req.user);
 }

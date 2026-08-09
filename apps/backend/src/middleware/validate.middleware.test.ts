@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { describe, expect, it, vi } from "vitest";
 import type { NextFunction, Request, Response } from "express";
+import { ValidationError } from "../errors/app-error.js";
 import { validate } from "./validate.middleware.js";
 
 const querySchema = z.object({
@@ -56,18 +57,18 @@ describe("validate middleware", () => {
 
     await validate(querySchema, "query")(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
+    const nextMock = next as unknown as ReturnType<typeof vi.fn>;
+    expect(nextMock).toHaveBeenCalledOnce();
+    const error = nextMock.mock.calls[0][0];
+    expect(error).toBeInstanceOf(ValidationError);
+    expect(error.statusCode).toBe(400);
+    expect(error.code).toBe("VALIDATION_ERROR");
+    expect(error.details).toEqual([
       expect.objectContaining({
-        success: false,
-        errors: [
-          expect.objectContaining({
-            field: "limit",
-          }),
-        ],
+        field: "limit",
       }),
-    );
-    expect(next).not.toHaveBeenCalled();
+    ]);
+    expect(res.status).not.toHaveBeenCalled();
   });
 
   it("replaces req.body with validated body data", async () => {

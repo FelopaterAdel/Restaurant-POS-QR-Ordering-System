@@ -1,4 +1,6 @@
 import { Prisma, type User, type UserRole } from "@restaurant/database";
+import { ConflictError, NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { PasswordService } from "../../../infra/security/password.service.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import {
@@ -6,10 +8,17 @@ import {
   type CreateUserInput,
 } from "../schemas/create-user.schema.js";
 
-export class EmailAlreadyExistsError extends Error {
+export class EmailAlreadyExistsError extends ConflictError {
   constructor() {
-    super("Email already exists");
+    super(AppErrorCode.EMAIL_ALREADY_EXISTS, "Email already exists");
     this.name = "EmailAlreadyExistsError";
+  }
+}
+
+export class UserNotFoundError extends NotFoundError {
+  constructor() {
+    super(AppErrorCode.USER_NOT_FOUND, "User not found");
+    this.name = "UserNotFoundError";
   }
 }
 

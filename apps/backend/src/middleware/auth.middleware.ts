@@ -1,5 +1,6 @@
 import type { NextFunction, RequestHandler, Response } from "express";
 import { env } from "../config/env.js";
+import { UnauthorizedError } from "../errors/app-error.js";
 import { JWTService } from "../infra/auth/jwt.service.js";
 import { UserRepository } from "../modules/users/repositories/user.repository.js";
 import type { AuthenticatedUser } from "../types/auth.js";
@@ -47,38 +48,24 @@ export function authMiddleware(
     try {
       const authorization = req.headers.authorization;
       if (!authorization?.startsWith("Bearer ")) {
-        res.status(401).json({
-          success: false,
-          message: "No access token provided",
-        });
-        return;
+        return next(new UnauthorizedError("No access token provided"));
       }
 
       const token = authorization.slice("Bearer ".length).trim();
       const decoded = jwtService.verifyAccessToken(token);
       if (!decoded?.sub) {
-        res.status(401).json({
-          success: false,
-          message: "Invalid or expired access token",
-        });
-        return;
+        return next(
+          new UnauthorizedError("Invalid or expired access token"),
+        );
       }
 
       const user = await userRepository.findById(decoded.sub);
       if (!user) {
-        res.status(401).json({
-          success: false,
-          message: "User not found",
-        });
-        return;
+        return next(new UnauthorizedError("User not found"));
       }
 
       if (user.status !== "ACTIVE") {
-        res.status(401).json({
-          success: false,
-          message: "Account is not active",
-        });
-        return;
+        return next(new UnauthorizedError("Account is not active"));
       }
 
       req.user = toAuthenticatedUser(user);

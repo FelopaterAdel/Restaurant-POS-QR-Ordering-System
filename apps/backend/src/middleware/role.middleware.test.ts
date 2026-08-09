@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import type { NextFunction, Request, Response } from "express";
 import { UserRole } from "@restaurant/database";
+import { ForbiddenError, UnauthorizedError } from "../errors/app-error.js";
 import { requireRole } from "./role.middleware.js";
 
 function createMocks(userRole?: UserRole) {
@@ -33,11 +34,12 @@ describe("requireRole", () => {
 
     requireRole(UserRole.OWNER)(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
-    expect(next).not.toHaveBeenCalled();
+    const nextMock = next as unknown as ReturnType<typeof vi.fn>;
+    expect(nextMock).toHaveBeenCalledOnce();
+    const error = nextMock.mock.calls[0][0];
+    expect(error).toBeInstanceOf(ForbiddenError);
+    expect(error.statusCode).toBe(403);
+    expect(res.status).not.toHaveBeenCalled();
   });
 
   it("returns 401 when the request is not authenticated", () => {
@@ -45,7 +47,11 @@ describe("requireRole", () => {
 
     requireRole(UserRole.OWNER)(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    const nextMock = next as unknown as ReturnType<typeof vi.fn>;
+    expect(nextMock).toHaveBeenCalledOnce();
+    const error = nextMock.mock.calls[0][0];
+    expect(error).toBeInstanceOf(UnauthorizedError);
+    expect(error.statusCode).toBe(401);
+    expect(res.status).not.toHaveBeenCalled();
   });
 });

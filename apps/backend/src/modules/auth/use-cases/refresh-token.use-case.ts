@@ -1,5 +1,7 @@
 import type { SignOptions } from "jsonwebtoken";
 import { env } from "../../../config/env.js";
+import { UnauthorizedError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { JWTService } from "../../../infra/auth/jwt.service.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
 import { RefreshTokenRepository } from "../repositories/refresh-token.repository.js";
@@ -8,9 +10,9 @@ import {
   type RefreshTokenDTO,
 } from "../schemas/refresh-token.schema.js";
 
-export class InvalidRefreshTokenError extends Error {
+export class InvalidRefreshTokenError extends UnauthorizedError {
   constructor() {
-    super("Invalid refresh token");
+    super("Invalid refresh token", AppErrorCode.INVALID_REFRESH_TOKEN);
     this.name = "InvalidRefreshTokenError";
   }
 }

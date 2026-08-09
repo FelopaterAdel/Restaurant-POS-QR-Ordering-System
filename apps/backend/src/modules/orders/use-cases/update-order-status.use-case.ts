@@ -1,4 +1,9 @@
 import { OrderStatus, UserRole } from "@restaurant/database";
+import {
+  ConflictError,
+  ForbiddenError,
+} from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import type { AuthenticatedUser } from "../../../types/auth.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
@@ -46,14 +51,17 @@ const ROLE_ALLOWED_TRANSITIONS: Record<
   [UserRole.CASHIER]: [],
 };
 
-export class InvalidStatusTransitionError extends Error {
+export class InvalidStatusTransitionError extends ConflictError {
   constructor(from: OrderStatus, to: OrderStatus) {
-    super(`Cannot change order status from ${from} to ${to}`);
+    super(
+      AppErrorCode.ORDER_INVALID_STATUS,
+      `Cannot change order status from ${from} to ${to}`,
+    );
     this.name = "InvalidStatusTransitionError";
   }
 }
 
-export class ForbiddenStatusTransitionError extends Error {
+export class ForbiddenStatusTransitionError extends ForbiddenError {
   constructor() {
     super("You do not have permission to perform this status change");
     this.name = "ForbiddenStatusTransitionError";

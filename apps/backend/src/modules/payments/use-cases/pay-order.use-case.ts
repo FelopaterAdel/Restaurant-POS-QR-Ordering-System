@@ -1,4 +1,6 @@
 import { OrderStatus, PaymentStatus, Prisma } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../../orders/repositories/order.repository.js";
 import { OrderNotFoundError } from "../../orders/use-cases/get-order.use-case.js";
 import {
@@ -15,16 +17,19 @@ const PAYABLE_ORDER_STATUSES: readonly OrderStatus[] = [
   OrderStatus.SERVED,
 ];
 
-export class OrderNotPayableError extends Error {
+export class OrderNotPayableError extends ConflictError {
   constructor(status: OrderStatus) {
-    super(`Order in status ${status} cannot be paid`);
+    super(
+      AppErrorCode.PAYMENT_NOT_ALLOWED,
+      `Order in status ${status} cannot be paid`,
+    );
     this.name = "OrderNotPayableError";
   }
 }
 
-export class PaymentAlreadyExistsError extends Error {
+export class PaymentAlreadyExistsError extends ConflictError {
   constructor() {
-    super("Order is already paid");
+    super(AppErrorCode.PAYMENT_ALREADY_EXISTS, "Order is already paid");
     this.name = "PaymentAlreadyExistsError";
   }
 }

@@ -1,4 +1,6 @@
 import { TableStatus } from "@restaurant/database";
+import { ConflictError, NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { PublicMenuRepository } from "../repositories/public-menu.repository.js";
 
 export interface PublicTableDTO {
@@ -26,16 +28,16 @@ export interface PublicMenuDTO {
   categories: PublicCategoryDTO[];
 }
 
-export class TableNotFoundError extends Error {
+export class TableNotFoundError extends NotFoundError {
   constructor() {
-    super("Table not found");
+    super(AppErrorCode.TABLE_NOT_FOUND, "Table not found");
     this.name = "TableNotFoundError";
   }
 }
 
-export class TableDisabledError extends Error {
+export class TableDisabledError extends ConflictError {
   constructor() {
-    super("Table is disabled");
+    super(AppErrorCode.TABLE_DISABLED, "Table is disabled");
     this.name = "TableDisabledError";
   }
 }

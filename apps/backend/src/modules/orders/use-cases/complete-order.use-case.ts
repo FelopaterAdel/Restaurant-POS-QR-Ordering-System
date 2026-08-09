@@ -1,4 +1,9 @@
 import { OrderStatus, PaymentStatus } from "@restaurant/database";
+import {
+  BadRequestError,
+  ConflictError,
+} from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
   OrderNotFoundError,
@@ -6,23 +11,23 @@ import {
   type OrderDTO,
 } from "./get-order.use-case.js";
 
-export class OrderNotPaidError extends Error {
+export class OrderNotPaidError extends BadRequestError {
   constructor() {
-    super("Order must be paid before completion");
+    super(AppErrorCode.ORDER_NOT_PAID, "Order must be paid before completion");
     this.name = "OrderNotPaidError";
   }
 }
 
-export class OrderCannotBeCompletedError extends Error {
+export class OrderCannotBeCompletedError extends ConflictError {
   constructor() {
-    super("Order cannot be completed");
+    super(AppErrorCode.ORDER_CANNOT_BE_COMPLETED, "Order cannot be completed");
     this.name = "OrderCannotBeCompletedError";
   }
 }
 
-export class OrderAlreadyCompletedError extends Error {
+export class OrderAlreadyCompletedError extends ConflictError {
   constructor() {
-    super("Order is already completed");
+    super(AppErrorCode.ORDER_ALREADY_COMPLETED, "Order is already completed");
     this.name = "OrderAlreadyCompletedError";
   }
 }

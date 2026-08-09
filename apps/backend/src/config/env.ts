@@ -47,4 +47,8 @@ export const env = {
     loginMax: Number(process.env.AUTH_RATE_LIMIT_LOGIN_MAX ?? 10),
     refreshMax: Number(process.env.AUTH_RATE_LIMIT_REFRESH_MAX ?? 30),
   },
+  swaggerEnabled:
+    process.env.SWAGGER_ENABLED === "true" ||
+    (process.env.SWAGGER_ENABLED === undefined &&
+      process.env.NODE_ENV !== "production"),
 };

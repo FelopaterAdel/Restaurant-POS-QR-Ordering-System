@@ -1,7 +1,8 @@
 import cors from "cors";
-import express, { type ErrorRequestHandler } from "express";
+import express from "express";
 import helmet from "helmet";
 import { env } from "./config/env.js";
+import { errorHandler } from "./errors/http-error-handler.js";
 import authRouter from "./modules/auth/routes/auth.routes.js";
 import categoryRouter from "./modules/categories/routes/category.routes.js";
 import dashboardRouter from "./modules/dashboard/routes/dashboard.routes.js";
@@ -50,11 +51,8 @@ app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/orders", paymentRouter);
 app.use("/api/v1/staff/orders", staffOrderRouter);
 
-const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
-  console.error(err);
-  res.status(500).json({ success: false, message: "Internal server error" });
-};
-
+// The /health endpoint is an infrastructure endpoint and intentionally keeps
+// its own { status: "ok" } shape instead of the business API contract.
 app.use(errorHandler);
 
 export default app;

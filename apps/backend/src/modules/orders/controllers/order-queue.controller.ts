@@ -1,4 +1,5 @@
 import type { NextFunction, Response } from "express";
+import { sendPaginated } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { GetOrderQueueUseCase } from "../use-cases/get-order-queue.use-case.js";
 import type { GetOrderQueueDTO } from "../schemas/get-order-queue.schema.js";
@@ -10,18 +11,8 @@ export async function getOrderQueue(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const { status, page, limit } = req.query as unknown as GetOrderQueueDTO;
+  const { status, page, limit } = req.query as unknown as GetOrderQueueDTO;
 
-    const result = await getOrderQueueUseCase.execute({ status, page, limit });
-
-    res.status(200).json({
-      success: true,
-      message: "Order queue retrieved successfully",
-      data: result.data,
-      pagination: result.pagination,
-    });
-  } catch (error) {
-    next(error);
-  }
+  const result = await getOrderQueueUseCase.execute({ status, page, limit });
+  sendPaginated(res, result.data, result.pagination);
 }

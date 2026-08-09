@@ -4,6 +4,7 @@ import { UserRole } from "@restaurant/database";
 import { authMiddleware } from "../../../middleware/auth.middleware.js";
 import { requireRole } from "../../../middleware/role.middleware.js";
 import { validate } from "../../../middleware/validate.middleware.js";
+import { idParamSchema } from "../../../schemas/id-param.schema.js";
 import {
   createCategory,
   disableCategory,
@@ -36,6 +37,7 @@ router.get(
   "/:id",
   authMiddleware(),
   requireRole(...readRoles),
+  validate(idParamSchema(), "params"),
   getCategory as RequestHandler,
 );
 router.post(
@@ -49,6 +51,7 @@ router.patch(
   "/:id",
   authMiddleware(),
   requireRole(...writeRoles),
+  validate(idParamSchema(), "params"),
   validate(updateCategorySchema, "body"),
   updateCategory as RequestHandler,
 );
@@ -56,6 +59,7 @@ router.delete(
   "/:id",
   authMiddleware(),
   requireRole(...writeRoles),
+  validate(idParamSchema(), "params"),
   disableCategory as RequestHandler,
 );
 

@@ -1,22 +1,24 @@
 import type { User, UserRole } from "@restaurant/database";
 import type { SignOptions } from "jsonwebtoken";
 import { env } from "../../../config/env.js";
+import { UnauthorizedError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { JWTService } from "../../../infra/auth/jwt.service.js";
 import { PasswordService } from "../../../infra/security/password.service.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
 import { RefreshTokenRepository } from "../repositories/refresh-token.repository.js";
 import { loginSchema, type LoginDTO } from "../schemas/login.schema.js";
 
-export class InvalidCredentialsError extends Error {
+export class InvalidCredentialsError extends UnauthorizedError {
   constructor() {
-    super("Invalid email or password");
+    super("Invalid email or password", AppErrorCode.INVALID_CREDENTIALS);
     this.name = "InvalidCredentialsError";
   }
 }
 
-export class AccountNotActiveError extends Error {
+export class AccountNotActiveError extends UnauthorizedError {
   constructor() {
-    super("Account is not active");
+    super("Account is not active", AppErrorCode.ACCOUNT_NOT_ACTIVE);
     this.name = "AccountNotActiveError";
   }
 }

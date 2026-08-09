@@ -1,17 +1,9 @@
 import type { NextFunction, Request, Response } from "express";
+import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
-import {
-  CreateTableUseCase,
-  TableNumberAlreadyExistsError,
-} from "../use-cases/create-table.use-case.js";
-import {
-  DisableTableUseCase,
-  TableHasActiveOrdersError,
-} from "../use-cases/disable-table.use-case.js";
-import {
-  GetTableUseCase,
-  TableNotFoundError,
-} from "../use-cases/get-table.use-case.js";
+import { CreateTableUseCase } from "../use-cases/create-table.use-case.js";
+import { DisableTableUseCase } from "../use-cases/disable-table.use-case.js";
+import { GetTableUseCase } from "../use-cases/get-table.use-case.js";
 import { GetTableQrUseCase } from "../use-cases/get-table-qr.use-case.js";
 import { ListTablesUseCase } from "../use-cases/list-tables.use-case.js";
 import { UpdateTableUseCase } from "../use-cases/update-table.use-case.js";
@@ -28,20 +20,8 @@ export async function createTable(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const table = await createTableUseCase.execute(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "Table created successfully",
-      data: table,
-    });
-  } catch (error) {
-    if (error instanceof TableNumberAlreadyExistsError) {
-      return res.status(409).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const table = await createTableUseCase.execute(req.body);
+  sendSuccess(res, table, 201);
 }
 
 export async function listTables(
@@ -49,17 +29,8 @@ export async function listTables(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const tables = await listTablesUseCase.execute();
-
-    res.status(200).json({
-      success: true,
-      message: "Tables retrieved successfully",
-      data: tables,
-    });
-  } catch (error) {
-    next(error);
-  }
+  const tables = await listTablesUseCase.execute();
+  sendSuccess(res, tables);
 }
 
 export async function getTable(
@@ -67,20 +38,8 @@ export async function getTable(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const table = await getTableUseCase.execute(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Table retrieved successfully",
-      data: table,
-    });
-  } catch (error) {
-    if (error instanceof TableNotFoundError) {
-      return res.status(404).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const table = await getTableUseCase.execute(req.params.id);
+  sendSuccess(res, table);
 }
 
 export async function getTableQr(
@@ -88,21 +47,14 @@ export async function getTableQr(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const png = await getTableQrUseCase.execute(req.params.id);
+  const png = await getTableQrUseCase.execute(req.params.id);
 
-    res.setHeader("Content-Type", "image/png");
-    res.setHeader(
-      "Content-Disposition",
-      `inline; filename="table-${req.params.id}-qr.png"`,
-    );
-    res.status(200).send(png);
-  } catch (error) {
-    if (error instanceof TableNotFoundError) {
-      return res.status(404).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  res.setHeader("Content-Type", "image/png");
+  res.setHeader(
+    "Content-Disposition",
+    `inline; filename="table-${req.params.id}-qr.png"`,
+  );
+  res.status(200).send(png);
 }
 
 export async function updateTable(
@@ -110,23 +62,8 @@ export async function updateTable(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const table = await updateTableUseCase.execute(req.params.id, req.body);
-
-    res.status(200).json({
-      success: true,
-      message: "Table updated successfully",
-      data: table,
-    });
-  } catch (error) {
-    if (error instanceof TableNotFoundError) {
-      return res.status(404).json({ success: false, message: error.message });
-    }
-    if (error instanceof TableNumberAlreadyExistsError) {
-      return res.status(409).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const table = await updateTableUseCase.execute(req.params.id, req.body);
+  sendSuccess(res, table);
 }
 
 export async function disableTable(
@@ -134,21 +71,6 @@ export async function disableTable(
   res: Response,
   next: NextFunction,
 ) {
-  try {
-    const table = await disableTableUseCase.execute(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Table disabled successfully",
-      data: table,
-    });
-  } catch (error) {
-    if (error instanceof TableNotFoundError) {
-      return res.status(404).json({ success: false, message: error.message });
-    }
-    if (error instanceof TableHasActiveOrdersError) {
-      return res.status(409).json({ success: false, message: error.message });
-    }
-    next(error);
-  }
+  const table = await disableTableUseCase.execute(req.params.id);
+  sendSuccess(res, table);
 }

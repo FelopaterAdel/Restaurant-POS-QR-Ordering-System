@@ -1,5 +1,7 @@
 import { TableStatus } from "@restaurant/database";
 import type { RestaurantTable } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { TableRepository } from "../repositories/table.repository.js";
 import { TableNotFoundError } from "./get-table.use-case.js";
 
@@ -31,9 +33,12 @@ export class DisableTableUseCase {
   }
 }
 
-export class TableHasActiveOrdersError extends Error {
+export class TableHasActiveOrdersError extends ConflictError {
   constructor() {
-    super("Table cannot be disabled because it has active orders");
+    super(
+      AppErrorCode.TABLE_HAS_ACTIVE_ORDERS,
+      "Table cannot be disabled because it has active orders",
+    );
     this.name = "TableHasActiveOrdersError";
   }
 }

@@ -1,4 +1,6 @@
 import { OrderStatus, PaymentStatus } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
   cancelOrderSchema,
@@ -11,23 +13,29 @@ import {
 } from "./get-order.use-case.js";
 import { CANCELLABLE_ORDER_STATUSES } from "./update-order-status.use-case.js";
 
-export class OrderAlreadyCancelledError extends Error {
+export class OrderAlreadyCancelledError extends ConflictError {
   constructor() {
-    super("Order is already cancelled");
+    super(AppErrorCode.ORDER_ALREADY_CANCELLED, "Order is already cancelled");
     this.name = "OrderAlreadyCancelledError";
   }
 }
 
-export class OrderCannotBeCancelledError extends Error {
+export class OrderCannotBeCancelledError extends ConflictError {
   constructor(status: OrderStatus) {
-    super(`Order in status ${status} cannot be cancelled`);
+    super(
+      AppErrorCode.ORDER_CANNOT_BE_CANCELLED,
+      `Order in status ${status} cannot be cancelled`,
+    );
     this.name = "OrderCannotBeCancelledError";
   }
 }
 
-export class PaidOrderCannotBeCancelledError extends Error {
+export class PaidOrderCannotBeCancelledError extends ConflictError {
   constructor() {
-    super("Paid orders cannot be cancelled");
+    super(
+      AppErrorCode.ORDER_CANNOT_BE_CANCELLED,
+      "Paid orders cannot be cancelled",
+    );
     this.name = "PaidOrderCannotBeCancelledError";
   }
 }

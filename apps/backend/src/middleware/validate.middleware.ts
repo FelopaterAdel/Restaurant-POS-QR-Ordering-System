@@ -1,21 +1,15 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodSchema } from "zod";
+import {
+  ValidationError,
+  type ValidationIssue,
+} from "../errors/app-error.js";
 
 export type ValidateSource = "body" | "query" | "params";
 
-export interface ValidationError {
-  field: string;
-  message: string;
-}
-
-export interface ValidationResponse {
-  success: boolean;
-  errors?: ValidationError[];
-}
-
 /**
  * Express middleware to validate request data against a Zod schema
- * Automatically returns validation errors if data is invalid
+ * Fails with a 400 VALIDATION_ERROR through the global error handler.
  *
  * @param schema Zod schema to validate against
  * @param source Where to validate from: 'body', 'query', or 'params'
@@ -32,15 +26,12 @@ export function validate(schema: ZodSchema, source: ValidateSource = "body") {
       const result = schema.safeParse(dataToValidate);
 
       if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((issue) => ({
+        const issues: ValidationIssue[] = result.error.issues.map((issue) => ({
           field: issue.path.join(".") || "unknown",
           message: issue.message,
         }));
 
-        return res.status(400).json({
-          success: false,
-          errors,
-        } as ValidationResponse);
+        return next(new ValidationError("Validation failed", issues));
       }
 
       // Replace the request data with validated data

@@ -4,6 +4,7 @@ import { UserRole } from "@restaurant/database";
 import { authMiddleware } from "../../../middleware/auth.middleware.js";
 import { requireRole } from "../../../middleware/role.middleware.js";
 import { validate } from "../../../middleware/validate.middleware.js";
+import { idParamSchema } from "../../../schemas/id-param.schema.js";
 import {
   createUser,
   deleteUser,
@@ -30,6 +31,7 @@ router.delete(
   "/:id",
   authMiddleware(),
   requireRole(UserRole.OWNER),
+  validate(idParamSchema(), "params"),
   deleteUser as RequestHandler,
 );
 

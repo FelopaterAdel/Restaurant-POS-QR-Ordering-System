@@ -1,14 +1,19 @@
 import { Prisma } from "@restaurant/database";
 import type { Category } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { CategoryRepository } from "../repositories/category.repository.js";
 import {
   createCategorySchema,
   type CreateCategoryDTO,
 } from "../schemas/create-category.schema.js";
 
-export class CategoryNameAlreadyExistsError extends Error {
+export class CategoryNameAlreadyExistsError extends ConflictError {
   constructor() {
-    super("A category with this name already exists");
+    super(
+      AppErrorCode.CATEGORY_NAME_ALREADY_EXISTS,
+      "A category with this name already exists",
+    );
     this.name = "CategoryNameAlreadyExistsError";
   }
 }

@@ -1,4 +1,6 @@
 import { Prisma, type User, type UserRole } from "@restaurant/database";
+import { ConflictError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import { PasswordService } from "../../../infra/security/password.service.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
 import {
@@ -6,9 +8,12 @@ import {
   type BootstrapOwnerDTO,
 } from "../schemas/bootstrap-owner.schema.js";
 
-export class OwnerAlreadyExistsError extends Error {
+export class OwnerAlreadyExistsError extends ConflictError {
   constructor() {
-    super("Owner bootstrap has already been completed");
+    super(
+      AppErrorCode.OWNER_ALREADY_EXISTS,
+      "Owner bootstrap has already been completed",
+    );
     this.name = "OwnerAlreadyExistsError";
   }
 }

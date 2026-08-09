@@ -1,12 +1,14 @@
 import type { OrderStatus, PaymentStatus } from "@restaurant/database";
+import { NotFoundError } from "../../../errors/app-error.js";
+import { AppErrorCode } from "../../../errors/codes.js";
 import {
   OrderRepository,
   type OrderWithRelations,
 } from "../repositories/order.repository.js";
 
-export class OrderNotFoundError extends Error {
+export class OrderNotFoundError extends NotFoundError {
   constructor() {
-    super("Order not found");
+    super(AppErrorCode.ORDER_NOT_FOUND, "Order not found");
     this.name = "OrderNotFoundError";
   }
 }
