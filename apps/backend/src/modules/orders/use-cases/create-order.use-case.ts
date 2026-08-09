@@ -44,6 +44,7 @@ export interface CreateOrderItemDTO {
 
 export interface CreateOrderResultDTO {
   id: string;
+  orderNumber: number;
   tableId: string;
   status: OrderStatus;
   totalAmount: number;
@@ -112,6 +113,7 @@ export class CreateOrderUseCase {
 
     return {
       id: order.id,
+      orderNumber: order.orderNumber,
       tableId: order.tableId,
       status: order.status,
       totalAmount: Number(order.totalAmount),

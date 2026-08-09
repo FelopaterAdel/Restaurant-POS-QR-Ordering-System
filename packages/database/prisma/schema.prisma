@@ -134,6 +134,7 @@ model RestaurantTable {
 
 model Order {
   id              String        @id @default(cuid())
+  orderNumber     Int           @unique @default(autoincrement())
   tableId         String
   status          OrderStatus   @default(PENDING)
   totalAmount     Decimal

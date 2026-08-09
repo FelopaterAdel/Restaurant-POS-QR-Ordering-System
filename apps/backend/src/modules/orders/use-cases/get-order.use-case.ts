@@ -22,6 +22,7 @@ export interface OrderItemDTO {
 
 export interface OrderDTO {
   id: string;
+  orderNumber: number;
   tableId: string;
   tableNumber: number;
   status: OrderStatus;
@@ -37,6 +38,7 @@ export interface OrderDTO {
 export function toOrderDTO(order: OrderWithRelations): OrderDTO {
   return {
     id: order.id,
+    orderNumber: order.orderNumber,
     tableId: order.tableId,
     tableNumber: order.table.number,
     status: order.status,

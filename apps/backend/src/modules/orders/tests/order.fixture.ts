@@ -92,6 +92,7 @@ export function buildOrder(
 ): OrderWithTable {
   return {
     id: "order_1",
+    orderNumber: 1001,
     tableId: "table_1",
     status: OrderStatus.PENDING,
     totalAmount: new Prisma.Decimal(300),

@@ -17,6 +17,7 @@ function buildStaffOrder(
 ): StaffOrderWithRelations {
   return {
     id: "order_1",
+    orderNumber: 1042,
     tableId: "table_1",
     status: OrderStatus.SERVED,
     paymentStatus: PaymentStatus.PENDING,
@@ -84,6 +85,7 @@ describe("GetStaffOrderDetailsUseCase", () => {
 
     expect(result.order).toEqual({
       id: "order_1",
+      orderNumber: 1042,
       status: OrderStatus.SERVED,
       totalAmount: 450,
     });

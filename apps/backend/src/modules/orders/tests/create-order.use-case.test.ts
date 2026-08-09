@@ -88,6 +88,7 @@ describe("CreateOrderUseCase", () => {
 
     expect(result.totalAmount).toBe(330);
     expect(result.status).toBe(OrderStatus.PENDING);
+    expect(result.orderNumber).toBe(1001);
     expect(result.items).toEqual([
       {
         id: "item_1",
@@ -129,6 +130,27 @@ describe("CreateOrderUseCase", () => {
     expect(createCall.items[0].unitPrice.toNumber()).toBe(150);
     expect(createCall.items[0].totalPrice.toNumber()).toBe(300);
     expect(createCall.totalAmount.toNumber()).toBe(300);
+  });
+
+  it("ignores a client-provided orderNumber and lets the server generate it", async () => {
+    const repository = createMockRepository();
+    const useCase = new CreateOrderUseCase(repository);
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([
+      buildProduct({ id: "prod_1", price: new Prisma.Decimal(150) }),
+    ]);
+    vi.mocked(repository.createWithItems).mockResolvedValueOnce(buildOrder());
+
+    const result = await useCase.execute({
+      tableId: "table_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      orderNumber: 9999,
+    } as unknown as CreateOrderDTO);
+
+    const createCall = vi.mocked(repository.createWithItems).mock.calls[0][0];
+    expect(createCall).not.toHaveProperty("orderNumber");
+    expect(result.orderNumber).toBe(1001);
   });
 
   it("throws TableNotFoundError when the table does not exist", async () => {

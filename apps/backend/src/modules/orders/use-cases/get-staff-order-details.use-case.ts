@@ -29,6 +29,7 @@ export interface StaffOrderItemDTO {
 export interface StaffOrderDetailsDTO {
   order: {
     id: string;
+    orderNumber: number;
     status: OrderStatus;
     totalAmount: number;
   };
@@ -48,6 +49,7 @@ export function toStaffOrderDetailsDTO(
   return {
     order: {
       id: order.id,
+      orderNumber: order.orderNumber,
       status: order.status,
       totalAmount: Number(order.totalAmount),
     },

@@ -40,6 +40,7 @@ describe("GetOrderUseCase", () => {
     expect(repository.findById).toHaveBeenCalledWith("order_1");
     expect(result).toEqual({
       id: "order_1",
+      orderNumber: 1001,
       tableId: "table_1",
       tableNumber: 5,
       status: OrderStatus.CONFIRMED,
