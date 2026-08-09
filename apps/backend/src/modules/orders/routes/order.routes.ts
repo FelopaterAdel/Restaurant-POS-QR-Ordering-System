@@ -10,6 +10,8 @@ import {
   listOrders,
   updateOrderStatus,
 } from "../controllers/order.controller.js";
+import { cancelOrder } from "../controllers/cancel-order.controller.js";
+import { cancelOrderSchema } from "../schemas/cancel-order.schema.js";
 import { updateOrderStatusSchema } from "../schemas/update-order-status.schema.js";
 
 const router = Router();
@@ -30,6 +32,8 @@ const changeStatusRoles = [
 ];
 
 const completeRoles = [UserRole.OWNER, UserRole.MANAGER, UserRole.CASHIER];
+
+const cancelRoles = [UserRole.OWNER, UserRole.MANAGER];
 
 router.get(
   "/",
@@ -55,6 +59,13 @@ router.post(
   authMiddleware(),
   requireRole(...completeRoles),
   completeOrder as RequestHandler,
+);
+router.patch(
+  "/:id/cancel",
+  authMiddleware(),
+  requireRole(...cancelRoles),
+  validate(cancelOrderSchema, "body"),
+  cancelOrder as RequestHandler,
 );
 
 export default router;

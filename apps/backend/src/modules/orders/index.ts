@@ -1,5 +1,6 @@
 export { default } from "./routes/public-order.routes.js";
 export { CreateOrderUseCase } from "./use-cases/create-order.use-case.js";
+export { CancelOrderUseCase } from "./use-cases/cancel-order.use-case.js";
 export { GetOrderQueueUseCase } from "./use-cases/get-order-queue.use-case.js";
 export { GetOrderUseCase } from "./use-cases/get-order.use-case.js";
 export { ListOrdersUseCase } from "./use-cases/list-orders.use-case.js";

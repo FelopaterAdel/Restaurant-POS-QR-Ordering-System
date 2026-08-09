@@ -45,6 +45,8 @@ describe("GetOrderUseCase", () => {
       status: OrderStatus.CONFIRMED,
       paymentStatus: PaymentStatus.PENDING,
       totalAmount: 330,
+      cancelledAt: null,
+      cancelledReason: null,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: [

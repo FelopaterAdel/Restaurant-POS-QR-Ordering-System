@@ -27,6 +27,8 @@ export interface OrderDTO {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number;
+  cancelledAt: Date | null;
+  cancelledReason: string | null;
   createdAt: Date;
   updatedAt: Date;
   items: OrderItemDTO[];
@@ -40,6 +42,8 @@ export function toOrderDTO(order: OrderWithRelations): OrderDTO {
     status: order.status,
     paymentStatus: order.paymentStatus,
     totalAmount: Number(order.totalAmount),
+    cancelledAt: order.cancelledAt,
+    cancelledReason: order.cancelledReason,
     createdAt: order.createdAt,
     updatedAt: order.updatedAt,
     items: order.items.map((item) => ({

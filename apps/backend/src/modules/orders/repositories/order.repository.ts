@@ -169,6 +169,41 @@ export class OrderRepository {
     });
   }
 
+  async cancelOrderAndReleaseTableIfUnoccupied(input: {
+    orderId: string;
+    cancelledReason: string | null;
+  }): Promise<OrderWithRelations> {
+    return this.client.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: input.orderId },
+        data: {
+          status: OrderStatus.CANCELLED,
+          cancelledAt: new Date(),
+          cancelledReason: input.cancelledReason,
+        },
+        include: orderInclude,
+      });
+
+      const activeOrdersCount = await tx.order.count({
+        where: {
+          tableId: order.tableId,
+          status: {
+            notIn: [OrderStatus.CANCELLED, OrderStatus.COMPLETED],
+          },
+        },
+      });
+
+      if (activeOrdersCount === 0) {
+        await tx.restaurantTable.update({
+          where: { id: order.tableId },
+          data: { status: TableStatus.AVAILABLE },
+        });
+      }
+
+      return order;
+    });
+  }
+
   async completeOrderAndReleaseTable(input: {
     orderId: string;
     tableId: string;

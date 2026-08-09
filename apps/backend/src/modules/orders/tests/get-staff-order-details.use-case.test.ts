@@ -21,6 +21,8 @@ function buildStaffOrder(
     status: OrderStatus.SERVED,
     paymentStatus: PaymentStatus.PENDING,
     totalAmount: new Prisma.Decimal(450),
+    cancelledAt: null,
+    cancelledReason: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     items: [

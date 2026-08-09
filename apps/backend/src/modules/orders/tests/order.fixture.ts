@@ -96,6 +96,8 @@ export function buildOrder(
     status: OrderStatus.PENDING,
     totalAmount: new Prisma.Decimal(300),
     paymentStatus: PaymentStatus.PENDING,
+    cancelledAt: null,
+    cancelledReason: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     items: [],
