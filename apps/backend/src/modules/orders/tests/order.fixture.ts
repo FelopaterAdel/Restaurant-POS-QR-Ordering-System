@@ -1,5 +1,6 @@
 import {
   OrderStatus,
+  PaymentMethod,
   PaymentStatus,
   Prisma,
   TableStatus,
@@ -57,6 +58,16 @@ export interface OrderWithTable extends OrderWithItems {
   table: Pick<RestaurantTable, "number">;
 }
 
+export interface OrderHistoryPayment {
+  status: PaymentStatus;
+  method: PaymentMethod;
+}
+
+export interface OrderWithHistory extends Order {
+  table: Pick<RestaurantTable, "number">;
+  payments: OrderHistoryPayment[];
+}
+
 export function buildOrderItem(
   overrides: Partial<OrderItemWithProduct> = {},
 ): OrderItemWithProduct {
@@ -103,6 +114,26 @@ export function buildOrder(
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     items: [],
     table: { number: 5 },
+    ...overrides,
+  };
+}
+
+export function buildOrderHistory(
+  overrides: Partial<OrderWithHistory> = {},
+): OrderWithHistory {
+  return {
+    id: "order_1",
+    orderNumber: 1042,
+    tableId: "table_1",
+    status: OrderStatus.COMPLETED,
+    totalAmount: new Prisma.Decimal(450),
+    paymentStatus: PaymentStatus.PAID,
+    cancelledAt: null,
+    cancelledReason: null,
+    createdAt: new Date("2026-08-09T10:00:00.000Z"),
+    updatedAt: new Date("2026-08-09T10:00:00.000Z"),
+    table: { number: 5 },
+    payments: [{ status: PaymentStatus.PAID, method: PaymentMethod.CASH }],
     ...overrides,
   };
 }

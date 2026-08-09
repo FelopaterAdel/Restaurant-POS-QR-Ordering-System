@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodSchema } from 'zod';
+import { Request, Response, NextFunction } from "express";
+import { ZodSchema } from "zod";
 
-export type ValidateSource = 'body' | 'query' | 'params';
+export type ValidateSource = "body" | "query" | "params";
 
 export interface ValidationError {
   field: string;
@@ -24,7 +24,7 @@ export interface ValidationResponse {
  * @example
  * router.post('/register', validate(registerSchema, 'body'), controller.register);
  */
-export function validate(schema: ZodSchema, source: ValidateSource = 'body') {
+export function validate(schema: ZodSchema, source: ValidateSource = "body") {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
       const dataToValidate = req[source];
@@ -33,7 +33,7 @@ export function validate(schema: ZodSchema, source: ValidateSource = 'body') {
 
       if (!result.success) {
         const errors: ValidationError[] = result.error.issues.map((issue) => ({
-          field: issue.path.join('.') || 'unknown',
+          field: issue.path.join(".") || "unknown",
           message: issue.message,
         }));
 
@@ -44,7 +44,18 @@ export function validate(schema: ZodSchema, source: ValidateSource = 'body') {
       }
 
       // Replace the request data with validated data
-      req[source] = result.data;
+      if (source === "query") {
+        // In Express 5, req.query is a getter-only property, so shadow it
+        // with an own property holding the validated query.
+        Object.defineProperty(req, "query", {
+          value: result.data,
+          configurable: true,
+          enumerable: true,
+          writable: true,
+        });
+      } else {
+        req[source] = result.data;
+      }
 
       next();
     } catch (error) {

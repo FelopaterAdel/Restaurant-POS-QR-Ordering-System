@@ -152,6 +152,8 @@ model Order {
   @@index([tableId])
   @@index([status])
   @@index([paymentStatus])
+  @@index([createdAt])
+  @@index([status, createdAt])
 }
 
 model Payment {

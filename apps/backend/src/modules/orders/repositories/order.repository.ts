@@ -79,6 +79,39 @@ export interface OrderQueuePageResult {
   total: number;
 }
 
+export interface OrderHistoryQueryInput {
+  orderNumber?: number;
+  status?: OrderStatus;
+  createdAt?: { gte: Date; lt: Date };
+  page: number;
+  limit: number;
+}
+
+const orderHistoryInclude = {
+  table: {
+    select: {
+      number: true,
+    },
+  },
+  payments: {
+    orderBy: { createdAt: "desc" as const },
+    take: 1,
+    select: {
+      status: true,
+      method: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export type OrderHistoryWithRelations = Prisma.OrderGetPayload<{
+  include: typeof orderHistoryInclude;
+}>;
+
+export interface OrderHistoryPageResult {
+  items: OrderHistoryWithRelations[];
+  total: number;
+}
+
 export class OrderRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
@@ -149,6 +182,31 @@ export class OrderRepository {
         where,
         include: orderInclude,
         orderBy: { createdAt: "asc" },
+        skip: (input.page - 1) * input.limit,
+        take: input.limit,
+      }),
+      this.client.order.count({ where }),
+    ]);
+
+    return { items, total };
+  }
+
+  async findHistoryPage(
+    input: OrderHistoryQueryInput,
+  ): Promise<OrderHistoryPageResult> {
+    const where: Prisma.OrderWhereInput = {
+      ...(input.orderNumber !== undefined && {
+        orderNumber: input.orderNumber,
+      }),
+      ...(input.status !== undefined && { status: input.status }),
+      ...(input.createdAt !== undefined && { createdAt: input.createdAt }),
+    };
+
+    const [items, total] = await this.client.$transaction([
+      this.client.order.findMany({
+        where,
+        include: orderHistoryInclude,
+        orderBy: { createdAt: "desc" },
         skip: (input.page - 1) * input.limit,
         take: input.limit,
       }),
