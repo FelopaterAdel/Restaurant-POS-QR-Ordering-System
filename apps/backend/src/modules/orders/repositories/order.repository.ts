@@ -68,6 +68,17 @@ export type StaffOrderWithRelations = Prisma.OrderGetPayload<{
   include: typeof staffOrderInclude;
 }>;
 
+export interface OrderQueuePageInput {
+  statuses: OrderStatus[];
+  page: number;
+  limit: number;
+}
+
+export interface OrderQueuePageResult {
+  items: OrderWithRelations[];
+  total: number;
+}
+
 export class OrderRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
@@ -124,6 +135,27 @@ export class OrderRepository {
       include: orderInclude,
       orderBy: { createdAt: "desc" },
     });
+  }
+
+  async findQueuePage(
+    input: OrderQueuePageInput,
+  ): Promise<OrderQueuePageResult> {
+    const where: Prisma.OrderWhereInput = {
+      status: { in: input.statuses },
+    };
+
+    const [items, total] = await this.client.$transaction([
+      this.client.order.findMany({
+        where,
+        include: orderInclude,
+        orderBy: { createdAt: "asc" },
+        skip: (input.page - 1) * input.limit,
+        take: input.limit,
+      }),
+      this.client.order.count({ where }),
+    ]);
+
+    return { items, total };
   }
 
   async updateStatus(
