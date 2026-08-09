@@ -6,6 +6,7 @@ import { errorHandler } from "./errors/http-error-handler.js";
 import authRouter from "./modules/auth/routes/auth.routes.js";
 import categoryRouter from "./modules/categories/routes/category.routes.js";
 import dashboardRouter from "./modules/dashboard/routes/dashboard.routes.js";
+import docsRouter from "./modules/docs/docs.routes.js";
 import healthRouter from "./modules/health/health.routes.js";
 import publicMenuRouter from "./modules/public-menu/routes/public-menu.routes.js";
 import orderRouter from "./modules/orders/routes/order.routes.js";
@@ -50,6 +51,10 @@ app.use("/api/v1/orders/history", orderHistoryRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/orders", paymentRouter);
 app.use("/api/v1/staff/orders", staffOrderRouter);
+
+if (env.swaggerEnabled) {
+  app.use("/api/docs", docsRouter);
+}
 
 // The /health endpoint is an infrastructure endpoint and intentionally keeps
 // its own { status: "ok" } shape instead of the business API contract.
