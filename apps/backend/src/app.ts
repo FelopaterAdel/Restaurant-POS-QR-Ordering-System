@@ -23,7 +23,7 @@ app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
-app.use("/api/v1/public/menu", publicMenuRouter);
+app.use("/api/v1/public/tables", publicMenuRouter);
 app.use("/api/v1/public/orders", publicOrderRouter);
 app.use("/api/v1/orders/queue", orderQueueRouter);
 app.use("/api/v1/orders/history", orderHistoryRouter);

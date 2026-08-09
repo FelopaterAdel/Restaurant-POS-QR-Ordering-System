@@ -4,9 +4,9 @@ import type { PrismaClient } from "@restaurant/database";
 export class PublicMenuRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
-  async findTableById(id: string) {
+  async findTableByQrCode(qrCode: string) {
     return this.client.restaurantTable.findUnique({
-      where: { id },
+      where: { qrCode },
     });
   }
 

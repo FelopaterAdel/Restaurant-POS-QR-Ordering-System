@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { TableStatus } from "@restaurant/database";
 import { TableRepository } from "../repositories/table.repository.js";
-import { DisableTableUseCase } from "../use-cases/disable-table.use-case.js";
+import {
+  DisableTableUseCase,
+  TableHasActiveOrdersError,
+} from "../use-cases/disable-table.use-case.js";
 import { TableNotFoundError } from "../use-cases/get-table.use-case.js";
 import { buildTable } from "./table.fixture.js";
 
@@ -15,6 +18,7 @@ function createMockRepository(
     create: vi.fn(),
     update: vi.fn(),
     disable: vi.fn(),
+    countActiveOrders: vi.fn(),
     ...overrides,
   } as unknown as TableRepository;
 }
@@ -30,12 +34,28 @@ describe("DisableTableUseCase", () => {
     });
 
     vi.mocked(repository.findById).mockResolvedValueOnce(existing);
+    vi.mocked(repository.countActiveOrders).mockResolvedValueOnce(0);
     vi.mocked(repository.disable).mockResolvedValueOnce(disabled);
 
     const result = await useCase.execute("table_1");
 
+    expect(repository.countActiveOrders).toHaveBeenCalledWith("table_1");
     expect(repository.disable).toHaveBeenCalledWith("table_1");
     expect(result).toEqual(disabled);
+  });
+
+  it("throws TableHasActiveOrdersError when the table has active orders", async () => {
+    const repository = createMockRepository();
+    const useCase = new DisableTableUseCase(repository);
+    const existing = buildTable({ id: "table_1", status: TableStatus.OCCUPIED });
+
+    vi.mocked(repository.findById).mockResolvedValueOnce(existing);
+    vi.mocked(repository.countActiveOrders).mockResolvedValueOnce(2);
+
+    await expect(useCase.execute("table_1")).rejects.toBeInstanceOf(
+      TableHasActiveOrdersError,
+    );
+    expect(repository.disable).not.toHaveBeenCalled();
   });
 
   it("throws TableNotFoundError when the table does not exist", async () => {

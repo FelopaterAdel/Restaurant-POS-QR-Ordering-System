@@ -12,17 +12,17 @@ function createMockRepository(
   overrides: Partial<PublicMenuRepository> = {},
 ): PublicMenuRepository {
   return {
-    findTableById: vi.fn(),
+    findTableByQrCode: vi.fn(),
     findActiveCategoriesWithProducts: vi.fn(),
     ...overrides,
   } as unknown as PublicMenuRepository;
 }
 
 describe("GetPublicMenuUseCase", () => {
-  it("returns public menu for an available table", async () => {
+  it("returns public menu for an available table by qr code", async () => {
     const repository = createMockRepository();
     const useCase = new GetPublicMenuUseCase(repository);
-    const table = buildTable({ id: "table_1", number: 5 });
+    const table = buildTable({ id: "table_1", number: 5, qrCode: "tbl_abc123" });
     const category = buildCategory({
       id: "cat_1",
       name: "Pizza",
@@ -35,14 +35,14 @@ describe("GetPublicMenuUseCase", () => {
       ],
     });
 
-    vi.mocked(repository.findTableById).mockResolvedValueOnce(table);
+    vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(table);
     vi.mocked(repository.findActiveCategoriesWithProducts).mockResolvedValueOnce([
       category,
     ]);
 
-    const result = await useCase.execute("table_1");
+    const result = await useCase.execute("tbl_abc123");
 
-    expect(repository.findTableById).toHaveBeenCalledWith("table_1");
+    expect(repository.findTableByQrCode).toHaveBeenCalledWith("tbl_abc123");
     expect(result).toEqual({
       table: { id: "table_1", number: 5 },
       categories: [
@@ -64,13 +64,13 @@ describe("GetPublicMenuUseCase", () => {
     });
   });
 
-  it("throws TableNotFoundError when the table does not exist", async () => {
+  it("throws TableNotFoundError when no table matches the qr code", async () => {
     const repository = createMockRepository();
     const useCase = new GetPublicMenuUseCase(repository);
 
-    vi.mocked(repository.findTableById).mockResolvedValueOnce(null);
+    vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(null);
 
-    await expect(useCase.execute("table_missing")).rejects.toBeInstanceOf(
+    await expect(useCase.execute("tbl_missing")).rejects.toBeInstanceOf(
       TableNotFoundError,
     );
   });
@@ -80,9 +80,9 @@ describe("GetPublicMenuUseCase", () => {
     const useCase = new GetPublicMenuUseCase(repository);
     const table = buildTable({ status: TableStatus.DISABLED });
 
-    vi.mocked(repository.findTableById).mockResolvedValueOnce(table);
+    vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(table);
 
-    await expect(useCase.execute("table_1")).rejects.toBeInstanceOf(
+    await expect(useCase.execute("tbl_abc123")).rejects.toBeInstanceOf(
       TableDisabledError,
     );
   });
@@ -92,12 +92,12 @@ describe("GetPublicMenuUseCase", () => {
     const useCase = new GetPublicMenuUseCase(repository);
     const table = buildTable();
 
-    vi.mocked(repository.findTableById).mockResolvedValueOnce(table);
+    vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(table);
     vi.mocked(repository.findActiveCategoriesWithProducts).mockResolvedValueOnce(
       [],
     );
 
-    const result = await useCase.execute("table_1");
+    const result = await useCase.execute("tbl_abc123");
 
     expect(result.table).toEqual({ id: "table_1", number: 5 });
     expect(result.table).not.toHaveProperty("qrCode");

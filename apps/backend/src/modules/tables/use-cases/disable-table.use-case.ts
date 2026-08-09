@@ -22,6 +22,18 @@ export class DisableTableUseCase {
       return existing;
     }
 
+    const activeOrders = await this.tableRepository.countActiveOrders(id);
+    if (activeOrders > 0) {
+      throw new TableHasActiveOrdersError();
+    }
+
     return this.tableRepository.disable(id);
+  }
+}
+
+export class TableHasActiveOrdersError extends Error {
+  constructor() {
+    super("Table cannot be disabled because it has active orders");
+    this.name = "TableHasActiveOrdersError";
   }
 }

@@ -1,4 +1,4 @@
-import { prisma, TableStatus } from "@restaurant/database";
+import { OrderStatus, prisma, TableStatus } from "@restaurant/database";
 import type { PrismaClient } from "@restaurant/database";
 
 export interface CreateTableInput {
@@ -57,6 +57,17 @@ export class TableRepository {
     return this.client.restaurantTable.update({
       where: { id },
       data: { status: TableStatus.DISABLED },
+    });
+  }
+
+  async countActiveOrders(tableId: string): Promise<number> {
+    return this.client.order.count({
+      where: {
+        tableId,
+        status: {
+          notIn: [OrderStatus.CANCELLED, OrderStatus.COMPLETED],
+        },
+      },
     });
   }
 }

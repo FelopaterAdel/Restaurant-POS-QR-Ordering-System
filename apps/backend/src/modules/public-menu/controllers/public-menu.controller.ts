@@ -8,12 +8,12 @@ import {
 const getPublicMenuUseCase = new GetPublicMenuUseCase();
 
 export async function getPublicMenu(
-  req: Request<{ tableId: string }>,
+  req: Request<{ qrCode: string }>,
   res: Response,
   next: NextFunction,
 ) {
   try {
-    const menu = await getPublicMenuUseCase.execute(req.params.tableId);
+    const menu = await getPublicMenuUseCase.execute(req.params.qrCode);
 
     res.status(200).json({
       success: true,

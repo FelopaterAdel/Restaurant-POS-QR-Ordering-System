@@ -129,7 +129,7 @@ export class OrderRepository {
 
   async createWithItems(input: CreateOrderWithItemsInput) {
     return this.client.$transaction(async (tx) => {
-      return tx.order.create({
+      const order = await tx.order.create({
         data: {
           tableId: input.tableId,
           totalAmount: input.totalAmount,
@@ -144,6 +144,13 @@ export class OrderRepository {
         },
         include: orderInclude,
       });
+
+      await tx.restaurantTable.update({
+        where: { id: input.tableId },
+        data: { status: TableStatus.OCCUPIED },
+      });
+
+      return order;
     });
   }
 
@@ -242,21 +249,7 @@ export class OrderRepository {
         include: orderInclude,
       });
 
-      const activeOrdersCount = await tx.order.count({
-        where: {
-          tableId: order.tableId,
-          status: {
-            notIn: [OrderStatus.CANCELLED, OrderStatus.COMPLETED],
-          },
-        },
-      });
-
-      if (activeOrdersCount === 0) {
-        await tx.restaurantTable.update({
-          where: { id: order.tableId },
-          data: { status: TableStatus.AVAILABLE },
-        });
-      }
+      await syncTableStatusAfterTerminalOrder(tx, order.tableId);
 
       return order;
     });
@@ -273,12 +266,33 @@ export class OrderRepository {
         include: orderInclude,
       });
 
-      await tx.restaurantTable.update({
-        where: { id: input.tableId },
-        data: { status: TableStatus.AVAILABLE },
-      });
+      await syncTableStatusAfterTerminalOrder(tx, input.tableId);
 
       return order;
     });
   }
+}
+
+async function syncTableStatusAfterTerminalOrder(
+  tx: Prisma.TransactionClient,
+  tableId: string,
+): Promise<void> {
+  const activeOrdersCount = await tx.order.count({
+    where: {
+      tableId,
+      status: {
+        notIn: [OrderStatus.CANCELLED, OrderStatus.COMPLETED],
+      },
+    },
+  });
+
+  await tx.restaurantTable.update({
+    where: { id: tableId },
+    data: {
+      status:
+        activeOrdersCount === 0
+          ? TableStatus.AVAILABLE
+          : TableStatus.OCCUPIED,
+    },
+  });
 }

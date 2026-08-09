@@ -4,7 +4,10 @@ import {
   CreateTableUseCase,
   TableNumberAlreadyExistsError,
 } from "../use-cases/create-table.use-case.js";
-import { DisableTableUseCase } from "../use-cases/disable-table.use-case.js";
+import {
+  DisableTableUseCase,
+  TableHasActiveOrdersError,
+} from "../use-cases/disable-table.use-case.js";
 import {
   GetTableUseCase,
   TableNotFoundError,
@@ -142,6 +145,9 @@ export async function disableTable(
   } catch (error) {
     if (error instanceof TableNotFoundError) {
       return res.status(404).json({ success: false, message: error.message });
+    }
+    if (error instanceof TableHasActiveOrdersError) {
+      return res.status(409).json({ success: false, message: error.message });
     }
     next(error);
   }

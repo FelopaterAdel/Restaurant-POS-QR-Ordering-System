@@ -49,8 +49,8 @@ export class GetPublicMenuUseCase {
     this.publicMenuRepository = publicMenuRepository;
   }
 
-  async execute(tableId: string): Promise<PublicMenuDTO> {
-    const table = await this.publicMenuRepository.findTableById(tableId);
+  async execute(qrCode: string): Promise<PublicMenuDTO> {
+    const table = await this.publicMenuRepository.findTableByQrCode(qrCode);
 
     if (!table) {
       throw new TableNotFoundError();
