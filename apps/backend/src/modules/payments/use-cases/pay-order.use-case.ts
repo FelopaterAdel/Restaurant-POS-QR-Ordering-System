@@ -10,9 +10,14 @@ import {
   type CreatePaymentDTO,
 } from "../schemas/create-payment.schema.js";
 
+const PAYABLE_ORDER_STATUSES: readonly OrderStatus[] = [
+  OrderStatus.READY,
+  OrderStatus.SERVED,
+];
+
 export class OrderNotPayableError extends Error {
-  constructor() {
-    super("Order cannot be paid");
+  constructor(status: OrderStatus) {
+    super(`Order in status ${status} cannot be paid`);
     this.name = "OrderNotPayableError";
   }
 }
@@ -59,12 +64,12 @@ export class PayOrderUseCase {
       throw new OrderNotFoundError();
     }
 
-    if (order.status === OrderStatus.CANCELLED) {
-      throw new OrderNotPayableError();
-    }
-
     if (order.paymentStatus === PaymentStatus.PAID) {
       throw new PaymentAlreadyExistsError();
+    }
+
+    if (!PAYABLE_ORDER_STATUSES.includes(order.status)) {
+      throw new OrderNotPayableError(order.status);
     }
 
     const input: CreatePaidPaymentInput = {
@@ -74,8 +79,19 @@ export class PayOrderUseCase {
       paidAt: new Date(),
     };
 
-    const payment =
-      await this.paymentRepository.createPaidPaymentAndUpdateOrder(input);
+    let payment;
+    try {
+      payment =
+        await this.paymentRepository.createPaidPaymentAndUpdateOrder(input);
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw new PaymentAlreadyExistsError();
+      }
+      throw error;
+    }
 
     return {
       id: payment.id,

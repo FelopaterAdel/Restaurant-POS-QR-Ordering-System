@@ -1,4 +1,4 @@
-import { OrderStatus } from "@restaurant/database";
+import { OrderStatus, PaymentStatus } from "@restaurant/database";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
   cancelOrderSchema,
@@ -9,11 +9,7 @@ import {
   toOrderDTO,
   type OrderDTO,
 } from "./get-order.use-case.js";
-
-const CANCELLABLE_ORDER_STATUSES: OrderStatus[] = [
-  OrderStatus.PENDING,
-  OrderStatus.CONFIRMED,
-];
+import { CANCELLABLE_ORDER_STATUSES } from "./update-order-status.use-case.js";
 
 export class OrderAlreadyCancelledError extends Error {
   constructor() {
@@ -26,6 +22,13 @@ export class OrderCannotBeCancelledError extends Error {
   constructor(status: OrderStatus) {
     super(`Order in status ${status} cannot be cancelled`);
     this.name = "OrderCannotBeCancelledError";
+  }
+}
+
+export class PaidOrderCannotBeCancelledError extends Error {
+  constructor() {
+    super("Paid orders cannot be cancelled");
+    this.name = "PaidOrderCannotBeCancelledError";
   }
 }
 
@@ -51,6 +54,10 @@ export class CancelOrderUseCase {
 
     if (order.status === OrderStatus.CANCELLED) {
       throw new OrderAlreadyCancelledError();
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+      throw new PaidOrderCannotBeCancelledError();
     }
 
     if (!CANCELLABLE_ORDER_STATUSES.includes(order.status)) {

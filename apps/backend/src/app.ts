@@ -1,6 +1,7 @@
 import express, { type ErrorRequestHandler } from "express";
 import authRouter from "./modules/auth/routes/auth.routes.js";
 import categoryRouter from "./modules/categories/routes/category.routes.js";
+import dashboardRouter from "./modules/dashboard/routes/dashboard.routes.js";
 import healthRouter from "./modules/health/health.routes.js";
 import publicMenuRouter from "./modules/public-menu/routes/public-menu.routes.js";
 import orderRouter from "./modules/orders/routes/order.routes.js";
@@ -21,6 +22,7 @@ app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/public/menu", publicMenuRouter);
 app.use("/api/v1/public/orders", publicOrderRouter);
 app.use("/api/v1/orders/queue", orderQueueRouter);

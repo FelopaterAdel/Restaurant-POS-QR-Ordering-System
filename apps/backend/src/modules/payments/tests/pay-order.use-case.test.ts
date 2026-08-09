@@ -44,7 +44,10 @@ describe("PayOrderUseCase", () => {
     const orderRepository = createMockOrderRepository();
     const paymentRepository = createMockPaymentRepository();
     const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
-    const order = buildOrder({ totalAmount: new Prisma.Decimal(330) });
+    const order = buildOrder({
+      status: OrderStatus.SERVED,
+      totalAmount: new Prisma.Decimal(330),
+    });
 
     vi.mocked(orderRepository.findById).mockResolvedValueOnce(order);
     vi.mocked(
@@ -74,7 +77,9 @@ describe("PayOrderUseCase", () => {
     const paymentRepository = createMockPaymentRepository();
     const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
 
-    vi.mocked(orderRepository.findById).mockResolvedValueOnce(buildOrder());
+    vi.mocked(orderRepository.findById).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.SERVED }),
+    );
     vi.mocked(
       paymentRepository.createPaidPaymentAndUpdateOrder,
     ).mockResolvedValueOnce(buildPayment());
@@ -94,7 +99,9 @@ describe("PayOrderUseCase", () => {
     const paymentRepository = createMockPaymentRepository();
     const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
 
-    vi.mocked(orderRepository.findById).mockResolvedValueOnce(buildOrder());
+    vi.mocked(orderRepository.findById).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.READY }),
+    );
     vi.mocked(
       paymentRepository.createPaidPaymentAndUpdateOrder,
     ).mockResolvedValueOnce(buildPayment({ method: PaymentMethod.CARD }));
@@ -145,6 +152,81 @@ describe("PayOrderUseCase", () => {
     expect(
       paymentRepository.createPaidPaymentAndUpdateOrder,
     ).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    OrderStatus.PENDING,
+    OrderStatus.CONFIRMED,
+    OrderStatus.PREPARING,
+  ])("throws OrderNotPayableError for a %s order", async (status) => {
+    const orderRepository = createMockOrderRepository();
+    const paymentRepository = createMockPaymentRepository();
+    const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
+
+    vi.mocked(orderRepository.findById).mockResolvedValueOnce(
+      buildOrder({ status }),
+    );
+
+    await expect(
+      useCase.execute({
+        orderId: "order_1",
+        input: { method: PaymentMethod.CASH },
+      }),
+    ).rejects.toBeInstanceOf(OrderNotPayableError);
+    expect(
+      paymentRepository.createPaidPaymentAndUpdateOrder,
+    ).not.toHaveBeenCalled();
+  });
+
+  it.each([OrderStatus.READY, OrderStatus.SERVED])(
+    "records a payment for a %s order",
+    async (status) => {
+      const orderRepository = createMockOrderRepository();
+      const paymentRepository = createMockPaymentRepository();
+      const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
+
+      vi.mocked(orderRepository.findById).mockResolvedValueOnce(
+        buildOrder({ status }),
+      );
+      vi.mocked(
+        paymentRepository.createPaidPaymentAndUpdateOrder,
+      ).mockResolvedValueOnce(buildPayment());
+
+      const result = await useCase.execute({
+        orderId: "order_1",
+        input: { method: PaymentMethod.CASH },
+      });
+
+      expect(
+        paymentRepository.createPaidPaymentAndUpdateOrder,
+      ).toHaveBeenCalledOnce();
+      expect(result.status).toBe(PaymentStatus.PAID);
+    },
+  );
+
+  it("maps a concurrent duplicate payment to PaymentAlreadyExistsError", async () => {
+    const orderRepository = createMockOrderRepository();
+    const paymentRepository = createMockPaymentRepository();
+    const useCase = new PayOrderUseCase(orderRepository, paymentRepository);
+
+    vi.mocked(orderRepository.findById).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.READY }),
+    );
+    vi.mocked(
+      paymentRepository.createPaidPaymentAndUpdateOrder,
+    ).mockRejectedValueOnce(
+      new Prisma.PrismaClientKnownRequestError(
+        "Unique constraint failed on the fields: (`orderId`)",
+        { code: "P2002", clientVersion: "7.9.1" },
+      ),
+    );
+
+    await expect(
+      useCase.execute({
+        orderId: "order_1",
+        input: { method: PaymentMethod.CASH },
+      }),
+    ).rejects.toBeInstanceOf(PaymentAlreadyExistsError);
   });
 
   it("throws OrderNotFoundError when the order does not exist", async () => {

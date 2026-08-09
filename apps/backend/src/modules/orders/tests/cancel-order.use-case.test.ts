@@ -1,9 +1,10 @@
-import { OrderStatus } from "@restaurant/database";
+import { OrderStatus, PaymentStatus } from "@restaurant/database";
 import { describe, expect, it, vi } from "vitest";
 import { OrderRepository } from "../repositories/order.repository.js";
 import {
   OrderAlreadyCancelledError,
   OrderCannotBeCancelledError,
+  PaidOrderCannotBeCancelledError,
   CancelOrderUseCase,
 } from "../use-cases/cancel-order.use-case.js";
 import { OrderNotFoundError } from "../use-cases/get-order.use-case.js";
@@ -85,6 +86,50 @@ describe("CancelOrderUseCase", () => {
     expect(result.status).toBe(OrderStatus.CANCELLED);
   });
 
+  it("cancels a preparing order consistently with the status transition map", async () => {
+    const repository = createMockRepository();
+    const useCase = new CancelOrderUseCase(repository);
+    const order = buildOrder({ status: OrderStatus.PREPARING });
+
+    vi.mocked(repository.findById).mockResolvedValueOnce(order);
+    vi.mocked(
+      repository.cancelOrderAndReleaseTableIfUnoccupied,
+    ).mockResolvedValueOnce(
+      buildOrder({
+        status: OrderStatus.CANCELLED,
+        cancelledAt: new Date("2026-01-02T00:00:00.000Z"),
+      }),
+    );
+
+    const result = await useCase.execute({ orderId: "order_1", input: {} });
+
+    expect(
+      repository.cancelOrderAndReleaseTableIfUnoccupied,
+    ).toHaveBeenCalledWith({
+      orderId: "order_1",
+      cancelledReason: null,
+    });
+    expect(result.status).toBe(OrderStatus.CANCELLED);
+  });
+
+  it("throws PaidOrderCannotBeCancelledError for a paid order", async () => {
+    const repository = createMockRepository();
+    const useCase = new CancelOrderUseCase(repository);
+    const order = buildOrder({
+      status: OrderStatus.READY,
+      paymentStatus: PaymentStatus.PAID,
+    });
+
+    vi.mocked(repository.findById).mockResolvedValueOnce(order);
+
+    await expect(
+      useCase.execute({ orderId: "order_1", input: {} }),
+    ).rejects.toBeInstanceOf(PaidOrderCannotBeCancelledError);
+    expect(
+      repository.cancelOrderAndReleaseTableIfUnoccupied,
+    ).not.toHaveBeenCalled();
+  });
+
   it("throws OrderAlreadyCancelledError for an already cancelled order", async () => {
     const repository = createMockRepository();
     const useCase = new CancelOrderUseCase(repository);
@@ -104,7 +149,6 @@ describe("CancelOrderUseCase", () => {
   });
 
   it.each([
-    [OrderStatus.PREPARING],
     [OrderStatus.READY],
     [OrderStatus.SERVED],
     [OrderStatus.COMPLETED],

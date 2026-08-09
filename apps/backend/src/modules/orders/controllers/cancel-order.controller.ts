@@ -3,6 +3,7 @@ import type { AuthenticatedRequest } from "../../../types/authenticated-request.
 import {
   OrderAlreadyCancelledError,
   OrderCannotBeCancelledError,
+  PaidOrderCannotBeCancelledError,
   CancelOrderUseCase,
 } from "../use-cases/cancel-order.use-case.js";
 import { OrderNotFoundError } from "../use-cases/get-order.use-case.js";
@@ -31,7 +32,8 @@ export async function cancelOrder(
     }
     if (
       error instanceof OrderAlreadyCancelledError ||
-      error instanceof OrderCannotBeCancelledError
+      error instanceof OrderCannotBeCancelledError ||
+      error instanceof PaidOrderCannotBeCancelledError
     ) {
       return res.status(409).json({ success: false, message: error.message });
     }

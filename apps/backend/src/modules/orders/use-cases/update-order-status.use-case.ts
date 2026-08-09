@@ -25,6 +25,12 @@ const ALL_TRANSITIONS = Object.entries(ORDER_TRANSITIONS).flatMap(
   ([from, toList]) => toList.map((to) => [from as OrderStatus, to] as const),
 );
 
+export const CANCELLABLE_ORDER_STATUSES: OrderStatus[] = (
+  Object.keys(ORDER_TRANSITIONS) as OrderStatus[]
+).filter((status) =>
+  ORDER_TRANSITIONS[status].includes(OrderStatus.CANCELLED),
+);
+
 const ROLE_ALLOWED_TRANSITIONS: Record<
   UserRole,
   ReadonlyArray<readonly [OrderStatus, OrderStatus]>
