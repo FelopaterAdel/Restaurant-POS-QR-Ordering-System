@@ -1,7 +1,8 @@
-import { Prisma, type User, type UserRole } from "@restaurant/database";
+import { Prisma, type User } from "@restaurant/database";
 import { ConflictError } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { PasswordService } from "../../../infra/security/password.service.js";
+import { toSafeUser, type SafeUser } from "../../../utils/user.mapper.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
 import {
   bootstrapOwnerSchema,
@@ -18,13 +19,7 @@ export class OwnerAlreadyExistsError extends ConflictError {
   }
 }
 
-export interface SafeUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
-  status: User["status"];
-}
+export type { SafeUser };
 
 export class BootstrapOwnerUseCase {
   private readonly userRepository: UserRepository;
@@ -50,7 +45,7 @@ export class BootstrapOwnerUseCase {
 
     const user = await this.createOwner(data, hashedPassword);
 
-    return this.toSafeUser(user);
+    return toSafeUser(user);
   }
 
   private async createOwner(
@@ -73,15 +68,5 @@ export class BootstrapOwnerUseCase {
       }
       throw error;
     }
-  }
-
-  private toSafeUser(user: User): SafeUser {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-    };
   }
 }

@@ -17,7 +17,7 @@ import paymentRouter from "./modules/payments/routes/payment.routes.js";
 import productRouter from "./modules/products/routes/product.routes.js";
 import staffOrderRouter from "./modules/orders/routes/staff-order.routes.js";
 import tableRouter from "./modules/tables/routes/table.routes.js";
-import usersRouter from "./modules/users/routes/users.routes.js";
+import userRouter from "./modules/users/routes/user.routes.js";
 
 const app = express();
 app.use(helmet());
@@ -39,7 +39,7 @@ function resolveCorsOrigins(value: string): string | string[] | boolean {
 
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/users", userRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);

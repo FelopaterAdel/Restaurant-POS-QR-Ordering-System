@@ -1,4 +1,3 @@
-import type { User, UserRole } from "@restaurant/database";
 import type { SignOptions } from "jsonwebtoken";
 import { env } from "../../../config/env.js";
 import { UnauthorizedError } from "../../../errors/app-error.js";
@@ -6,6 +5,8 @@ import { AppErrorCode } from "../../../errors/codes.js";
 import { JWTService } from "../../../infra/auth/jwt.service.js";
 import { PasswordService } from "../../../infra/security/password.service.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
+import { calculateRefreshExpiry } from "../../../utils/token-expiry.js";
+import { toSafeUser, type SafeUser } from "../../../utils/user.mapper.js";
 import { RefreshTokenRepository } from "../repositories/refresh-token.repository.js";
 import { loginSchema, type LoginDTO } from "../schemas/login.schema.js";
 
@@ -21,13 +22,6 @@ export class AccountNotActiveError extends UnauthorizedError {
     super("Account is not active", AppErrorCode.ACCOUNT_NOT_ACTIVE);
     this.name = "AccountNotActiveError";
   }
-}
-
-export interface SafeUser {
-  id: string;
-  name: string;
-  email: string;
-  role: UserRole;
 }
 
 export interface LoginResult {
@@ -89,7 +83,7 @@ export class LoginUseCase {
     const refreshToken = this.jwtService.generateRefreshToken(tokenPayload);
 
     const tokenHash = RefreshTokenRepository.hashToken(refreshToken);
-    const expiresAt = this.calculateRefreshExpiry();
+    const expiresAt = calculateRefreshExpiry(this.refreshExpiresIn);
 
     await this.refreshTokenRepository.create(
       user.id,
@@ -98,38 +92,9 @@ export class LoginUseCase {
     );
 
     return {
-      user: this.toSafeUser(user),
+      user: toSafeUser(user),
       accessToken,
       refreshToken,
-    };
-  }
-
-  private calculateRefreshExpiry(): Date {
-    const expiresIn = this.refreshExpiresIn ?? "7d";
-    const value = Number.parseInt(String(expiresIn), 10);
-    const unit = String(expiresIn).replace(/[0-9]/g, "");
-
-    const now = Date.now();
-    switch (unit) {
-      case "s":
-        return new Date(now + value * 1000);
-      case "m":
-        return new Date(now + value * 60 * 1000);
-      case "h":
-        return new Date(now + value * 60 * 60 * 1000);
-      case "d":
-        return new Date(now + value * 24 * 60 * 60 * 1000);
-      default:
-        return new Date(now + 7 * 24 * 60 * 60 * 1000);
-    }
-  }
-
-  private toSafeUser(user: User): SafeUser {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
     };
   }
 }

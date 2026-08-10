@@ -169,7 +169,7 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 
   @@index([orderId])
-  @@index([status])
+  @@index([status, paidAt])
 }
 
 model OrderItem {

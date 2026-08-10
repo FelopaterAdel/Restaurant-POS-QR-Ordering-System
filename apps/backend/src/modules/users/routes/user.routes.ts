@@ -9,7 +9,7 @@ import {
   createUser,
   deleteUser,
   listUsers,
-} from "../controllers/users.controller.js";
+} from "../controllers/user.controller.js";
 import { createUserSchema } from "../schemas/create-user.schema.js";
 
 const router = Router();

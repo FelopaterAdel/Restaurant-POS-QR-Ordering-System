@@ -4,6 +4,7 @@ import { UnauthorizedError } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { JWTService } from "../../../infra/auth/jwt.service.js";
 import { UserRepository } from "../../users/repositories/user.repository.js";
+import { calculateRefreshExpiry } from "../../../utils/token-expiry.js";
 import { RefreshTokenRepository } from "../repositories/refresh-token.repository.js";
 import {
   refreshTokenSchema,
@@ -89,7 +90,7 @@ export class RefreshTokenUseCase {
     const newRefreshToken = this.jwtService.generateRefreshToken(tokenPayload);
 
     const newTokenHash = RefreshTokenRepository.hashToken(newRefreshToken);
-    const expiresAt = this.calculateRefreshExpiry();
+    const expiresAt = calculateRefreshExpiry(this.refreshExpiresIn);
 
     await this.refreshTokenRepository.create(
       user.id,
@@ -101,25 +102,5 @@ export class RefreshTokenUseCase {
       accessToken,
       refreshToken: newRefreshToken,
     };
-  }
-
-  private calculateRefreshExpiry(): Date {
-    const expiresIn = this.refreshExpiresIn ?? "7d";
-    const value = Number.parseInt(String(expiresIn), 10);
-    const unit = String(expiresIn).replace(/[0-9]/g, "");
-
-    const now = Date.now();
-    switch (unit) {
-      case "s":
-        return new Date(now + value * 1000);
-      case "m":
-        return new Date(now + value * 60 * 1000);
-      case "h":
-        return new Date(now + value * 60 * 60 * 1000);
-      case "d":
-        return new Date(now + value * 24 * 60 * 60 * 1000);
-      default:
-        return new Date(now + 7 * 24 * 60 * 60 * 1000);
-    }
   }
 }

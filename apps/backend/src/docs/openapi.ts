@@ -987,16 +987,6 @@ export const openapiSpec = {
         type: "string",
         enum: ["PENDING", "PAID", "VOIDED"],
       },
-      SafeUser: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          name: { type: "string" },
-          email: { type: "string", format: "email" },
-          role: { $ref: "#/components/schemas/UserRole" },
-        },
-        required: ["id", "name", "email", "role"],
-      },
       SafeUserWithStatus: {
         type: "object",
         properties: {
@@ -1365,7 +1355,7 @@ export const openapiSpec = {
       LoginResult: {
         type: "object",
         properties: {
-          user: { $ref: "#/components/schemas/SafeUser" },
+          user: { $ref: "#/components/schemas/SafeUserWithStatus" },
           accessToken: { type: "string" },
           refreshToken: { type: "string" },
         },

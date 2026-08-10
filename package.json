@@ -11,7 +11,7 @@
     "format": "prettier --write .",
     "db:generate": "pnpm --filter @restaurant/database generate",
     "db:migrate": "pnpm --filter @restaurant/database migrate",
-    "db:deploy": "pnpm --filter @restaurant/database deploy",
+    "db:deploy": "pnpm --filter @restaurant/database run deploy",
     "db:studio": "pnpm --filter @restaurant/database studio",
     "db:seed": "pnpm --filter @restaurant/database seed"
   },

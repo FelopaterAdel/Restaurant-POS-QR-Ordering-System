@@ -1,7 +1,7 @@
 import type { NextFunction, Response } from "express";
-import type { User } from "@restaurant/database";
 import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
+import { toAdminUser } from "../../../utils/user.mapper.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import {
   CreateUserUseCase,
@@ -10,19 +10,6 @@ import {
 
 const userRepository = new UserRepository();
 const createUserUseCase = new CreateUserUseCase();
-
-function toSafeUser(user: User) {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    status: user.status,
-    lastLoginAt: user.lastLoginAt,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
-  };
-}
 
 export async function createUser(
   req: AuthenticatedRequest,
@@ -39,7 +26,7 @@ export async function listUsers(
   next: NextFunction,
 ) {
   const users = await userRepository.findAll();
-  sendSuccess(res, users.map(toSafeUser));
+  sendSuccess(res, users.map(toAdminUser));
 }
 
 export async function deleteUser(

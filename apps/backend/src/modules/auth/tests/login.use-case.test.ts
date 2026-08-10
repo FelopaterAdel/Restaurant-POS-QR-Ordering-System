@@ -82,6 +82,7 @@ describe("LoginUseCase", () => {
         name: user.name,
         email: user.email,
         role: UserRole.CASHIER,
+        status: user.status,
       },
       accessToken: "access-token",
       refreshToken: "refresh-token",

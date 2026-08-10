@@ -3,7 +3,7 @@ import { env } from "../config/env.js";
 import { UnauthorizedError } from "../errors/app-error.js";
 import { JWTService } from "../infra/auth/jwt.service.js";
 import { UserRepository } from "../modules/users/repositories/user.repository.js";
-import type { AuthenticatedUser } from "../types/auth.js";
+import { toSafeUser } from "../utils/user.mapper.js";
 import type { AuthenticatedRequest } from "../types/authenticated-request.js";
 
 export interface AuthMiddlewareOptions {
@@ -17,22 +17,6 @@ const defaultJwtService = new JWTService(
   env.jwt.accessExpiresIn,
   env.jwt.refreshExpiresIn,
 );
-
-function toAuthenticatedUser(user: {
-  id: string;
-  name: string;
-  email: string;
-  role: AuthenticatedUser["role"];
-  status: AuthenticatedUser["status"];
-}): AuthenticatedUser {
-  return {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    status: user.status,
-  };
-}
 
 export function authMiddleware(
   options: AuthMiddlewareOptions = {},
@@ -68,7 +52,7 @@ export function authMiddleware(
         return next(new UnauthorizedError("Account is not active"));
       }
 
-      req.user = toAuthenticatedUser(user);
+      req.user = toSafeUser(user);
 
       next();
     } catch (error) {
