@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import type { UserRole } from "@restaurant/database";
 
@@ -36,7 +37,7 @@ export class JWTService {
   }
 
   generateRefreshToken(payload: TokenPayload): string {
-    return jwt.sign(payload, this.refreshSecret, {
+    return jwt.sign({ ...payload, jti: randomUUID() }, this.refreshSecret, {
       expiresIn: this.refreshExpiresIn,
     });
   }
