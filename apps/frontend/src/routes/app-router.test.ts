@@ -1,5 +1,6 @@
 import type { RouteObject } from "react-router-dom";
 import { describe, expect, it } from "vitest";
+import { AdminLayout } from "@/layouts/AdminLayout";
 import { AccessDeniedPage } from "@/pages/access-denied/access-denied-page";
 import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
@@ -36,11 +37,35 @@ function locateWithin(
 ): LocatedRoute | null {
   for (const child of route.children ?? []) {
     if (child.path === path) {
-      return { route: child, parentElement: route.element ?? null, rootElement };
+      return {
+        route: child,
+        parentElement: route.element ?? null,
+        rootElement,
+      };
     }
     const found = locateWithin(child, path, rootElement);
     if (found) {
       return found;
+    }
+  }
+  return null;
+}
+
+function collectElementChain(
+  routes: RouteObject[],
+  path: string,
+  chain: unknown[] = [],
+): unknown[] | null {
+  for (const route of routes) {
+    const next = [...chain, route.element ?? null];
+    if (route.path === path) {
+      return next;
+    }
+    if (route.children) {
+      const found = collectElementChain(route.children, path, next);
+      if (found) {
+        return found;
+      }
     }
   }
   return null;
@@ -97,9 +122,18 @@ describe("app routes", () => {
     for (const [path, permission] of expectations) {
       const found = locate(appRoutes, path);
       expect(found, `route ${path} should exist`).not.toBeNull();
-      expect(elementType(found?.parentElement), `${path} must be role-guarded`).toBe(RoleRoute);
-      expect(rolePermissionOf(found?.parentElement), `${path} must require ${permission}`).toBe(permission);
-      expect(elementType(found?.rootElement), `${path} must sit behind ProtectedRoute`).toBe(ProtectedRoute);
+      expect(
+        elementType(found?.parentElement),
+        `${path} must be role-guarded`,
+      ).toBe(RoleRoute);
+      expect(
+        rolePermissionOf(found?.parentElement),
+        `${path} must require ${permission}`,
+      ).toBe(permission);
+      expect(
+        elementType(found?.rootElement),
+        `${path} must sit behind ProtectedRoute`,
+      ).toBe(ProtectedRoute);
     }
   });
 
@@ -108,6 +142,24 @@ describe("app routes", () => {
     expect(denied).not.toBeNull();
     expect(elementType(denied?.route.element)).toBe(AccessDeniedPage);
     expect(elementType(denied?.rootElement)).toBe(ProtectedRoute);
+  });
+
+  it("nests every admin page inside the AdminLayout shell", () => {
+    const pages = [
+      "/dashboard",
+      "/orders",
+      "/tables",
+      "/products",
+      "/categories",
+      "/users",
+      "/payments",
+    ];
+
+    for (const path of pages) {
+      const chain = collectElementChain(appRoutes, path);
+      expect(chain, `route ${path} should exist`).not.toBeNull();
+      expect(chain?.map(elementType)).toContain(AdminLayout);
+    }
   });
 
   it("serves /404 and a catch-all for unknown paths", () => {
