@@ -1,4 +1,5 @@
-export { api, apiClient } from "./client";
+export { api, apiClient, setSessionExpiredHandler } from "./client";
+export type { ApiRequestConfig } from "./client";
 export {
   ApiError,
   getApiErrorMessage,

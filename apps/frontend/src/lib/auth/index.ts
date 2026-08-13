@@ -1,6 +1,8 @@
 export {
-  clearTokens,
+  clearAuthTokens,
   getAccessToken,
   getRefreshToken,
-  setTokens,
+  setAccessToken,
+  setAuthTokens,
+  setRefreshToken,
 } from "./token-storage";

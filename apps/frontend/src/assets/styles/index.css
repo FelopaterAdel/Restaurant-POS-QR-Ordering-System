@@ -66,6 +66,12 @@ body {
   color: #b42318;
 }
 
+.home__auth {
+  margin: 16px 0 0;
+  font-size: 14px;
+  color: #616e7c;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color: #e4e7eb;
@@ -78,6 +84,10 @@ body {
   }
 
   .home__subtitle {
+    color: #9aa5b1;
+  }
+
+  .home__auth {
     color: #9aa5b1;
   }
 }

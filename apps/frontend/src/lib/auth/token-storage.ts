@@ -1,15 +1,17 @@
-const ACCESS_TOKEN_KEY = "pos.access_token";
 const REFRESH_TOKEN_KEY = "pos.refresh_token";
+
+let accessToken: string | null = null;
 
 function hasStorage(): boolean {
   return typeof window !== "undefined" && "localStorage" in window;
 }
 
 export function getAccessToken(): string | null {
-  if (!hasStorage()) {
-    return null;
-  }
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  return accessToken;
+}
+
+export function setAccessToken(token: string): void {
+  accessToken = token;
 }
 
 export function getRefreshToken(): string | null {
@@ -19,18 +21,23 @@ export function getRefreshToken(): string | null {
   return window.localStorage.getItem(REFRESH_TOKEN_KEY);
 }
 
-export function setTokens(accessToken: string, refreshToken: string): void {
+export function setRefreshToken(token: string): void {
   if (!hasStorage()) {
     return;
   }
-  window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-  window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  window.localStorage.setItem(REFRESH_TOKEN_KEY, token);
 }
 
-export function clearTokens(): void {
-  if (!hasStorage()) {
-    return;
+export function setAuthTokens(accessTokenValue: string, refreshToken: string): void {
+  accessToken = accessTokenValue;
+  if (hasStorage()) {
+    window.localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
   }
-  window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-  window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+}
+
+export function clearAuthTokens(): void {
+  accessToken = null;
+  if (hasStorage()) {
+    window.localStorage.removeItem(REFRESH_TOKEN_KEY);
+  }
 }
