@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { Button, Input } from "@/components/ui";
 import { useAuth } from "@/features/auth";
 import { resolvePostLoginRedirect } from "@/features/auth/permissions";
 import { getApiErrorMessage } from "@/lib/api";
@@ -34,35 +35,31 @@ export function LoginPage() {
   return (
     <main className="login">
       <form className="login__card" onSubmit={handleSubmit}>
-        <h1 className="login__title">Sign in</h1>
-        <label className="login__field">
-          <span>Email</span>
-          <input
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            autoComplete="email"
-            required
-          />
-        </label>
-        <label className="login__field">
-          <span>Password</span>
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </label>
+        <h1 className="login__title h2">Sign in</h1>
+        <Input
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          autoComplete="email"
+          required
+        />
+        <Input
+          label="Password"
+          type="password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+          required
+        />
         {error && (
           <p className="login__error" role="alert">
             {error}
           </p>
         )}
-        <button className="login__submit" type="submit" disabled={submitting}>
+        <Button type="submit" size="lg" disabled={submitting}>
           {submitting ? "Signing in…" : "Sign in"}
-        </button>
+        </Button>
       </form>
     </main>
   );

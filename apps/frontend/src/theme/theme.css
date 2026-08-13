@@ -1,0 +1,185 @@
+/*
+ * Theme configuration → CSS variables.
+ * Mirrors src/theme/tokens.ts. Components consume only these variables,
+ * so switching a client's theme (or primary color) happens in one place.
+ */
+
+:root {
+  color-scheme: light;
+
+  /* Colors */
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f1f5f9;
+  --color-text: #0f172a;
+  --color-muted: #64748b;
+  --color-border: #e2e8f0;
+
+  --color-primary: #059669;
+  --color-primary-hover: #047857;
+  --color-primary-foreground: #ffffff;
+  --color-primary-subtle: #ecfdf5;
+
+  --color-secondary: #f1f5f9;
+  --color-secondary-hover: #e2e8f0;
+  --color-secondary-foreground: #0f172a;
+
+  --color-success: #16a34a;
+  --color-success-hover: #15803d;
+  --color-success-foreground: #ffffff;
+  --color-success-subtle: #f0fdf4;
+
+  --color-warning: #d97706;
+  --color-warning-hover: #b45309;
+  --color-warning-foreground: #ffffff;
+  --color-warning-subtle: #fffbeb;
+
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-foreground: #ffffff;
+  --color-danger-subtle: #fef2f2;
+
+  --color-info: #2563eb;
+  --color-info-hover: #1d4ed8;
+  --color-info-foreground: #ffffff;
+  --color-info-subtle: #eff6ff;
+
+  --color-overlay: rgb(15 23 42 / 0.5);
+  --color-focus-ring: rgb(5 150 105 / 0.35);
+
+  /* Typography */
+  --font-family:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-h1: 28px;
+  --font-size-h2: 22px;
+  --font-size-h3: 18px;
+  --font-size-body: 14px;
+  --font-size-sm: 13px;
+  --font-size-xs: 12px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Elevation */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.12);
+}
+
+/* Dark theme: ready for explicit switching via <html data-theme="dark">. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-hover: #334155;
+  --color-text: #e2e8f0;
+  --color-muted: #94a3b8;
+  --color-border: #334155;
+
+  --color-primary: #34d399;
+  --color-primary-hover: #6ee7b7;
+  --color-primary-foreground: #052e16;
+  --color-primary-subtle: #064e3b;
+
+  --color-secondary: #334155;
+  --color-secondary-hover: #475569;
+  --color-secondary-foreground: #e2e8f0;
+
+  --color-success: #4ade80;
+  --color-success-hover: #86efac;
+  --color-success-foreground: #052e16;
+  --color-success-subtle: #052e16;
+
+  --color-warning: #fbbf24;
+  --color-warning-hover: #fcd34d;
+  --color-warning-foreground: #451a03;
+  --color-warning-subtle: #451a03;
+
+  --color-danger: #f87171;
+  --color-danger-hover: #fca5a5;
+  --color-danger-foreground: #450a0a;
+  --color-danger-subtle: #450a0a;
+
+  --color-info: #60a5fa;
+  --color-info-hover: #93c5fd;
+  --color-info-foreground: #172554;
+  --color-info-subtle: #1e3a8a;
+
+  --color-overlay: rgb(2 6 23 / 0.7);
+  --color-focus-ring: rgb(52 211 153 / 0.4);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
+}
+
+/* Default to dark when the OS prefers it and no explicit choice was made. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-background: #0f172a;
+    --color-surface: #1e293b;
+    --color-surface-hover: #334155;
+    --color-text: #e2e8f0;
+    --color-muted: #94a3b8;
+    --color-border: #334155;
+
+    --color-primary: #34d399;
+    --color-primary-hover: #6ee7b7;
+    --color-primary-foreground: #052e16;
+    --color-primary-subtle: #064e3b;
+
+    --color-secondary: #334155;
+    --color-secondary-hover: #475569;
+    --color-secondary-foreground: #e2e8f0;
+
+    --color-success: #4ade80;
+    --color-success-hover: #86efac;
+    --color-success-foreground: #052e16;
+    --color-success-subtle: #052e16;
+
+    --color-warning: #fbbf24;
+    --color-warning-hover: #fcd34d;
+    --color-warning-foreground: #451a03;
+    --color-warning-subtle: #451a03;
+
+    --color-danger: #f87171;
+    --color-danger-hover: #fca5a5;
+    --color-danger-foreground: #450a0a;
+    --color-danger-subtle: #450a0a;
+
+    --color-info: #60a5fa;
+    --color-info-hover: #93c5fd;
+    --color-info-foreground: #172554;
+    --color-info-subtle: #1e3a8a;
+
+    --color-overlay: rgb(2 6 23 / 0.7);
+    --color-focus-ring: rgb(52 211 153 / 0.4);
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);
+    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
+  }
+}

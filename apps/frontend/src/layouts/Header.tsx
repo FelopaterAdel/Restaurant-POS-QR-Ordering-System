@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui";
+import { brand } from "@/config/brand";
 import { useAuth } from "@/features/auth";
 
 interface HeaderProps {
@@ -25,7 +27,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           ☰
         </button>
-        <h1 className="header__brand">{import.meta.env.VITE_APP_NAME}</h1>
+        <h1 className="header__brand">{brand.name}</h1>
       </div>
       {user && (
         <div className="header__end">
@@ -33,13 +35,9 @@ export function Header({ onMenuClick }: HeaderProps) {
             <span className="header__name">{user.name}</span>
             <span className="header__role">{user.role}</span>
           </div>
-          <button
-            type="button"
-            className="header__logout"
-            onClick={handleLogout}
-          >
+          <Button variant="outline" size="sm" onClick={handleLogout}>
             Logout
-          </button>
+          </Button>
         </div>
       )}
     </header>

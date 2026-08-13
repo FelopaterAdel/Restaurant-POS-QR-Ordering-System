@@ -1,4 +1,5 @@
 import { ServerStatus } from "@/components/ui/server-status";
+import { brand } from "@/config/brand";
 import { useAuth } from "@/features/auth";
 
 export function HomePage() {
@@ -13,8 +14,10 @@ export function HomePage() {
   return (
     <main className="home">
       <section className="home__card">
-        <h1 className="home__title">{import.meta.env.VITE_APP_NAME}</h1>
-        <p className="home__subtitle">Frontend foundation is ready.   FelopaterA</p>
+        <h1 className="home__title h1">{brand.name}</h1>
+        <p className="home__subtitle">
+          Frontend foundation is ready. FelopaterA
+        </p>
         <ServerStatus />
         <p className="home__auth">{authLabel}</p>
       </section>

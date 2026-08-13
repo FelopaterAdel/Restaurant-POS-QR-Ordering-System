@@ -48,10 +48,12 @@ export function PublicMenuPage() {
 
   return (
     <main className="public-menu">
-      <h1 className="public-menu__title">Menu – Table {menu.table.number}</h1>
+      <h1 className="public-menu__title h2">
+        Menu – Table {menu.table.number}
+      </h1>
       {menu.categories.map((category) => (
         <section className="public-menu__category" key={category.id}>
-          <h2 className="public-menu__category-name">{category.name}</h2>
+          <h2 className="public-menu__category-name h3">{category.name}</h2>
           <ul className="public-menu__products">
             {category.products.map((product) => (
               <li className="public-menu__product" key={product.id}>
