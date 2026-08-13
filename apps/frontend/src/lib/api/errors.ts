@@ -1,8 +1,5 @@
 import axios from "axios";
-import type {
-  ApiErrorResponse,
-  ApiRateLimitResponse,
-} from "./types";
+import type { ApiErrorResponse, ApiRateLimitResponse } from "@/types/api";
 
 export class ApiError extends Error {
   readonly status: number;
@@ -104,4 +101,8 @@ export function getApiErrorMessage(error: unknown): string {
   }
 
   return "An unexpected error occurred";
+}
+
+export function isUnauthorizedError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 401;
 }
