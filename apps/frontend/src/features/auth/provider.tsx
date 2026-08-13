@@ -8,7 +8,7 @@ import {
 import { setSessionExpiredHandler } from "@/lib/api";
 import { AuthContext, type AuthState } from "./context";
 import { authService } from "./service";
-import type { LoginCredentials } from "./types";
+import type { LoginCredentials, SafeUser } from "./types";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>({
@@ -49,10 +49,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const login = useCallback(async (credentials: LoginCredentials) => {
-    const user = await authService.login(credentials);
-    setState({ user, isAuthenticated: true, isLoading: false });
-  }, []);
+  const login = useCallback(
+    async (credentials: LoginCredentials): Promise<SafeUser> => {
+      const user = await authService.login(credentials);
+      setState({ user, isAuthenticated: true, isLoading: false });
+      return user;
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     await authService.logout();
