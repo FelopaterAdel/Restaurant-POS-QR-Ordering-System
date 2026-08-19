@@ -13,6 +13,7 @@ export {
 export { Badge } from "./badge";
 export type { BadgeProps, BadgeVariant } from "./badge";
 export { OrderStatusBadge } from "./order-status-badge";
+export { PaymentStatusBadge } from "./payment-status-badge";
 export {
   ORDER_STATUSES,
   PAYMENT_STATUSES,

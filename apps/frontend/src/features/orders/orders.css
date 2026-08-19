@@ -265,6 +265,123 @@
   flex-wrap: wrap;
 }
 
+/* Order details footer */
+.order-details__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* Badges row */
+.order-details__badges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Pay button */
+.order-details__pay {
+  flex-shrink: 0;
+}
+
+/* Payment confirmation modal */
+.payment-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.payment-confirm__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.payment-confirm__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.payment-confirm__label {
+  color: var(--color-muted);
+}
+
+.payment-confirm__value {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.payment-confirm__total {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.payment-confirm__method {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.payment-confirm__method-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+}
+
+.payment-confirm__method-options {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.payment-confirm__method-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: all 0.15s ease;
+}
+
+.payment-confirm__method-option:hover {
+  border-color: var(--color-primary);
+}
+
+.payment-confirm__method-option--selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.payment-confirm__method-option input[type="radio"] {
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.payment-confirm__error {
+  padding: var(--space-3);
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.payment-confirm__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
 /* Pagination */
 .orders-pagination {
   display: flex;

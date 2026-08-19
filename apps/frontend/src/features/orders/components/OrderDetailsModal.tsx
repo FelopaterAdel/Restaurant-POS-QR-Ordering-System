@@ -1,5 +1,11 @@
 import { useCallback } from "react";
-import { Button, Modal, OrderStatusBadge, Spinner } from "@/components/ui";
+import {
+  Button,
+  Modal,
+  OrderStatusBadge,
+  PaymentStatusBadge,
+  Spinner,
+} from "@/components/ui";
 import type { OrderStatus } from "@/components/ui";
 import type { UserRole } from "@/features/auth/types";
 import type { Order } from "../orders.types";
@@ -22,6 +28,9 @@ interface StatusAction {
   nextStatus: OrderStatus;
   variant: "primary" | "secondary" | "danger" | "outline";
 }
+
+const PAYABLE_ROLES: UserRole[] = ["OWNER", "MANAGER", "CASHIER"];
+const PAYABLE_STATUSES: OrderStatus[] = ["READY", "SERVED"];
 
 function getAvailableActions(
   order: Order,
@@ -81,6 +90,7 @@ export interface OrderDetailsModalProps {
   role: UserRole;
   onClose: () => void;
   onStatusUpdate: (orderId: string, status: OrderStatus) => void;
+  onPayOrder: (orderId: string) => void;
   isUpdating: boolean;
 }
 
@@ -90,6 +100,7 @@ export function OrderDetailsModal({
   role,
   onClose,
   onStatusUpdate,
+  onPayOrder,
   isUpdating,
 }: OrderDetailsModalProps) {
   const handleAction = useCallback(
@@ -99,9 +110,19 @@ export function OrderDetailsModal({
     [onStatusUpdate],
   );
 
+  const handlePayClick = useCallback(() => {
+    if (order) {
+      onPayOrder(order.id);
+    }
+  }, [order, onPayOrder]);
+
   if (!order) return null;
 
   const actions = getAvailableActions(order, role);
+  const canPay =
+    PAYABLE_ROLES.includes(role) &&
+    PAYABLE_STATUSES.includes(order.status) &&
+    order.paymentStatus === "PENDING";
 
   return (
     <Modal
@@ -109,21 +130,35 @@ export function OrderDetailsModal({
       title={`Order #${order.orderNumber}`}
       onClose={onClose}
       footer={
-        actions.length > 0 ? (
-          <div className="order-details__actions">
-            {actions.map((action) => (
+        <div className="order-details__footer">
+          {actions.length > 0 && (
+            <div className="order-details__actions">
+              {actions.map((action) => (
+                <Button
+                  key={action.nextStatus}
+                  variant={action.variant}
+                  size="sm"
+                  disabled={isUpdating}
+                  onClick={() => handleAction(order.id, action.nextStatus)}
+                >
+                  {isUpdating ? <Spinner /> : action.label}
+                </Button>
+              ))}
+            </div>
+          )}
+          {canPay && (
+            <div className="order-details__pay">
               <Button
-                key={action.nextStatus}
-                variant={action.variant}
+                variant="primary"
                 size="sm"
+                onClick={handlePayClick}
                 disabled={isUpdating}
-                onClick={() => handleAction(order.id, action.nextStatus)}
               >
-                {isUpdating ? <Spinner /> : action.label}
+                Pay Order
               </Button>
-            ))}
-          </div>
-        ) : undefined
+            </div>
+          )}
+        </div>
       }
     >
       <div className="order-details">
@@ -131,7 +166,10 @@ export function OrderDetailsModal({
           <div>
             <p className="order-details__table">Table {order.tableNumber}</p>
           </div>
-          <OrderStatusBadge status={order.status} />
+          <div className="order-details__badges">
+            <OrderStatusBadge status={order.status} />
+            <PaymentStatusBadge status={order.paymentStatus} />
+          </div>
         </div>
 
         <div className="order-details__items">
@@ -146,6 +184,13 @@ export function OrderDetailsModal({
               </span>
             </div>
           ))}
+        </div>
+
+        <div className="order-details__total-row">
+          <span className="order-details__total-label">Subtotal</span>
+          <span className="order-details__total-value">
+            {formatCurrency(order.totalAmount)}
+          </span>
         </div>
 
         <div className="order-details__total-row">

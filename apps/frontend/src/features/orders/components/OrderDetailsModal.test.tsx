@@ -27,6 +27,7 @@ const mockOrder: Order = {
 function renderModal(overrides?: { order?: Order | null; role?: string; isUpdating?: boolean }) {
   const onClose = vi.fn();
   const onStatusUpdate = vi.fn();
+  const onPayOrder = vi.fn();
   act(() => {
     render(
       <OrderDetailsModal
@@ -35,13 +36,14 @@ function renderModal(overrides?: { order?: Order | null; role?: string; isUpdati
         role={(overrides?.role ?? "KITCHEN") as "KITCHEN"}
         onClose={onClose}
         onStatusUpdate={onStatusUpdate}
+        onPayOrder={onPayOrder}
         isUpdating={overrides?.isUpdating ?? false}
       />,
     );
   });
   const dialogs = document.querySelectorAll('[role="dialog"]');
   const dialog = dialogs[dialogs.length - 1] as HTMLElement;
-  return { dialog, onClose, onStatusUpdate };
+  return { dialog, onClose, onStatusUpdate, onPayOrder };
 }
 
 describe("OrderDetailsModal", () => {
@@ -73,7 +75,8 @@ describe("OrderDetailsModal", () => {
   it("renders total amount", () => {
     const { dialog } = renderModal();
 
-    expect(within(dialog).getByText("EGP 290")).toBeInTheDocument();
+    const totals = within(dialog).getAllByText("EGP 290");
+    expect(totals.length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders status badge", () => {
@@ -155,10 +158,124 @@ describe("OrderDetailsModal", () => {
         role="KITCHEN"
         onClose={vi.fn()}
         onStatusUpdate={vi.fn()}
+        onPayOrder={vi.fn()}
         isUpdating={false}
       />,
     );
 
     expect(container.innerHTML).toBe("");
+  });
+
+  it("renders payment status badge", () => {
+    const { dialog } = renderModal();
+
+    expect(within(dialog).getByText("Unpaid")).toBeInTheDocument();
+  });
+
+  it("renders Paid badge when payment is completed", () => {
+    const { dialog } = renderModal({
+      order: { ...mockOrder, paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).getByText("Paid")).toBeInTheDocument();
+  });
+
+  it("renders Refunded badge when payment is voided", () => {
+    const { dialog } = renderModal({
+      order: { ...mockOrder, paymentStatus: "VOIDED" },
+    });
+
+    expect(within(dialog).getByText("Refunded")).toBeInTheDocument();
+  });
+
+  it("shows Pay Order button for OWNER on READY unpaid order", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+  });
+
+  it("shows Pay Order button for MANAGER on READY unpaid order", () => {
+    const { dialog } = renderModal({
+      role: "MANAGER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+  });
+
+  it("shows Pay Order button for CASHIER on READY unpaid order", () => {
+    const { dialog } = renderModal({
+      role: "CASHIER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+  });
+
+  it("shows Pay Order button for CASHIER on SERVED unpaid order", () => {
+    const { dialog } = renderModal({
+      role: "CASHIER",
+      order: { ...mockOrder, status: "SERVED", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+  });
+
+  it("does NOT show Pay Order for WAITER on READY order", () => {
+    const { dialog } = renderModal({
+      role: "WAITER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).queryByText("Pay Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Pay Order for KITCHEN on READY order", () => {
+    const { dialog } = renderModal({
+      role: "KITCHEN",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).queryByText("Pay Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Pay Order when order is already paid", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).queryByText("Pay Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Pay Order when order is in PREPARING status", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "PREPARING", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).queryByText("Pay Order")).not.toBeInTheDocument();
+  });
+
+  it("calls onPayOrder when Pay Order button is clicked", async () => {
+    const { dialog, onPayOrder } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
+    });
+    const user = userEvent.setup();
+
+    await user.click(within(dialog).getByText("Pay Order"));
+
+    expect(onPayOrder).toHaveBeenCalledWith("ord_1");
+  });
+
+  it("renders subtotal row", () => {
+    const { dialog } = renderModal();
+
+    expect(within(dialog).getByText("Subtotal")).toBeInTheDocument();
+    expect(within(dialog).getByText("Total")).toBeInTheDocument();
   });
 });
