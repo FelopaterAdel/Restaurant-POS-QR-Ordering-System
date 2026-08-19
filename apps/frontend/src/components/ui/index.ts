@@ -13,8 +13,21 @@ export {
 export { Badge } from "./badge";
 export type { BadgeProps, BadgeVariant } from "./badge";
 export { OrderStatusBadge } from "./order-status-badge";
-export { ORDER_STATUSES } from "./order-status";
-export type { OrderStatus } from "./order-status";
+export {
+  ORDER_STATUSES,
+  PAYMENT_STATUSES,
+  PAYMENT_METHODS,
+  QUEUE_STATUSES,
+} from "./order-status";
+export type {
+  OrderStatus,
+  PaymentStatus,
+  PaymentMethod,
+  QueueStatus,
+} from "./order-status";
+export { TableStatusBadge } from "./table-status-badge";
+export { TABLE_STATUSES } from "./table-status";
+export type { TableStatus } from "./table-status";
 export { Modal } from "./modal";
 export type { ModalProps } from "./modal";
 export {

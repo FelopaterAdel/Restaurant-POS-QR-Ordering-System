@@ -7,7 +7,6 @@ const STATUS_VARIANT: Record<OrderStatus, BadgeVariant> = {
   PREPARING: "warning",
   READY: "info",
   SERVED: "neutral",
-  PAID: "success",
   COMPLETED: "success",
   CANCELLED: "danger",
 };
