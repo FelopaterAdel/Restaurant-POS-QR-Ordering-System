@@ -1,3 +1,5 @@
+import "@testing-library/jest-dom/vitest";
+
 class LocalStorageMock {
   private readonly store = new Map<string, string>();
 

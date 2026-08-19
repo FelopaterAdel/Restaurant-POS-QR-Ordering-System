@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Button, Card, CardBody, EmptyState, Skeleton } from "@/components/ui";
+import { useCallback } from "react";
+import { Button, Card, CardBody, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import { DashboardHeader } from "./components/DashboardHeader";
 import {
   BanknoteIcon,
@@ -8,8 +8,8 @@ import {
   ReceiptIcon,
 } from "./components/icons";
 import { StatCard } from "./components/StatCard";
-import { fetchDashboardStats } from "./dashboard.mock";
-import type { DashboardState, DashboardStats } from "./dashboard.types";
+import { useDashboardQuery } from "./dashboard.queries";
+import type { DashboardSummary } from "./dashboard.types";
 import "./dashboard.css";
 
 function formatCurrency(value: number): string {
@@ -36,34 +36,39 @@ function DashboardSkeleton() {
   );
 }
 
-function DashboardOverview({ stats }: { stats: DashboardStats }) {
+function DashboardOverview({ summary }: { summary: DashboardSummary }) {
   return (
     <>
       <div className="dashboard-grid">
         <StatCard
           title="Total Sales"
-          value={formatCurrency(stats.totalSales)}
+          value={formatCurrency(summary.payments.totalSales)}
           hint="Today"
           icon={<BanknoteIcon />}
           tone="primary"
         />
         <StatCard
           title="Total Orders"
-          value={formatNumber(stats.totalOrders)}
+          value={formatNumber(summary.orders.total)}
           hint="Today"
           icon={<ReceiptIcon />}
           tone="info"
         />
         <StatCard
           title="Paid Orders"
-          value={formatNumber(stats.paidOrders)}
+          value={formatNumber(summary.payments.paidOrders)}
           hint="Paid so far"
           icon={<CheckCircleIcon />}
           tone="success"
         />
         <StatCard
           title="Active Orders"
-          value={formatNumber(stats.activeOrders)}
+          value={formatNumber(
+            summary.orders.pending +
+              summary.orders.confirmed +
+              summary.orders.preparing +
+              summary.orders.ready,
+          )}
           hint="In progress"
           icon={<ClockIcon />}
           tone="warning"
@@ -81,26 +86,20 @@ function DashboardOverview({ stats }: { stats: DashboardStats }) {
   );
 }
 
+function hasData(summary: DashboardSummary): boolean {
+  return (
+    summary.orders.total > 0 ||
+    summary.payments.totalSales > 0 ||
+    summary.payments.paidOrders > 0
+  );
+}
+
 export function DashboardPage() {
-  const [state, setState] = useState<DashboardState>({ status: "loading" });
+  const { data, isLoading, isError, error, refetch } = useDashboardQuery();
 
-  const load = useCallback(async () => {
-    setState({ status: "loading" });
-    try {
-      const stats = await fetchDashboardStats();
-      if (stats === null) {
-        setState({ status: "empty" });
-      } else {
-        setState({ status: "ready", stats });
-      }
-    } catch {
-      setState({ status: "error", message: "We couldn't load the dashboard." });
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const handleRetry = useCallback(() => {
+    void refetch();
+  }, [refetch]);
 
   return (
     <div className="dashboard">
@@ -108,8 +107,19 @@ export function DashboardPage() {
         title="Dashboard"
         subtitle="Overview of today's restaurant activity"
       />
-      {state.status === "loading" && <DashboardSkeleton />}
-      {state.status === "empty" && (
+      {isLoading && <DashboardSkeleton />}
+      {isError && (
+        <Card>
+          <CardBody>
+            <ErrorState
+              title="Something went wrong"
+              description={error?.message ?? "We couldn't load the dashboard."}
+              action={<Button onClick={handleRetry}>Try again</Button>}
+            />
+          </CardBody>
+        </Card>
+      )}
+      {data && !isLoading && !isError && !hasData(data) && (
         <Card>
           <CardBody>
             <EmptyState
@@ -119,18 +129,9 @@ export function DashboardPage() {
           </CardBody>
         </Card>
       )}
-      {state.status === "error" && (
-        <Card>
-          <CardBody>
-            <EmptyState
-              title="Something went wrong"
-              description={state.message}
-              action={<Button onClick={() => void load()}>Try again</Button>}
-            />
-          </CardBody>
-        </Card>
+      {data && !isLoading && !isError && hasData(data) && (
+        <DashboardOverview summary={data} />
       )}
-      {state.status === "ready" && <DashboardOverview stats={state.stats} />}
     </div>
   );
 }

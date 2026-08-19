@@ -1,12 +1,24 @@
-export interface DashboardStats {
-  totalSales: number;
-  totalOrders: number;
-  paidOrders: number;
-  activeOrders: number;
+export interface DashboardOrders {
+  total: number;
+  pending: number;
+  confirmed: number;
+  preparing: number;
+  ready: number;
+  served: number;
+  completed: number;
+  cancelled: number;
 }
 
-export type DashboardState =
-  | { status: "loading" }
-  | { status: "ready"; stats: DashboardStats }
-  | { status: "empty" }
-  | { status: "error"; message: string };
+export interface DashboardPayments {
+  paidOrders: number;
+  totalSales: number;
+}
+
+export interface DashboardSummary {
+  orders: DashboardOrders;
+  payments: DashboardPayments;
+}
+
+export interface DashboardQueryParams {
+  date?: string;
+}
