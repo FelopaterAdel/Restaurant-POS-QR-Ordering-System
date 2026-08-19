@@ -1,35 +1,36 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createTable, disableTable, updateTable } from "./tables.api";
 import { tableKeys } from "./tables.queries";
-import type { UpdateTableInput } from "./tables.types";
+import type { CreateTableInput, UpdateTableInput } from "./tables.types";
 
 export function useCreateTableMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createTable,
+    mutationFn: (input: CreateTableInput) => createTable(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: tableKeys.all });
     },
   });
 }
 
-export function useUpdateTableMutation(tableId: string) {
+export function useUpdateTableMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateTableInput) => updateTable(tableId, input),
+    mutationFn: ({ id, data }: { id: string; data: UpdateTableInput }) =>
+      updateTable(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: tableKeys.all });
     },
   });
 }
 
-export function useDisableTableMutation(tableId: string) {
+export function useDisableTableMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => disableTable(tableId),
+    mutationFn: (tableId: string) => disableTable(tableId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: tableKeys.all });
     },

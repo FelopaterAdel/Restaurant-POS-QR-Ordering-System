@@ -10,7 +10,7 @@ import { NotFoundPage } from "@/pages/not-found/not-found-page";
 import { OrdersPage } from "@/pages/orders/orders-page";
 import { ProductsPage } from "@/pages/products/products-page";
 import { PublicMenuPage } from "@/pages/public-menu/public-menu-page";
-import { TablesPage } from "@/pages/tables/tables-page";
+import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/pages/users/users-page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
