@@ -57,7 +57,7 @@ export default function OrdersPage() {
   }, [updateStatusMutation]);
 
   const handleStatusUpdate = useCallback(
-    (orderId: string, status: OrderStatus) => {
+    (_orderId: string, status: OrderStatus) => {
       updateStatusMutation.mutate(
         { status },
         {

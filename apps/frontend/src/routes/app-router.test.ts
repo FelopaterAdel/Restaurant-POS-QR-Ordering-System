@@ -5,7 +5,7 @@ import { AccessDeniedPage } from "@/pages/access-denied/access-denied-page";
 import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
-import { PublicMenuPage } from "@/pages/public-menu/public-menu-page";
+import { MenuPage } from "@/features/menu";
 import { appRoutes } from "./app-router";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
@@ -104,7 +104,7 @@ describe("app routes", () => {
   it("keeps the public menu outside any auth guard", () => {
     const menu = locate(appRoutes, "/public/menu/:qrCode");
     expect(menu).not.toBeNull();
-    expect(elementType(menu?.route.element)).toBe(PublicMenuPage);
+    expect(elementType(menu?.route.element)).toBe(MenuPage);
     expect(menu?.parentElement).toBeNull();
   });
 

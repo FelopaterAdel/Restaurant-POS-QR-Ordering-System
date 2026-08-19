@@ -9,7 +9,7 @@ import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
 import OrdersPage from "@/features/orders/orders.page";
 import { ProductsPage } from "@/pages/products/products-page";
-import { PublicMenuPage } from "@/pages/public-menu/public-menu-page";
+import { MenuPage } from "@/features/menu";
 import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/pages/users/users-page";
 import { GuestRoute } from "./guest-route";
@@ -32,7 +32,7 @@ export const appRoutes: RouteObject[] = [
   },
   {
     path: "/public/menu/:qrCode",
-    element: <PublicMenuPage />,
+    element: <MenuPage />,
   },
   {
     element: <ProtectedRoute />,
