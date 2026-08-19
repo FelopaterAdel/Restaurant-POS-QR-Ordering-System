@@ -1,9 +1,9 @@
 import { createBrowserRouter, type RouteObject } from "react-router-dom";
 import { PagePlaceholder } from "@/components/ui/page-placeholder";
+import { DashboardPage } from "@/features/dashboard/dashboard.page";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { AccessDeniedPage } from "@/pages/access-denied/access-denied-page";
 import { CategoriesPage } from "@/pages/categories/categories-page";
-import { DashboardPage } from "@/pages/dashboard/dashboard-page";
 import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";

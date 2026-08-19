@@ -1,0 +1,120 @@
+.dashboard-header {
+  margin-bottom: var(--space-6);
+}
+
+.dashboard-header__title {
+  margin: 0;
+}
+
+.dashboard-header__subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.stat-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.stat-card__title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.stat-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+}
+
+.stat-card__icon--neutral {
+  background-color: var(--color-secondary);
+  color: var(--color-muted);
+}
+
+.stat-card__icon--primary {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+}
+
+.stat-card__icon--success {
+  background-color: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.stat-card__icon--warning {
+  background-color: var(--color-warning-subtle);
+  color: var(--color-warning);
+}
+
+.stat-card__icon--danger {
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+}
+
+.stat-card__icon--info {
+  background-color: var(--color-info-subtle);
+  color: var(--color-info);
+}
+
+.stat-card__value {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.stat-card__hint {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+}
+
+.dashboard-content {
+  margin-top: var(--space-6);
+}
+
+.skeleton-line {
+  width: 40%;
+  height: 12px;
+}
+
+.skeleton-value {
+  width: 60%;
+  height: 28px;
+}
