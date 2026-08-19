@@ -7,7 +7,7 @@ import { CategoriesPage } from "@/pages/categories/categories-page";
 import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
-import { OrdersPage } from "@/pages/orders/orders-page";
+import OrdersPage from "@/features/orders/orders.page";
 import { ProductsPage } from "@/pages/products/products-page";
 import { PublicMenuPage } from "@/pages/public-menu/public-menu-page";
 import TablesPage from "@/features/tables/tables.page";
