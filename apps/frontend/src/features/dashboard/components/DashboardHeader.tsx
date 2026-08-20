@@ -1,13 +1,33 @@
+import { Button } from "@/components/ui";
+
 export interface DashboardHeaderProps {
-  title: string;
-  subtitle: string;
+  greeting: string;
+  dateLabel: string;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
-export function DashboardHeader({ title, subtitle }: DashboardHeaderProps) {
+export function DashboardHeader({
+  greeting,
+  dateLabel,
+  onRefresh,
+  isRefreshing,
+}: DashboardHeaderProps) {
   return (
     <div className="dashboard-header">
-      <h1 className="dashboard-header__title h1">{title}</h1>
-      <p className="dashboard-header__subtitle">{subtitle}</p>
+      <div className="dashboard-header__text">
+        <h1 className="dashboard-header__title h1">{greeting}</h1>
+        <p className="dashboard-header__subtitle">{dateLabel}</p>
+      </div>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={onRefresh}
+        disabled={isRefreshing}
+        aria-label="Refresh dashboard"
+      >
+        {isRefreshing ? "Refreshing..." : "Refresh"}
+      </Button>
     </div>
   );
 }

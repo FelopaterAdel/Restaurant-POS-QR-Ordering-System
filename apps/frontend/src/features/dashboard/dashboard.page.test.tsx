@@ -4,9 +4,27 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { DashboardPage } from "./dashboard.page";
 import type { DashboardSummary } from "./dashboard.types";
+
+vi.mock("@/features/auth/use-auth", () => ({
+  useAuth: () => ({
+    user: { id: "1", name: "Test Owner", role: "OWNER" },
+    isAuthenticated: true,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
+
+vi.mock("@/features/settings/restaurant-context", () => ({
+  useRestaurant: () => ({
+    restaurant: { id: "1", name: "Test Restaurant" },
+    isLoading: false,
+    error: null,
+  }),
+}));
 
 const mockSummary: DashboardSummary = {
   orders: {
@@ -90,11 +108,19 @@ describe("DashboardPage", () => {
     expect(screen.getByLabelText("Loading dashboard")).toBeInTheDocument();
   });
 
+  it("renders greeting with restaurant name", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText(/Test Restaurant/).length).toBeGreaterThan(0);
+    });
+  });
+
   it("renders stats from the API on success", async () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Total Sales")).toBeInTheDocument();
+      expect(screen.getAllByText("Total Sales").length).toBeGreaterThan(0);
     });
 
     expect(screen.getAllByText("EGP 4,250").length).toBeGreaterThan(0);
@@ -104,6 +130,30 @@ describe("DashboardPage", () => {
     expect(screen.getAllByText("22").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Active Orders").length).toBeGreaterThan(0);
     expect(screen.getAllByText("10").length).toBeGreaterThan(0);
+  });
+
+  it("renders order status breakdown", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Order Status").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getAllByText("Pending").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Preparing").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Ready").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Completed").length).toBeGreaterThan(0);
+  });
+
+  it("renders date filter with Today active by default", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Today").length).toBeGreaterThan(0);
+    });
+
+    const todayTabs = screen.getAllByRole("button", { name: "Today" });
+    expect(todayTabs[0]).toHaveAttribute("aria-pressed", "true");
   });
 
   it("renders empty state when data has no activity", async () => {
@@ -116,12 +166,12 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("No data yet")).toBeInTheDocument();
+      expect(screen.getAllByText("No data yet").length).toBeGreaterThan(0);
     });
 
     expect(
-      screen.getByText("There is no activity to display."),
-    ).toBeInTheDocument();
+      screen.getAllByText("There is no activity to display for this date.").length,
+    ).toBeGreaterThan(0);
   });
 
   it("renders error state when API fails", async () => {
@@ -134,13 +184,13 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+      expect(screen.getAllByText("Unable to load dashboard data").length).toBeGreaterThan(0);
     });
 
-    expect(screen.getByText("Try again")).toBeInTheDocument();
+    expect(screen.getAllByText("Try Again").length).toBeGreaterThan(0);
   });
 
-  it("retries the request when clicking Try again", async () => {
+  it("retries the request when clicking Try Again", async () => {
     let callCount = 0;
 
     server.use(
@@ -156,16 +206,28 @@ describe("DashboardPage", () => {
     renderDashboard();
 
     await waitFor(() => {
-      expect(screen.getByText("Something went wrong")).toBeInTheDocument();
+      expect(screen.getAllByText("Unable to load dashboard data").length).toBeGreaterThan(0);
     });
 
     const user = userEvent.setup();
-    await user.click(screen.getByText("Try again"));
+    await user.click(screen.getAllByText("Try Again")[0]);
 
     await waitFor(() => {
       expect(screen.getAllByText("Total Sales").length).toBeGreaterThan(0);
     });
 
     expect(callCount).toBe(2);
+  });
+
+  it("renders refresh button", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Total Sales").length).toBeGreaterThan(0);
+    });
+
+    expect(
+      screen.getAllByRole("button", { name: "Refresh dashboard" }).length,
+    ).toBeGreaterThan(0);
   });
 });
