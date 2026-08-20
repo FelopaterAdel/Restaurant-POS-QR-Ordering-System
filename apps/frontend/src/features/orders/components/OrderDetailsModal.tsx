@@ -31,6 +31,8 @@ interface StatusAction {
 
 const PAYABLE_ROLES: UserRole[] = ["OWNER", "MANAGER", "CASHIER"];
 const PAYABLE_STATUSES: OrderStatus[] = ["READY", "SERVED"];
+const COMPLETE_ROLES: UserRole[] = ["OWNER", "MANAGER", "CASHIER"];
+const TERMINAL_STATUSES: OrderStatus[] = ["CANCELLED", "COMPLETED"];
 
 function getAvailableActions(
   order: Order,
@@ -91,6 +93,7 @@ export interface OrderDetailsModalProps {
   onClose: () => void;
   onStatusUpdate: (orderId: string, status: OrderStatus) => void;
   onPayOrder: (orderId: string) => void;
+  onCompleteOrder: (orderId: string) => void;
   isUpdating: boolean;
 }
 
@@ -101,6 +104,7 @@ export function OrderDetailsModal({
   onClose,
   onStatusUpdate,
   onPayOrder,
+  onCompleteOrder,
   isUpdating,
 }: OrderDetailsModalProps) {
   const handleAction = useCallback(
@@ -116,6 +120,12 @@ export function OrderDetailsModal({
     }
   }, [order, onPayOrder]);
 
+  const handleCompleteClick = useCallback(() => {
+    if (order) {
+      onCompleteOrder(order.id);
+    }
+  }, [order, onCompleteOrder]);
+
   if (!order) return null;
 
   const actions = getAvailableActions(order, role);
@@ -123,6 +133,10 @@ export function OrderDetailsModal({
     PAYABLE_ROLES.includes(role) &&
     PAYABLE_STATUSES.includes(order.status) &&
     order.paymentStatus === "PENDING";
+  const canComplete =
+    COMPLETE_ROLES.includes(role) &&
+    !TERMINAL_STATUSES.includes(order.status) &&
+    order.paymentStatus === "PAID";
 
   return (
     <Modal
@@ -155,6 +169,18 @@ export function OrderDetailsModal({
                 disabled={isUpdating}
               >
                 Pay Order
+              </Button>
+            </div>
+          )}
+          {canComplete && (
+            <div className="order-details__complete">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleCompleteClick}
+                disabled={isUpdating}
+              >
+                Complete Order
               </Button>
             </div>
           )}

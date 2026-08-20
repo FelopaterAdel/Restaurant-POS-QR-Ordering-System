@@ -28,6 +28,7 @@ function renderModal(overrides?: { order?: Order | null; role?: string; isUpdati
   const onClose = vi.fn();
   const onStatusUpdate = vi.fn();
   const onPayOrder = vi.fn();
+  const onCompleteOrder = vi.fn();
   act(() => {
     render(
       <OrderDetailsModal
@@ -37,13 +38,14 @@ function renderModal(overrides?: { order?: Order | null; role?: string; isUpdati
         onClose={onClose}
         onStatusUpdate={onStatusUpdate}
         onPayOrder={onPayOrder}
+        onCompleteOrder={onCompleteOrder}
         isUpdating={overrides?.isUpdating ?? false}
       />,
     );
   });
   const dialogs = document.querySelectorAll('[role="dialog"]');
   const dialog = dialogs[dialogs.length - 1] as HTMLElement;
-  return { dialog, onClose, onStatusUpdate, onPayOrder };
+  return { dialog, onClose, onStatusUpdate, onPayOrder, onCompleteOrder };
 }
 
 describe("OrderDetailsModal", () => {
@@ -159,6 +161,7 @@ describe("OrderDetailsModal", () => {
         onClose={vi.fn()}
         onStatusUpdate={vi.fn()}
         onPayOrder={vi.fn()}
+        onCompleteOrder={vi.fn()}
         isUpdating={false}
       />,
     );
@@ -277,5 +280,89 @@ describe("OrderDetailsModal", () => {
 
     expect(within(dialog).getByText("Subtotal")).toBeInTheDocument();
     expect(within(dialog).getByText("Total")).toBeInTheDocument();
+  });
+
+  it("shows Complete Order button for OWNER on paid non-terminal order", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).getByText("Complete Order")).toBeInTheDocument();
+  });
+
+  it("shows Complete Order button for MANAGER on paid non-terminal order", () => {
+    const { dialog } = renderModal({
+      role: "MANAGER",
+      order: { ...mockOrder, status: "SERVED", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).getByText("Complete Order")).toBeInTheDocument();
+  });
+
+  it("shows Complete Order button for CASHIER on paid non-terminal order", () => {
+    const { dialog } = renderModal({
+      role: "CASHIER",
+      order: { ...mockOrder, status: "SERVED", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).getByText("Complete Order")).toBeInTheDocument();
+  });
+
+  it("does NOT show Complete Order for WAITER", () => {
+    const { dialog } = renderModal({
+      role: "WAITER",
+      order: { ...mockOrder, status: "SERVED", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).queryByText("Complete Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Complete Order for KITCHEN", () => {
+    const { dialog } = renderModal({
+      role: "KITCHEN",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).queryByText("Complete Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Complete Order when order is unpaid", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "SERVED", paymentStatus: "PENDING" },
+    });
+
+    expect(within(dialog).queryByText("Complete Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Complete Order when order is CANCELLED", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "CANCELLED", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).queryByText("Complete Order")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show Complete Order when order is COMPLETED", () => {
+    const { dialog } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "COMPLETED", paymentStatus: "PAID" },
+    });
+
+    expect(within(dialog).queryByText("Complete Order")).not.toBeInTheDocument();
+  });
+
+  it("calls onCompleteOrder when Complete Order button is clicked", async () => {
+    const { dialog, onCompleteOrder } = renderModal({
+      role: "OWNER",
+      order: { ...mockOrder, status: "READY", paymentStatus: "PAID" },
+    });
+    const user = userEvent.setup();
+
+    await user.click(within(dialog).getByText("Complete Order"));
+
+    expect(onCompleteOrder).toHaveBeenCalledWith("ord_1");
   });
 });

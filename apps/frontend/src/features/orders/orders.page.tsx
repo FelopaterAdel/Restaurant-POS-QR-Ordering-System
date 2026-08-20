@@ -7,6 +7,7 @@ import { useOrderQueueQuery } from "./orders.queries";
 import {
   useUpdateOrderStatusMutation,
   usePayOrderMutation,
+  useCompleteOrderMutation,
 } from "./orders.mutations";
 import {
   OrderFilters,
@@ -16,6 +17,7 @@ import {
 import { OrderQueue } from "./components/OrderQueue";
 import { OrderDetailsModal } from "./components/OrderDetailsModal";
 import { PaymentConfirmationModal } from "./components/PaymentConfirmationModal";
+import { CompleteConfirmationModal } from "./components/CompleteConfirmationModal";
 import type { Order } from "./orders.types";
 import type { OrderStatus } from "@/components/ui";
 import "./orders.css";
@@ -26,6 +28,7 @@ export default function OrdersPage() {
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
+  const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
 
   const status = queueFilterToStatus(filter);
   const limit = 20;
@@ -46,6 +49,10 @@ export default function OrdersPage() {
   );
 
   const payOrderMutation = usePayOrderMutation(payingOrder?.id ?? "");
+
+  const completeOrderMutation = useCompleteOrderMutation(
+    completingOrder?.id ?? "",
+  );
 
   const handleFilterChange = useCallback((newFilter: QueueFilterKey) => {
     setFilter(newFilter);
@@ -109,6 +116,30 @@ export default function OrdersPage() {
     [payOrderMutation],
   );
 
+  const handleCompleteOrder = useCallback(
+    (orderId: string) => {
+      const order = data?.data.find((o) => o.id === orderId) ?? null;
+      if (order) {
+        setCompletingOrder(order);
+        setSelectedOrder(null);
+      }
+    },
+    [data?.data],
+  );
+
+  const handleCloseComplete = useCallback(() => {
+    setCompletingOrder(null);
+    completeOrderMutation.reset();
+  }, [completeOrderMutation]);
+
+  const handleConfirmComplete = useCallback(() => {
+    completeOrderMutation.mutate(undefined, {
+      onSuccess: () => {
+        setCompletingOrder(null);
+      },
+    });
+  }, [completeOrderMutation]);
+
   const handleRefresh = useCallback(() => {
     void refetch();
   }, [refetch]);
@@ -151,6 +182,7 @@ export default function OrdersPage() {
           onClose={handleCloseDetails}
           onStatusUpdate={handleStatusUpdate}
           onPayOrder={handlePayOrder}
+          onCompleteOrder={handleCompleteOrder}
           isUpdating={updateStatusMutation.isPending}
         />
       )}
@@ -165,6 +197,20 @@ export default function OrdersPage() {
         error={
           payOrderMutation.isError
             ? getApiErrorMessage(payOrderMutation.error)
+            : null
+        }
+      />
+
+      <CompleteConfirmationModal
+        open={completingOrder !== null}
+        orderNumber={completingOrder?.orderNumber ?? 0}
+        tableNumber={completingOrder?.tableNumber ?? 0}
+        onClose={handleCloseComplete}
+        onConfirm={handleConfirmComplete}
+        isProcessing={completeOrderMutation.isPending}
+        error={
+          completeOrderMutation.isError
+            ? getApiErrorMessage(completeOrderMutation.error)
             : null
         }
       />

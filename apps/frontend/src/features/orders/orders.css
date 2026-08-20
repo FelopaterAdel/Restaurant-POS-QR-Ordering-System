@@ -382,6 +382,67 @@
   justify-content: flex-end;
 }
 
+/* Complete order confirmation modal */
+.complete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.complete-confirm__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.complete-confirm__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.complete-confirm__label {
+  color: var(--color-muted);
+}
+
+.complete-confirm__value {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+}
+
+.complete-confirm__value--paid {
+  color: var(--color-success);
+}
+
+.complete-confirm__message {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.complete-confirm__error {
+  padding: var(--space-3);
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  text-align: center;
+}
+
+.complete-confirm__actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Complete button in order details */
+.order-details__complete {
+  flex-shrink: 0;
+}
+
 /* Pagination */
 .orders-pagination {
   display: flex;
