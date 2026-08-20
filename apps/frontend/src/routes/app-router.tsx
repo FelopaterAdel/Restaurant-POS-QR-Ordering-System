@@ -12,7 +12,7 @@ import OrderHistoryPage from "@/features/orders/history.page";
 import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
 import TablesPage from "@/features/tables/tables.page";
-import { UsersPage } from "@/pages/users/users-page";
+import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
