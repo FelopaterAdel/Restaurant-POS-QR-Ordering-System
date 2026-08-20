@@ -114,9 +114,17 @@
   padding-top: var(--space-4);
 }
 
-.staff-details__actions {
+.staff-details__actions-left,
+.staff-details__actions-right {
   display: flex;
-  justify-content: flex-end;
   gap: var(--space-3);
-  padding-top: var(--space-4);
+}
+
+.staff-form__error {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background-color: var(--color-danger-bg, #fef2f2);
+  color: var(--color-danger-text, #dc2626);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
 }

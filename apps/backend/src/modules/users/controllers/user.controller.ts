@@ -7,10 +7,12 @@ import {
   CreateUserUseCase,
   UserNotFoundError,
 } from "../use-cases/create-user.use-case.js";
+import { UpdateUserProfileUseCase } from "../use-cases/update-user-profile.use-case.js";
 import { UpdateUserStatusUseCase } from "../use-cases/update-user-status.use-case.js";
 
 const userRepository = new UserRepository();
 const createUserUseCase = new CreateUserUseCase();
+const updateUserProfileUseCase = new UpdateUserProfileUseCase();
 const updateUserStatusUseCase = new UpdateUserStatusUseCase();
 
 export async function createUser(
@@ -46,6 +48,15 @@ export async function deleteUser(
   await userRepository.delete(id);
 
   sendSuccess(res, null);
+}
+
+export async function updateUserProfile(
+  req: AuthenticatedRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  const result = await updateUserProfileUseCase.execute(req.params.id, req.body);
+  sendSuccess(res, result);
 }
 
 export async function updateUserStatus(

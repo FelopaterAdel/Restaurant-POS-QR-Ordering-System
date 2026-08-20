@@ -32,3 +32,9 @@ export interface CreateStaffInput {
   password: string;
   role: StaffRole;
 }
+
+export interface UpdateStaffInput {
+  name: string;
+  email: string;
+  role: StaffRole;
+}
