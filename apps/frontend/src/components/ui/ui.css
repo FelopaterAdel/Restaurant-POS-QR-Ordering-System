@@ -24,10 +24,22 @@
   outline-offset: 2px;
 }
 
-.button:disabled {
-  opacity: 0.5;
-  cursor: default;
+.button:disabled,
+.button[aria-busy="true"] {
+  opacity: 0.65;
+  cursor: not-allowed;
   pointer-events: none;
+}
+
+.button__spinner {
+  display: inline-flex;
+  align-items: center;
+}
+
+.button__spinner-indicator .spinner__indicator {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
 }
 
 .button--primary {
@@ -399,4 +411,55 @@ select.input__control {
   100% {
     transform: translateX(100%);
   }
+}
+
+/* Error boundary */
+.error-boundary {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-3);
+  padding: var(--space-12) var(--space-6);
+  text-align: center;
+  min-height: 50vh;
+}
+
+.error-boundary__title {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.error-boundary__description {
+  margin: 0;
+  max-width: 400px;
+  color: var(--color-muted);
+}
+
+/* Accessibility: focus-visible ring for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Skip link for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: var(--space-4);
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: var(--space-4);
 }

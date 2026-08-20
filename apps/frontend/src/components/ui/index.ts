@@ -47,3 +47,4 @@ export { ErrorState } from "./error-state";
 export type { ErrorStateProps } from "./error-state";
 export { Skeleton } from "./skeleton";
 export type { SkeletonProps } from "./skeleton";
+export { ErrorBoundary } from "./error-boundary";

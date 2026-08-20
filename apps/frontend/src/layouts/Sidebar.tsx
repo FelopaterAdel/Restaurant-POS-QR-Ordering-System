@@ -40,6 +40,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     : "sidebar__link"
                 }
                 to={item.path}
+                end={item.path === "/orders"}
                 onClick={onClose}
               >
                 {item.label}
