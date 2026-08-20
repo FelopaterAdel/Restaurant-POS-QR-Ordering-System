@@ -8,6 +8,7 @@ import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
 import OrdersPage from "@/features/orders/orders.page";
+import OrderHistoryPage from "@/features/orders/history.page";
 import { ProductsPage } from "@/pages/products/products-page";
 import { MenuPage } from "@/features/menu";
 import TablesPage from "@/features/tables/tables.page";
@@ -55,6 +56,10 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/orders",
                 element: <OrdersPage />,
+              },
+              {
+                path: "/orders/history",
+                element: <OrderHistoryPage />,
               },
             ],
           },

@@ -112,6 +112,7 @@ describe("app routes", () => {
     const expectations: Array<[string, string]> = [
       ["/dashboard", "dashboard"],
       ["/orders", "orders"],
+      ["/orders/history", "orders"],
       ["/tables", "tables"],
       ["/products", "products"],
       ["/categories", "categories"],
@@ -148,6 +149,7 @@ describe("app routes", () => {
     const pages = [
       "/dashboard",
       "/orders",
+      "/orders/history",
       "/tables",
       "/products",
       "/categories",

@@ -457,3 +457,119 @@
 .orders-pagination__info {
   font-variant-numeric: tabular-nums;
 }
+
+/* Order History */
+.history-filters {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.history-filters__fields {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.history-filters__input {
+  min-width: 160px;
+}
+
+.history-filters__select-wrap {
+  min-width: 160px;
+}
+
+.history-filters__select {
+  appearance: auto;
+}
+
+.history-filters__clear {
+  flex-shrink: 0;
+}
+
+/* History table row */
+.history-row {
+  cursor: pointer;
+}
+
+.history-row__amount {
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.history-row__date {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  white-space: nowrap;
+}
+
+.history-row__time {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+}
+
+/* History pagination */
+.history-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+}
+
+.history-pagination__info {
+  font-variant-numeric: tabular-nums;
+}
+
+/* History skeleton */
+.history-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.history-skeleton__row {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.history-skeleton__row:last-child {
+  border-bottom: none;
+}
+
+.history-skeleton__cell {
+  width: 120px;
+  height: 16px;
+}
+
+.history-skeleton__cell--sm {
+  width: 80px;
+}
+
+/* Mobile responsive for history */
+@media (max-width: 640px) {
+  .history-filters__fields {
+    flex-direction: column;
+  }
+
+  .history-filters__input,
+  .history-filters__select-wrap {
+    min-width: 100%;
+  }
+
+  .history-row__date {
+    font-size: var(--font-size-xs);
+  }
+}
