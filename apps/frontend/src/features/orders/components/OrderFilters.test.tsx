@@ -50,6 +50,67 @@ describe("OrderFilters", () => {
 
     expect(onChange).toHaveBeenCalledWith("all");
   });
+
+  describe("role-based filter subset", () => {
+    it("renders only the specified filters", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <OrderFilters
+          active="all"
+          onChange={onChange}
+          filters={["all", "READY"]}
+        />,
+      );
+      const group = container.querySelector('[role="group"]') as HTMLElement;
+      const buttons = within(group).getAllByRole("button");
+
+      expect(buttons).toHaveLength(2);
+      expect(within(group).getByText("All")).toBeInTheDocument();
+      expect(within(group).getByText("Ready")).toBeInTheDocument();
+      expect(within(group).queryByText("Pending")).not.toBeInTheDocument();
+      expect(within(group).queryByText("Confirmed")).not.toBeInTheDocument();
+      expect(within(group).queryByText("Preparing")).not.toBeInTheDocument();
+    });
+
+    it("renders kitchen-relevant filters", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <OrderFilters
+          active="all"
+          onChange={onChange}
+          filters={["all", "PENDING", "CONFIRMED", "PREPARING", "READY"]}
+        />,
+      );
+      const group = container.querySelector('[role="group"]') as HTMLElement;
+      const buttons = within(group).getAllByRole("button");
+
+      expect(buttons).toHaveLength(5);
+    });
+
+    it("renders cashier-relevant filters", () => {
+      const onChange = vi.fn();
+      const { container } = render(
+        <OrderFilters
+          active="all"
+          onChange={onChange}
+          filters={["all", "READY", "SERVED"]}
+        />,
+      );
+      const group = container.querySelector('[role="group"]') as HTMLElement;
+      const buttons = within(group).getAllByRole("button");
+
+      expect(buttons).toHaveLength(3);
+    });
+
+    it("falls back to all filters when no filters prop", () => {
+      const onChange = vi.fn();
+      const { container } = render(<OrderFilters active="all" onChange={onChange} />);
+      const group = container.querySelector('[role="group"]') as HTMLElement;
+      const buttons = within(group).getAllByRole("button");
+
+      expect(buttons.length).toBeGreaterThan(2);
+    });
+  });
 });
 
 describe("queueFilterToStatus", () => {
@@ -62,5 +123,6 @@ describe("queueFilterToStatus", () => {
     expect(queueFilterToStatus("CONFIRMED")).toBe("CONFIRMED");
     expect(queueFilterToStatus("PREPARING")).toBe("PREPARING");
     expect(queueFilterToStatus("READY")).toBe("READY");
+    expect(queueFilterToStatus("SERVED")).toBe("SERVED");
   });
 });

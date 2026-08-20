@@ -90,13 +90,13 @@ describe("OrderDetailsModal", () => {
   it("shows Mark as Ready button for KITCHEN role on PREPARING order", () => {
     const { dialog } = renderModal({ role: "KITCHEN" });
 
-    expect(within(dialog).getByText("Mark as Ready")).toBeInTheDocument();
+    expect(within(dialog).getByText("Mark Ready")).toBeInTheDocument();
   });
 
   it("shows Cancel Order button for OWNER role on PREPARING order", () => {
     const { dialog } = renderModal({ role: "OWNER" });
 
-    expect(within(dialog).getByText("Mark as Ready")).toBeInTheDocument();
+    expect(within(dialog).getByText("Mark Ready")).toBeInTheDocument();
     expect(within(dialog).getByText("Cancel Order")).toBeInTheDocument();
   });
 
@@ -123,7 +123,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, status: "READY" },
     });
 
-    expect(within(dialog).getByText("Mark as Served")).toBeInTheDocument();
+    expect(within(dialog).getByText("Mark Served")).toBeInTheDocument();
   });
 
   it("shows no action buttons for WAITER on PREPARING order", () => {
@@ -136,7 +136,7 @@ describe("OrderDetailsModal", () => {
     const { dialog, onStatusUpdate } = renderModal({ role: "KITCHEN" });
     const user = userEvent.setup();
 
-    await user.click(within(dialog).getByText("Mark as Ready"));
+    await user.click(within(dialog).getByText("Mark Ready"));
 
     expect(onStatusUpdate).toHaveBeenCalledWith("ord_1", "READY");
   });

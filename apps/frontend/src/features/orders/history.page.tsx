@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button, Spinner } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
-import { getApiErrorMessage } from "@/lib/api";
 import {
   useOrderHistoryQuery,
   useOrderDetailQuery,

@@ -9,6 +9,7 @@ import {
 import type { OrderStatus } from "@/components/ui";
 import type { UserRole } from "@/features/auth/types";
 import type { Order } from "../orders.types";
+import { getOrderActions, canPayOrder, canCompleteOrder } from "../orders.role-config";
 
 function formatCurrency(value: number): string {
   return `EGP ${value.toLocaleString("en-US")}`;
@@ -21,69 +22,6 @@ function formatTime(dateString: string): string {
     minute: "2-digit",
     hour12: false,
   });
-}
-
-interface StatusAction {
-  label: string;
-  nextStatus: OrderStatus;
-  variant: "primary" | "secondary" | "danger" | "outline";
-}
-
-const PAYABLE_ROLES: UserRole[] = ["OWNER", "MANAGER", "CASHIER"];
-const PAYABLE_STATUSES: OrderStatus[] = ["READY", "SERVED"];
-const COMPLETE_ROLES: UserRole[] = ["OWNER", "MANAGER", "CASHIER"];
-const TERMINAL_STATUSES: OrderStatus[] = ["CANCELLED", "COMPLETED"];
-
-function getAvailableActions(
-  order: Order,
-  role: UserRole,
-): StatusAction[] {
-  const { status } = order;
-  const actions: StatusAction[] = [];
-
-  switch (role) {
-    case "KITCHEN":
-      if (status === "PENDING") {
-        actions.push({ label: "Mark as Confirmed", nextStatus: "CONFIRMED", variant: "primary" });
-      }
-      if (status === "CONFIRMED") {
-        actions.push({ label: "Mark as Preparing", nextStatus: "PREPARING", variant: "primary" });
-      }
-      if (status === "PREPARING") {
-        actions.push({ label: "Mark as Ready", nextStatus: "READY", variant: "primary" });
-      }
-      break;
-
-    case "WAITER":
-      if (status === "READY") {
-        actions.push({ label: "Mark as Served", nextStatus: "SERVED", variant: "primary" });
-      }
-      break;
-
-    case "OWNER":
-    case "MANAGER":
-      if (status === "PENDING") {
-        actions.push({ label: "Confirm", nextStatus: "CONFIRMED", variant: "primary" });
-      }
-      if (status === "CONFIRMED") {
-        actions.push({ label: "Start Preparing", nextStatus: "PREPARING", variant: "primary" });
-      }
-      if (status === "PREPARING") {
-        actions.push({ label: "Mark as Ready", nextStatus: "READY", variant: "primary" });
-      }
-      if (status === "READY") {
-        actions.push({ label: "Mark as Served", nextStatus: "SERVED", variant: "primary" });
-      }
-      if (["PENDING", "CONFIRMED", "PREPARING"].includes(status)) {
-        actions.push({ label: "Cancel Order", nextStatus: "CANCELLED", variant: "danger" });
-      }
-      break;
-
-    case "CASHIER":
-      break;
-  }
-
-  return actions;
 }
 
 export interface OrderDetailsModalProps {
@@ -128,15 +66,9 @@ export function OrderDetailsModal({
 
   if (!order) return null;
 
-  const actions = getAvailableActions(order, role);
-  const canPay =
-    PAYABLE_ROLES.includes(role) &&
-    PAYABLE_STATUSES.includes(order.status) &&
-    order.paymentStatus === "PENDING";
-  const canComplete =
-    COMPLETE_ROLES.includes(role) &&
-    !TERMINAL_STATUSES.includes(order.status) &&
-    order.paymentStatus === "PAID";
+  const actions = getOrderActions(order, role);
+  const payAction = canPayOrder(order, role);
+  const completeAction = canCompleteOrder(order, role);
 
   return (
     <Modal
@@ -150,7 +82,7 @@ export function OrderDetailsModal({
               {actions.map((action) => (
                 <Button
                   key={action.nextStatus}
-                  variant={action.variant}
+                  variant={action.variant === "danger" ? "danger" : "primary"}
                   size="sm"
                   disabled={isUpdating}
                   onClick={() => handleAction(order.id, action.nextStatus)}
@@ -160,7 +92,7 @@ export function OrderDetailsModal({
               ))}
             </div>
           )}
-          {canPay && (
+          {payAction && (
             <div className="order-details__pay">
               <Button
                 variant="primary"
@@ -172,7 +104,7 @@ export function OrderDetailsModal({
               </Button>
             </div>
           )}
-          {canComplete && (
+          {completeAction && (
             <div className="order-details__complete">
               <Button
                 variant="primary"

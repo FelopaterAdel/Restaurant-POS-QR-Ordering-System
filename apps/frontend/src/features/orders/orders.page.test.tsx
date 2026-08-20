@@ -150,7 +150,7 @@ describe("OrdersPage", () => {
     expect(orderNumbers).toContain("#1026");
   });
 
-  it("renders filter buttons", async () => {
+  it("renders kitchen-appropriate filter buttons (5)", async () => {
     const { container } = renderPage();
 
     await waitFor(() => {
@@ -289,5 +289,45 @@ describe("OrdersPage", () => {
       expect(receivedParams?.get("status")).toBe("PENDING");
     });
   });
-});
 
+  it("shows inline action buttons for KITCHEN on applicable orders", async () => {
+    const { container } = renderPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-card__number")).toBeInTheDocument();
+    });
+
+    const actionBtns = container.querySelectorAll(".order-card__action-btn");
+    expect(actionBtns.length).toBeGreaterThan(0);
+  });
+
+  it("shows Mark Ready on PREPARING order for KITCHEN", async () => {
+    const { container } = renderPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-card__number")).toBeInTheDocument();
+    });
+
+    const readyBtns = Array.from(container.querySelectorAll(".order-card__action-btn"));
+    const markReady = readyBtns.find((btn) => btn.textContent?.includes("Mark Ready"));
+    expect(markReady).toBeDefined();
+  });
+
+  it("does not show inline actions on READY orders for KITCHEN", async () => {
+    const { container } = renderPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-card__number")).toBeInTheDocument();
+    });
+
+    const cards = container.querySelectorAll(".order-card");
+    const readyCard = Array.from(cards).find((card) =>
+      card.querySelector(".badge")?.textContent?.includes("READY"),
+    );
+
+    if (readyCard) {
+      const actionBar = readyCard.querySelector(".order-card__action-bar");
+      expect(actionBar).not.toBeInTheDocument();
+    }
+  });
+});

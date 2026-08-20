@@ -9,6 +9,8 @@ import {
   usePayOrderMutation,
   useCompleteOrderMutation,
 } from "./orders.mutations";
+import { getRoleOrderConfig } from "./orders.role-config";
+import type { StatusAction } from "./orders.role-config";
 import {
   OrderFilters,
   queueFilterToStatus,
@@ -18,27 +20,31 @@ import { OrderQueue } from "./components/OrderQueue";
 import { OrderDetailsModal } from "./components/OrderDetailsModal";
 import { PaymentConfirmationModal } from "./components/PaymentConfirmationModal";
 import { CompleteConfirmationModal } from "./components/CompleteConfirmationModal";
+import { StatusToast } from "./components/StatusToast";
 import type { Order } from "./orders.types";
 import type { OrderStatus } from "@/components/ui";
 import "./orders.css";
 
 export default function OrdersPage() {
   const { user } = useAuth();
-  const [filter, setFilter] = useState<QueueFilterKey>("all");
+  const roleConfig = user ? getRoleOrderConfig(user.role) : null;
+
+  const [filter, setFilter] = useState<QueueFilterKey>(
+    roleConfig?.defaultFilter ?? "all",
+  );
   const [page, setPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
   const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error";
+  } | null>(null);
 
   const status = queueFilterToStatus(filter);
   const limit = 20;
 
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = useOrderQueueQuery({
+  const { data, isLoading, error, refetch } = useOrderQueueQuery({
     status,
     page,
     limit,
@@ -79,6 +85,43 @@ export default function OrdersPage() {
         {
           onSuccess: () => {
             setSelectedOrder(null);
+            setToast({
+              message: `Order marked as ${status.toLowerCase()}`,
+              type: "success",
+            });
+          },
+          onError: (error) => {
+            setToast({
+              message:
+                getApiErrorMessage(error) ||
+                "Unable to update order. The order may have changed.",
+              type: "error",
+            });
+          },
+        },
+      );
+    },
+    [updateStatusMutation],
+  );
+
+  const handleCardAction = useCallback(
+    (order: Order, action: StatusAction) => {
+      updateStatusMutation.mutate(
+        { status: action.nextStatus },
+        {
+          onSuccess: () => {
+            setToast({
+              message: `Order #${order.orderNumber} marked as ${action.nextStatus.toLowerCase()}`,
+              type: "success",
+            });
+          },
+          onError: (error) => {
+            setToast({
+              message:
+                getApiErrorMessage(error) ||
+                "Unable to update order. The order may have changed.",
+              type: "error",
+            });
           },
         },
       );
@@ -109,6 +152,13 @@ export default function OrdersPage() {
         {
           onSuccess: () => {
             setPayingOrder(null);
+            setToast({ message: "Payment recorded", type: "success" });
+          },
+          onError: (error) => {
+            setToast({
+              message: getApiErrorMessage(error) || "Payment failed",
+              type: "error",
+            });
           },
         },
       );
@@ -136,6 +186,13 @@ export default function OrdersPage() {
     completeOrderMutation.mutate(undefined, {
       onSuccess: () => {
         setCompletingOrder(null);
+        setToast({ message: "Order completed", type: "success" });
+      },
+      onError: (error) => {
+        setToast({
+          message: getApiErrorMessage(error) || "Unable to complete order",
+          type: "error",
+        });
       },
     });
   }, [completeOrderMutation]);
@@ -144,11 +201,23 @@ export default function OrdersPage() {
     void refetch();
   }, [refetch]);
 
+  const handleDismissToast = useCallback(() => {
+    setToast(null);
+  }, []);
+
   const orders = data?.data ?? [];
   const pagination = data?.pagination;
 
   return (
     <div>
+      {toast && (
+        <StatusToast
+          message={toast.message}
+          type={toast.type}
+          onDismiss={handleDismissToast}
+        />
+      )}
+
       <div className="orders-header">
         <h1 className="orders-header__title">Orders</h1>
         <Button
@@ -161,7 +230,11 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      <OrderFilters active={filter} onChange={handleFilterChange} />
+      <OrderFilters
+        active={filter}
+        onChange={handleFilterChange}
+        filters={roleConfig?.filters}
+      />
 
       <OrderQueue
         orders={orders}
@@ -172,6 +245,9 @@ export default function OrdersPage() {
         onRetry={() => void refetch()}
         onOrderClick={handleOrderClick}
         onPageChange={handlePageChange}
+        role={user?.role}
+        onAction={handleCardAction}
+        isUpdating={updateStatusMutation.isPending}
       />
 
       {user && (

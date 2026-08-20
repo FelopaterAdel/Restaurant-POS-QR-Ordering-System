@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { OrderCard } from "./OrderCard";
 import type { Order } from "../orders.types";
+import type { StatusAction } from "../orders.role-config";
 
 const mockOrder: Order = {
   id: "ord_1",
@@ -24,11 +25,32 @@ const mockOrder: Order = {
   ],
 };
 
-function renderCard(overrides?: { order?: Order; onClick?: (order: Order) => void }) {
+const mockAction: StatusAction = {
+  label: "Mark Ready",
+  nextStatus: "READY",
+  variant: "primary",
+};
+
+function renderCard(overrides?: {
+  order?: Order;
+  onClick?: (order: Order) => void;
+  actions?: StatusAction[];
+  onAction?: (order: Order, action: StatusAction) => void;
+  isUpdating?: boolean;
+}) {
   const onClick = overrides?.onClick ?? vi.fn();
-  const result = render(<OrderCard order={overrides?.order ?? mockOrder} onClick={onClick} />);
+  const onAction = overrides?.onAction ?? vi.fn();
+  const result = render(
+    <OrderCard
+      order={overrides?.order ?? mockOrder}
+      onClick={onClick}
+      actions={overrides?.actions}
+      onAction={overrides?.actions ? onAction : undefined}
+      isUpdating={overrides?.isUpdating}
+    />,
+  );
   const card = result.container.querySelector(".order-card") as HTMLElement;
-  return { ...result, card, onClick };
+  return { ...result, card, onClick, onAction };
 }
 
 describe("OrderCard", () => {
@@ -87,5 +109,82 @@ describe("OrderCard", () => {
     await user.keyboard("{Enter}");
 
     expect(onClick).toHaveBeenCalledWith(mockOrder);
+  });
+
+  describe("action buttons", () => {
+    it("renders action bar when actions are provided", () => {
+      const { card } = renderCard({ actions: [mockAction] });
+
+      expect(card.querySelector(".order-card__action-bar")).toBeInTheDocument();
+      expect(card.querySelector(".order-card__action-btn")).toBeInTheDocument();
+    });
+
+    it("does not render action bar when no actions", () => {
+      const { card } = renderCard();
+
+      expect(card.querySelector(".order-card__action-bar")).not.toBeInTheDocument();
+    });
+
+    it("renders action label with checkmark for primary variant", () => {
+      const { card } = renderCard({ actions: [mockAction] });
+
+      const btn = card.querySelector(".order-card__action-btn");
+      expect(btn?.textContent).toContain("✓");
+      expect(btn?.textContent).toContain("Mark Ready");
+    });
+
+    it("does not render checkmark for danger variant", () => {
+      const dangerAction: StatusAction = {
+        label: "Cancel Order",
+        nextStatus: "CANCELLED",
+        variant: "danger",
+      };
+      const { card } = renderCard({ actions: [dangerAction] });
+
+      const btn = card.querySelector(".order-card__action-btn");
+      expect(btn?.textContent).toContain("Cancel Order");
+      expect(btn?.textContent).not.toContain("✓");
+    });
+
+    it("calls onAction when action button is clicked", async () => {
+      const { card, onAction } = renderCard({ actions: [mockAction] });
+      const user = userEvent.setup();
+
+      const btn = card.querySelector(".order-card__action-btn") as HTMLElement;
+      await user.click(btn);
+
+      expect(onAction).toHaveBeenCalledWith(mockOrder, mockAction);
+    });
+
+    it("does not call onClick when action button is clicked", async () => {
+      const { card, onClick } = renderCard({ actions: [mockAction] });
+      const user = userEvent.setup();
+
+      const btn = card.querySelector(".order-card__action-btn") as HTMLElement;
+      await user.click(btn);
+
+      expect(onClick).not.toHaveBeenCalled();
+    });
+
+    it("disables action button when isUpdating", () => {
+      const { card } = renderCard({
+        actions: [mockAction],
+        isUpdating: true,
+      });
+
+      const btn = card.querySelector(".order-card__action-btn") as HTMLElement;
+      expect(btn).toBeDisabled();
+    });
+
+    it("renders multiple action buttons", () => {
+      const actions: StatusAction[] = [
+        { label: "Mark Ready", nextStatus: "READY", variant: "primary" },
+        { label: "Cancel Order", nextStatus: "CANCELLED", variant: "danger" },
+      ];
+      const { card } = renderCard({ actions });
+
+      const btns = card.querySelectorAll(".order-card__action-btn");
+      expect(btns).toHaveLength(2);
+    });
   });
 });

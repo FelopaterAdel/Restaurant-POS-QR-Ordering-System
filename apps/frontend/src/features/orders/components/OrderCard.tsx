@@ -1,5 +1,7 @@
+import { useCallback } from "react";
 import { Card, CardBody, OrderStatusBadge } from "@/components/ui";
 import type { Order } from "../orders.types";
+import type { StatusAction } from "../orders.role-config";
 
 function formatCurrency(value: number): string {
   return `EGP ${value.toLocaleString("en-US")}`;
@@ -17,10 +19,37 @@ function formatTime(dateString: string): string {
 export interface OrderCardProps {
   order: Order;
   onClick: (order: Order) => void;
+  actions?: StatusAction[];
+  onAction?: (order: Order, action: StatusAction) => void;
+  isUpdating?: boolean;
 }
 
-export function OrderCard({ order, onClick }: OrderCardProps) {
+export function OrderCard({
+  order,
+  onClick,
+  actions,
+  onAction,
+  isUpdating,
+}: OrderCardProps) {
   const itemCount = order.items.length;
+
+  const handleActionClick = useCallback(
+    (e: React.MouseEvent, action: StatusAction) => {
+      e.stopPropagation();
+      onAction?.(order, action);
+    },
+    [order, onAction],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onClick(order);
+      }
+    },
+    [order, onClick],
+  );
 
   return (
     <Card>
@@ -29,12 +58,7 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
         onClick={() => onClick(order)}
         role="button"
         tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onClick(order);
-          }
-        }}
+        onKeyDown={handleKeyDown}
         aria-label={`Order #${order.orderNumber}, Table ${order.tableNumber}`}
       >
         <div className="order-card__header">
@@ -59,6 +83,23 @@ export function OrderCard({ order, onClick }: OrderCardProps) {
             Created {formatTime(order.createdAt)}
           </span>
         </div>
+
+        {actions && actions.length > 0 && onAction && (
+          <div className="order-card__action-bar">
+            {actions.map((action) => (
+              <button
+                key={action.nextStatus}
+                type="button"
+                className={`order-card__action-btn order-card__action-btn--${action.variant}`}
+                onClick={(e) => handleActionClick(e, action)}
+                disabled={isUpdating}
+              >
+                {action.variant === "primary" ? "✓ " : ""}
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
       </CardBody>
     </Card>
   );

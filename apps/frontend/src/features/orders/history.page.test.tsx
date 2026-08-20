@@ -50,7 +50,7 @@ const mockHistoryOrders: OrderHistoryItem[] = [
     id: "ord_3",
     orderNumber: 1022,
     table: { number: 8 },
-    status: "PAID",
+    status: "COMPLETED",
     totalAmount: 180,
     createdAt: "2025-08-19T15:30:00Z",
     payment: { status: "PAID", method: "CARD" },

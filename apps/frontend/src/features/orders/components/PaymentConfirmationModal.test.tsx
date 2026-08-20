@@ -3,8 +3,6 @@ import { render, within, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
-import type { PaymentMethod } from "@/components/ui";
-
 function renderModal(
   overrides?: Partial<React.ComponentProps<typeof PaymentConfirmationModal>>,
 ) {

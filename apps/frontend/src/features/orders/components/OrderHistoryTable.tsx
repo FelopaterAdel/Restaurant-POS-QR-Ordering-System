@@ -5,7 +5,6 @@ import {
   Skeleton,
   Table,
   TableBody,
-  TableCell,
   TableHeader,
   TableHeaderCell,
   TableRow,

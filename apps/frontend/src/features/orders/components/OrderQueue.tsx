@@ -7,6 +7,9 @@ import {
   Skeleton,
 } from "@/components/ui";
 import type { Order, Pagination } from "../orders.types";
+import type { UserRole } from "@/features/auth/types";
+import { getOrderActions } from "../orders.role-config";
+import type { StatusAction } from "../orders.role-config";
 import type { QueueFilterKey } from "./OrderFilters";
 import { OrderCard } from "./OrderCard";
 
@@ -54,6 +57,9 @@ export interface OrderQueueProps {
   onRetry: () => void;
   onOrderClick: (order: Order) => void;
   onPageChange: (page: number) => void;
+  role?: UserRole;
+  onAction?: (order: Order, action: StatusAction) => void;
+  isUpdating?: boolean;
 }
 
 export function OrderQueue({
@@ -65,6 +71,9 @@ export function OrderQueue({
   onRetry,
   onOrderClick,
   onPageChange,
+  role,
+  onAction,
+  isUpdating,
 }: OrderQueueProps) {
   if (isLoading) {
     return <OrderGridSkeleton />;
@@ -87,9 +96,19 @@ export function OrderQueue({
   return (
     <>
       <div className="orders-grid">
-        {orders.map((order) => (
-          <OrderCard key={order.id} order={order} onClick={onOrderClick} />
-        ))}
+        {orders.map((order) => {
+          const actions = role ? getOrderActions(order, role) : [];
+          return (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onClick={onOrderClick}
+              actions={actions.length > 0 ? actions : undefined}
+              onAction={onAction}
+              isUpdating={isUpdating}
+            />
+          );
+        })}
       </div>
 
       {pagination && pagination.totalPages > 1 && (
