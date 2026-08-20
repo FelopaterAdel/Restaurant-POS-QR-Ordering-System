@@ -1,29 +1,42 @@
 import { useCallback, useState } from "react";
 import { Button, EmptyState, ErrorState } from "@/components/ui";
+import { getApiErrorMessage } from "@/lib/api/errors";
 import { useStaffQuery } from "./users.queries";
-import { useCreateStaffMutation } from "./users.mutations";
-import type { Staff } from "./users.types";
+import {
+  useCreateStaffMutation,
+  useUpdateStaffStatusMutation,
+} from "./users.mutations";
+import type { Staff, StaffStatus } from "./users.types";
 import { StaffTable, StaffTableSkeleton } from "./components/StaffTable";
 import { StaffForm } from "./components/StaffForm";
 import { StaffDetailsModal } from "./components/StaffDetailsModal";
+import { ToggleStaffStatusDialog } from "./components/ToggleStaffStatusDialog";
 import "./users.css";
 
 export default function UsersPage() {
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [toggleDialogOpen, setToggleDialogOpen] = useState(false);
 
   const { data, isLoading, error, refetch } = useStaffQuery();
   const createMutation = useCreateStaffMutation();
+  const updateStatusMutation = useUpdateStaffStatusMutation();
 
   const handleSelectStaff = useCallback((staff: Staff) => {
     setSelectedStaff(staff);
     setDetailsOpen(true);
   }, []);
 
+  const handleToggleStatus = useCallback((staff: Staff) => {
+    setSelectedStaff(staff);
+    setToggleDialogOpen(true);
+  }, []);
+
   const closeAllModals = useCallback(() => {
     setAddFormOpen(false);
     setDetailsOpen(false);
+    setToggleDialogOpen(false);
     setSelectedStaff(null);
   }, []);
 
@@ -32,6 +45,16 @@ export default function UsersPage() {
       createMutation.mutate(data, { onSuccess: closeAllModals });
     },
     [createMutation, closeAllModals],
+  );
+
+  const handleToggleConfirm = useCallback(
+    (staffId: string, status: StaffStatus) => {
+      updateStatusMutation.mutate(
+        { staffId, status },
+        { onSuccess: closeAllModals },
+      );
+    },
+    [updateStatusMutation, closeAllModals],
   );
 
   if (isLoading) {
@@ -49,7 +72,7 @@ export default function UsersPage() {
         <h1>Staff</h1>
         <ErrorState
           title="Unable to load staff members."
-          description={error.message}
+          description={getApiErrorMessage(error)}
           action={<Button onClick={() => void refetch()}>Try Again</Button>}
         />
       </div>
@@ -71,7 +94,11 @@ export default function UsersPage() {
           }
         />
       ) : (
-        <StaffTable staff={data} onSelect={handleSelectStaff} />
+        <StaffTable
+          staff={data}
+          onSelect={handleSelectStaff}
+          onToggleStatus={handleToggleStatus}
+        />
       )}
 
       <StaffForm
@@ -85,6 +112,15 @@ export default function UsersPage() {
         open={detailsOpen}
         staff={selectedStaff}
         onClose={closeAllModals}
+        onToggleStatus={handleToggleStatus}
+      />
+
+      <ToggleStaffStatusDialog
+        open={toggleDialogOpen}
+        staff={selectedStaff}
+        onClose={closeAllModals}
+        onConfirm={handleToggleConfirm}
+        isPending={updateStatusMutation.isPending}
       />
     </div>
   );

@@ -254,6 +254,25 @@ export const openapiSpec = {
       },
     },
     "/api/v1/users/{id}": {
+      patch: {
+        tags: ["Users"],
+        summary: "Update staff status",
+        description:
+          "Updates a staff member's status (suspend, activate). Owner role only.",
+        operationId: "updateUserStatus",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/IdPathParam" }],
+        requestBody: jsonBody("UpdateUserStatusRequest"),
+        responses: {
+          200: successResponse("AdminUser", "Status updated"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          409: { $ref: "#/components/responses/Conflict" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
       delete: {
         tags: ["Users"],
         summary: "Delete staff user",
@@ -1506,6 +1525,13 @@ export const openapiSpec = {
           },
         },
         required: ["name", "email", "password"],
+      },
+      UpdateUserStatusRequest: {
+        type: "object",
+        properties: {
+          status: { $ref: "#/components/schemas/UserStatus" },
+        },
+        required: ["status"],
       },
       CreateCategoryRequest: {
         type: "object",

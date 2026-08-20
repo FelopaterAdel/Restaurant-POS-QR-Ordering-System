@@ -9,8 +9,10 @@ import {
   createUser,
   deleteUser,
   listUsers,
+  updateUserStatus,
 } from "../controllers/user.controller.js";
 import { createUserSchema } from "../schemas/create-user.schema.js";
+import { updateUserStatusSchema } from "../schemas/update-user-status.schema.js";
 
 const router = Router();
 
@@ -26,6 +28,14 @@ router.get(
   authMiddleware(),
   requireRole(UserRole.OWNER),
   listUsers as RequestHandler,
+);
+router.patch(
+  "/:id/status",
+  authMiddleware(),
+  requireRole(UserRole.OWNER),
+  validate(idParamSchema(), "params"),
+  validate(updateUserStatusSchema, "body"),
+  updateUserStatus as RequestHandler,
 );
 router.delete(
   "/:id",

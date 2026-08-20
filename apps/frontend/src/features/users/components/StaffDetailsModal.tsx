@@ -7,12 +7,14 @@ export interface StaffDetailsModalProps {
   open: boolean;
   staff: Staff | null;
   onClose: () => void;
+  onToggleStatus: (staff: Staff) => void;
 }
 
 export function StaffDetailsModal({
   open,
   staff,
   onClose,
+  onToggleStatus,
 }: StaffDetailsModalProps) {
   return (
     <Modal
@@ -20,7 +22,25 @@ export function StaffDetailsModal({
       title="Staff Details"
       onClose={onClose}
       footer={
-        <div className="staff-details__actions">
+        <div className="staff-details__footer">
+          {staff && staff.status === "ACTIVE" && (
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => onToggleStatus(staff)}
+            >
+              Suspend
+            </Button>
+          )}
+          {staff && (staff.status === "SUSPENDED" || staff.status === "INACTIVE") && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onToggleStatus(staff)}
+            >
+              Activate
+            </Button>
+          )}
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>

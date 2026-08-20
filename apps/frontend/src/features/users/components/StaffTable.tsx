@@ -1,4 +1,5 @@
 import {
+  Button,
   Table,
   TableHeader,
   TableBody,
@@ -27,9 +28,10 @@ export function StaffTableSkeleton({ rows = 5 }: StaffTableSkeletonProps) {
 export interface StaffTableProps {
   staff: Staff[];
   onSelect: (staff: Staff) => void;
+  onToggleStatus: (staff: Staff) => void;
 }
 
-export function StaffTable({ staff, onSelect }: StaffTableProps) {
+export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps) {
   return (
     <Table>
       <TableHeader>
@@ -38,17 +40,19 @@ export function StaffTable({ staff, onSelect }: StaffTableProps) {
           <TableHeaderCell>Email</TableHeaderCell>
           <TableHeaderCell>Role</TableHeaderCell>
           <TableHeaderCell>Status</TableHeaderCell>
+          <TableHeaderCell>Actions</TableHeaderCell>
         </TableRow>
       </TableHeader>
       <TableBody>
         {staff.map((member) => (
-          <TableRow
-            key={member.id}
-            className="staff-table__row"
-            onClick={() => onSelect(member)}
-          >
+          <TableRow key={member.id}>
             <TableCell>
-              <div className="staff-table__name">{member.name}</div>
+              <div
+                className="staff-table__name staff-table__name--clickable"
+                onClick={() => onSelect(member)}
+              >
+                {member.name}
+              </div>
             </TableCell>
             <TableCell>{member.email}</TableCell>
             <TableCell>
@@ -56,6 +60,35 @@ export function StaffTable({ staff, onSelect }: StaffTableProps) {
             </TableCell>
             <TableCell>
               <StaffStatusBadge status={member.status} />
+            </TableCell>
+            <TableCell>
+              <div className="staff-table__actions">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSelect(member)}
+                >
+                  Details
+                </Button>
+                {member.status === "ACTIVE" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onToggleStatus(member)}
+                  >
+                    Suspend
+                  </Button>
+                )}
+                {(member.status === "SUSPENDED" || member.status === "INACTIVE") && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onToggleStatus(member)}
+                  >
+                    Activate
+                  </Button>
+                )}
+              </div>
             </TableCell>
           </TableRow>
         ))}
