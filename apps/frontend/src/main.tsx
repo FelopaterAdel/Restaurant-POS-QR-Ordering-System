@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "@/app/App";
 import { AuthProvider } from "@/features/auth";
+import { RestaurantProvider } from "@/features/settings";
 import { initTheme } from "@/theme";
 import "@/assets/styles/index.css";
 
@@ -21,7 +22,9 @@ createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <App />
+        <RestaurantProvider>
+          <App />
+        </RestaurantProvider>
       </AuthProvider>
     </QueryClientProvider>
   </StrictMode>,

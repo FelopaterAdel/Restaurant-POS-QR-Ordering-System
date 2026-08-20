@@ -14,6 +14,7 @@ export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
   { label: "Products", path: "/products", permission: "products" },
   { label: "Categories", path: "/categories", permission: "categories" },
   { label: "Users", path: "/users", permission: "users" },
+  { label: "Settings", path: "/settings", permission: "settings" },
 ];
 
 export function getVisibleNavigation(

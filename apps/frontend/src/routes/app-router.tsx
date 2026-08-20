@@ -13,6 +13,7 @@ import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
 import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/pages/users/users-page";
+import { SettingsPage } from "@/features/settings";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -105,6 +106,15 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/payments",
                 element: <PagePlaceholder title="Payments" />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute permission="settings" />,
+            children: [
+              {
+                path: "/settings",
+                element: <SettingsPage />,
               },
             ],
           },

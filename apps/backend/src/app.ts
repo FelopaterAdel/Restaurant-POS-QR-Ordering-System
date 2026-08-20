@@ -9,6 +9,7 @@ import dashboardRouter from "./modules/dashboard/routes/dashboard.routes.js";
 import docsRouter from "./modules/docs/docs.routes.js";
 import healthRouter from "./modules/health/health.routes.js";
 import publicMenuRouter from "./modules/public-menu/routes/public-menu.routes.js";
+import restaurantRouter from "./modules/restaurant/routes/restaurant.routes.js";
 import orderRouter from "./modules/orders/routes/order.routes.js";
 import orderHistoryRouter from "./modules/orders/routes/order-history.routes.js";
 import orderQueueRouter from "./modules/orders/routes/order-queue.routes.js";
@@ -40,6 +41,7 @@ function resolveCorsOrigins(value: string): string | string[] | boolean {
 app.use("/api/v1/health", healthRouter);
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/restaurant", restaurantRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/tables", tableRouter);

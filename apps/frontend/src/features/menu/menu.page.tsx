@@ -185,8 +185,10 @@ export default function MenuPage() {
   return (
     <main className="menu-page">
       <div className="menu-page__header">
-        <h1 className="menu-page__title">Menu</h1>
-        <span className="menu-page__table">Table {menu.table.number}</span>
+        <div className="menu-page__brand">
+          <h1 className="menu-page__title">Menu</h1>
+          <span className="menu-page__table">Table {menu.table.number}</span>
+        </div>
       </div>
 
       <CategoryTabs

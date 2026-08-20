@@ -8,6 +8,7 @@ export const PAGE_PERMISSIONS = [
   "tables",
   "orders",
   "payments",
+  "settings",
 ] as const;
 
 export type PagePermission = (typeof PAGE_PERMISSIONS)[number];
@@ -21,6 +22,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly PagePermission[]> = {
     "tables",
     "orders",
     "payments",
+    "settings",
   ],
   MANAGER: [
     "dashboard",
@@ -29,6 +31,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly PagePermission[]> = {
     "tables",
     "orders",
     "payments",
+    "settings",
   ],
   CASHIER: ["orders", "payments"],
   WAITER: ["orders"],

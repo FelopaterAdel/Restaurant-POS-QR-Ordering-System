@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui";
-import { brand } from "@/config/brand";
 import { useAuth } from "@/features/auth";
+import { useRestaurant } from "@/features/settings";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,6 +9,7 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth();
+  const { restaurant } = useRestaurant();
   const navigate = useNavigate();
 
   async function handleLogout() {
@@ -27,12 +28,23 @@ export function Header({ onMenuClick }: HeaderProps) {
         >
           ☰
         </button>
-        <h1 className="header__brand">{brand.name}</h1>
+        <div className="header__brand">
+          {restaurant?.logoUrl && (
+            <img
+              src={restaurant.logoUrl}
+              alt=""
+              className="header__logo"
+            />
+          )}
+          <span className="header__name-text">
+            {restaurant?.name ?? "Restaurant POS"}
+          </span>
+        </div>
       </div>
       {user && (
         <div className="header__end">
           <div className="header__identity">
-            <span className="header__name">{user.name}</span>
+            <span className="header__user-name">{user.name}</span>
             <span className="header__role">{user.role}</span>
           </div>
           <Button variant="outline" size="sm" onClick={handleLogout}>

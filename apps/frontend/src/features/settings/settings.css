@@ -1,0 +1,301 @@
+.settings-page {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.settings-page__header {
+  margin-bottom: var(--space-6);
+}
+
+.settings-page__title {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+.settings-page__subtitle {
+  font-size: var(--font-size-body);
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.settings-page__loading,
+.settings-page__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-12) 0;
+  color: var(--color-muted);
+  font-size: var(--font-size-body);
+}
+
+.settings-page__grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.settings-page__main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.settings-page__sidebar {
+  position: sticky;
+  top: var(--space-6);
+}
+
+/* ─── Settings Form ─── */
+.settings-form {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
+
+.settings-form__title {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text);
+  margin: 0 0 var(--space-1);
+}
+
+.settings-form__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  margin: 0 0 var(--space-5);
+}
+
+.settings-form__field {
+  margin-bottom: var(--space-4);
+}
+
+.settings-form__label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text);
+  margin-bottom: var(--space-1);
+}
+
+.settings-form__input,
+.settings-form__textarea {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-body);
+  font-family: inherit;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.settings-form__input:focus,
+.settings-form__textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.settings-form__textarea {
+  resize: vertical;
+}
+
+.settings-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+.settings-form__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.settings-form__submit {
+  padding: var(--space-2) var(--space-5);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary-foreground, #fff);
+  background: var(--color-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-form__submit:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.settings-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.settings-form__error {
+  font-size: var(--font-size-sm);
+  color: var(--color-danger);
+}
+
+.settings-form__success {
+  font-size: var(--font-size-sm);
+  color: var(--color-success);
+}
+
+/* ─── Branding ─── */
+.branding__color-picker {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.branding__color-input {
+  width: 40px;
+  height: 40px;
+  padding: 2px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+}
+
+.branding__presets {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.branding__preset {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.branding__preset:hover {
+  transform: scale(1.15);
+}
+
+.branding__preset--active {
+  border-color: var(--color-text);
+  transform: scale(1.15);
+}
+
+.branding__hex {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  font-family: monospace;
+}
+
+.branding__clear {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.branding__clear:hover {
+  color: var(--color-text);
+  border-color: var(--color-text);
+}
+
+.branding__logo-preview {
+  margin-top: var(--space-2);
+}
+
+.branding__logo-img {
+  max-height: 48px;
+  max-width: 200px;
+  object-fit: contain;
+}
+
+/* ─── Preview ─── */
+.settings-preview__card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.settings-preview__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  color: #fff;
+}
+
+.settings-preview__logo {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+
+.settings-preview__name {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+}
+
+.settings-preview__body {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings-preview__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.settings-preview__label {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  flex-shrink: 0;
+}
+
+.settings-preview__value {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  text-align: right;
+  word-break: break-word;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .settings-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-page__sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .settings-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-page {
+    padding: var(--space-4);
+  }
+}

@@ -54,6 +54,19 @@ enum PaymentStatus {
 }
 
 
+model Restaurant {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  phone          String?
+  address        String?
+  logoUrl        String?
+  primaryColor   String   @default("#059669")
+  secondaryColor String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 model User {
   id           String          @id @default(cuid())
   email        String          @unique

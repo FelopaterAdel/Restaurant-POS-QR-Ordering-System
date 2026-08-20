@@ -118,6 +118,7 @@ describe("app routes", () => {
       ["/categories", "categories"],
       ["/users", "users"],
       ["/payments", "payments"],
+      ["/settings", "settings"],
     ];
 
     for (const [path, permission] of expectations) {
@@ -155,6 +156,7 @@ describe("app routes", () => {
       "/categories",
       "/users",
       "/payments",
+      "/settings",
     ];
 
     for (const path of pages) {

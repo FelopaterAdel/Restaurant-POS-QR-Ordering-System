@@ -10,6 +10,7 @@ describe("admin navigation", () => {
       "Products",
       "Categories",
       "Users",
+      "Settings",
     ]);
   });
 
@@ -23,13 +24,14 @@ describe("admin navigation", () => {
       "/products",
       "/categories",
       "/users",
+      "/settings",
     ]);
   });
 
-  it("hides Users from MANAGER", () => {
+  it("hides Users from MANAGER but shows Settings", () => {
     expect(
       getVisibleNavigation({ role: "MANAGER" }).map((item) => item.path),
-    ).toEqual(["/dashboard", "/orders", "/tables", "/products", "/categories"]);
+    ).toEqual(["/dashboard", "/orders", "/tables", "/products", "/categories", "/settings"]);
   });
 
   it("limits CASHIER, WAITER, and KITCHEN to Orders", () => {

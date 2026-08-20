@@ -16,6 +16,7 @@ export type {
   Product,
   PrismaClient,
   RefreshToken,
+  Restaurant,
   RestaurantTable,
   User,
 } from "./generated/prisma/client.js";
