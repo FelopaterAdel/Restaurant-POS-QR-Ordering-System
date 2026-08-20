@@ -23,11 +23,12 @@ export async function createCategory(
 }
 
 export async function listCategories(
-  _req: AuthenticatedRequest,
+  req: AuthenticatedRequest,
   res: Response,
   next: NextFunction,
 ) {
-  const categories = await listCategoriesUseCase.execute();
+  const all = req.query.all === "true";
+  const categories = await listCategoriesUseCase.execute(all);
   sendSuccess(res, categories);
 }
 

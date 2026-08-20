@@ -1,5 +1,6 @@
 @import "../../theme/theme.css";
 @import "../../components/ui/ui.css";
+@import "../../features/menu.css";
 
 :root {
   font-family: var(--font-family);

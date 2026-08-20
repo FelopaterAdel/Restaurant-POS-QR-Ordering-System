@@ -34,6 +34,14 @@ export class ProductRepository {
     });
   }
 
+  async findAll() {
+    return this.client.product.findMany({
+      where: { isDeleted: false },
+      orderBy: { name: "asc" },
+      include: { category: true },
+    });
+  }
+
   async create(data: CreateProductInput) {
     return this.client.product.create({
       data: {

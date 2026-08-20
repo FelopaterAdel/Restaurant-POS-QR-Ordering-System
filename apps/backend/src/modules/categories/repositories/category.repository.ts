@@ -34,6 +34,12 @@ export class CategoryRepository {
     });
   }
 
+  async findAll() {
+    return this.client.category.findMany({
+      orderBy: { name: "asc" },
+    });
+  }
+
   async create(data: CreateCategoryInput) {
     return this.client.category.create({
       data: {

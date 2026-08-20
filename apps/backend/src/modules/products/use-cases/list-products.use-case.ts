@@ -10,7 +10,10 @@ export class ListProductsUseCase {
     this.productRepository = productRepository;
   }
 
-  async execute(): Promise<Product[]> {
+  async execute(all = false): Promise<unknown[]> {
+    if (all) {
+      return this.productRepository.findAll();
+    }
     return this.productRepository.findAvailable();
   }
 }

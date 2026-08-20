@@ -10,7 +10,10 @@ export class ListCategoriesUseCase {
     this.categoryRepository = categoryRepository;
   }
 
-  async execute(): Promise<Category[]> {
+  async execute(all = false): Promise<Category[]> {
+    if (all) {
+      return this.categoryRepository.findAll();
+    }
     return this.categoryRepository.findActive();
   }
 }

@@ -27,7 +27,8 @@ export async function listProducts(
   res: Response,
   next: NextFunction,
 ) {
-  const products = await listProductsUseCase.execute();
+  const all = _req.query.all === "true";
+  const products = await listProductsUseCase.execute(all);
   sendSuccess(res, products);
 }
 
