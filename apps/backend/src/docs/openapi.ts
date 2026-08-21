@@ -584,6 +584,24 @@ export const openapiSpec = {
         },
       },
     },
+    "/api/v1/tables/{id}/enable": {
+      post: {
+        tags: ["Tables"],
+        summary: "Enable table",
+        description:
+          "Re-enables a disabled table, making it available again. Owner and manager roles only.",
+        operationId: "enableTable",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/IdPathParam" }],
+        responses: {
+          200: successResponse("Table", "Enabled table"),
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
     "/api/v1/dashboard/summary": {
       get: {
         tags: ["Dashboard"],
@@ -1130,6 +1148,7 @@ export const openapiSpec = {
           name: { type: "string" },
           qrCode: { type: "string" },
           status: { $ref: "#/components/schemas/TableStatus" },
+          menuUrl: { type: "string" },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
         },
@@ -1139,6 +1158,7 @@ export const openapiSpec = {
           "name",
           "qrCode",
           "status",
+          "menuUrl",
           "createdAt",
           "updatedAt",
         ],

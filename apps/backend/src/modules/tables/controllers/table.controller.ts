@@ -3,10 +3,12 @@ import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { CreateTableUseCase } from "../use-cases/create-table.use-case.js";
 import { DisableTableUseCase } from "../use-cases/disable-table.use-case.js";
+import { EnableTableUseCase } from "../use-cases/enable-table.use-case.js";
 import { GetTableUseCase } from "../use-cases/get-table.use-case.js";
 import { GetTableQrUseCase } from "../use-cases/get-table-qr.use-case.js";
 import { ListTablesUseCase } from "../use-cases/list-tables.use-case.js";
 import { UpdateTableUseCase } from "../use-cases/update-table.use-case.js";
+import { toTableDto } from "../utils/table.mapper.js";
 
 const createTableUseCase = new CreateTableUseCase();
 const listTablesUseCase = new ListTablesUseCase();
@@ -14,6 +16,7 @@ const getTableUseCase = new GetTableUseCase();
 const getTableQrUseCase = new GetTableQrUseCase();
 const updateTableUseCase = new UpdateTableUseCase();
 const disableTableUseCase = new DisableTableUseCase();
+const enableTableUseCase = new EnableTableUseCase();
 
 export async function createTable(
   req: Request,
@@ -21,7 +24,7 @@ export async function createTable(
   next: NextFunction,
 ) {
   const table = await createTableUseCase.execute(req.body);
-  sendSuccess(res, table, 201);
+  sendSuccess(res, toTableDto(table), 201);
 }
 
 export async function listTables(
@@ -30,7 +33,7 @@ export async function listTables(
   next: NextFunction,
 ) {
   const tables = await listTablesUseCase.execute();
-  sendSuccess(res, tables);
+  sendSuccess(res, tables.map(toTableDto));
 }
 
 export async function getTable(
@@ -39,7 +42,7 @@ export async function getTable(
   next: NextFunction,
 ) {
   const table = await getTableUseCase.execute(req.params.id);
-  sendSuccess(res, table);
+  sendSuccess(res, toTableDto(table));
 }
 
 export async function getTableQr(
@@ -63,7 +66,7 @@ export async function updateTable(
   next: NextFunction,
 ) {
   const table = await updateTableUseCase.execute(req.params.id, req.body);
-  sendSuccess(res, table);
+  sendSuccess(res, toTableDto(table));
 }
 
 export async function disableTable(
@@ -72,5 +75,14 @@ export async function disableTable(
   next: NextFunction,
 ) {
   const table = await disableTableUseCase.execute(req.params.id);
-  sendSuccess(res, table);
+  sendSuccess(res, toTableDto(table));
+}
+
+export async function enableTable(
+  req: AuthenticatedRequest<{ id: string }>,
+  res: Response,
+  next: NextFunction,
+) {
+  const table = await enableTableUseCase.execute(req.params.id);
+  sendSuccess(res, toTableDto(table));
 }

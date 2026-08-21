@@ -23,3 +23,7 @@ export async function updateTable(
 export async function disableTable(tableId: string): Promise<Table> {
   return api.delete<Table>(`/tables/${tableId}`);
 }
+
+export async function enableTable(tableId: string): Promise<Table> {
+  return api.post<Table>(`/tables/${tableId}/enable`);
+}

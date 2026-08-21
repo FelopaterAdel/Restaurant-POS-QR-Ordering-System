@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createTable,
   disableTable,
+  enableTable,
   getTable,
   listTables,
   updateTable,
@@ -30,6 +31,7 @@ const mockTable: Table = {
   name: "Table 5",
   qrCode: "tbl_abc123",
   status: "AVAILABLE",
+  menuUrl: "http://localhost:3000/menu/table/tbl_abc123",
   createdAt: "2025-01-15T10:00:00Z",
   updatedAt: "2025-01-15T10:00:00Z",
 };
@@ -89,6 +91,18 @@ describe("tables.api", () => {
 
       expect(mockDelete).toHaveBeenCalledWith("/tables/tbl_1");
       expect(result.status).toBe("DISABLED");
+    });
+  });
+
+  describe("enableTable", () => {
+    it("calls POST /tables/:id/enable", async () => {
+      const enabled = { ...mockTable, status: "AVAILABLE" as const };
+      mockPost.mockResolvedValueOnce(enabled);
+
+      const result = await enableTable("tbl_1");
+
+      expect(mockPost).toHaveBeenCalledWith("/tables/tbl_1/enable");
+      expect(result.status).toBe("AVAILABLE");
     });
   });
 });

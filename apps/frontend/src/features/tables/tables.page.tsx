@@ -10,6 +10,7 @@ import {
   useCreateTableMutation,
   useUpdateTableMutation,
   useDisableTableMutation,
+  useEnableTableMutation,
 } from "./tables.mutations";
 import type { Table } from "./tables.types";
 import { TableGrid, TableGridSkeleton } from "./components/TableGrid";
@@ -33,6 +34,7 @@ export default function TablesPage() {
   const createMutation = useCreateTableMutation();
   const updateMutation = useUpdateTableMutation();
   const disableMutation = useDisableTableMutation();
+  const enableMutation = useEnableTableMutation();
 
   const filteredTables = useMemo(() => {
     if (!data) return [];
@@ -49,6 +51,13 @@ export default function TablesPage() {
     setSelectedTable(table);
     setDisableDialogOpen(true);
   }, []);
+
+  const handleEnable = useCallback(
+    (table: Table) => {
+      enableMutation.mutate(table.id);
+    },
+    [enableMutation],
+  );
 
   const openQrModal = useCallback((table: Table) => {
     setSelectedTable(table);
@@ -147,6 +156,7 @@ export default function TablesPage() {
           canManage={canManage}
           onEdit={openEditModal}
           onDisable={openDisableDialog}
+          onEnable={handleEnable}
           onShowQr={openQrModal}
         />
       )}

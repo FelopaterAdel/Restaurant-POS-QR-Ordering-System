@@ -6,6 +6,7 @@ export interface Table {
   name: string;
   qrCode: string;
   status: TableStatus;
+  menuUrl: string;
   createdAt: string;
   updatedAt: string;
 }

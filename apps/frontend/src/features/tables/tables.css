@@ -123,6 +123,18 @@
   background: var(--color-surface-hover);
 }
 
+.table-card__qr--empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  background: var(--color-secondary);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  cursor: default;
+  user-select: none;
+}
+
 .table-card__qr-icon {
   color: var(--color-muted);
 }
@@ -167,29 +179,104 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
 }
 
 .table-qr-modal__image {
-  width: 200px;
-  height: 200px;
+  width: min(220px, 60vw);
+  aspect-ratio: 1;
   border-radius: var(--radius-md);
-  background: var(--color-secondary);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: var(--space-2);
 }
 
 .table-qr-modal__image img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: var(--radius-md);
+}
+
+.table-qr-modal__label {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-h4, 1.1rem);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  text-align: center;
+}
+
+.table-qr-modal__url {
+  margin: 0;
+  max-width: 100%;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  word-break: break-all;
+  text-align: center;
+}
+
+.table-qr-modal__hint {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  text-align: center;
 }
 
 .table-qr-modal__actions {
   display: flex;
-  gap: var(--space-3);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.qr-print-sheet {
+  display: none;
+}
+
+@media print {
+  #root,
+  .modal {
+    display: none !important;
+  }
+
+  .qr-print-sheet {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+    color: #000000;
+    background: #ffffff;
+  }
+
+  .qr-print-sheet__title {
+    margin: 0;
+    font-size: 32pt;
+    font-weight: 700;
+  }
+
+  .qr-print-sheet__name {
+    margin: 0;
+    font-size: 18pt;
+  }
+
+  .qr-print-sheet__image {
+    width: 80mm;
+    height: 80mm;
+  }
+
+  .qr-print-sheet__url {
+    margin: 0;
+    font-size: 12pt;
+    word-break: break-all;
+  }
+
+  .qr-print-sheet__hint {
+    margin: 0;
+    font-size: 11pt;
+  }
 }
 
 .table-disable-dialog {

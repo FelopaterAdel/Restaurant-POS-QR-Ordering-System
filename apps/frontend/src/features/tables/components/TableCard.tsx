@@ -7,6 +7,7 @@ export interface TableCardProps {
   canManage: boolean;
   onEdit: (table: Table) => void;
   onDisable: (table: Table) => void;
+  onEnable: (table: Table) => void;
   onShowQr: (table: Table) => void;
 }
 
@@ -40,8 +41,11 @@ export function TableCard({
   canManage,
   onEdit,
   onDisable,
+  onEnable,
   onShowQr,
 }: TableCardProps) {
+  const isDisabled = table.status === "DISABLED";
+
   return (
     <Card>
       <CardBody className="table-card">
@@ -53,14 +57,20 @@ export function TableCard({
           <TableStatusBadge status={table.status} />
         </div>
 
-        <button
-          type="button"
-          className="table-card__qr"
-          onClick={() => onShowQr(table)}
-          aria-label={`Show QR code for Table #${table.number}`}
-        >
-          <QrIcon />
-        </button>
+        {isDisabled ? (
+          <div className="table-card__qr table-card__qr--empty" aria-hidden="true">
+            &mdash;
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="table-card__qr"
+            onClick={() => onShowQr(table)}
+            aria-label={`Show QR code for Table #${table.number}`}
+          >
+            <QrIcon />
+          </button>
+        )}
 
         {canManage && (
           <div className="table-card__actions">
@@ -71,7 +81,15 @@ export function TableCard({
             >
               Edit
             </Button>
-            {table.status !== "DISABLED" && (
+            {isDisabled ? (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onEnable(table)}
+              >
+                Enable
+              </Button>
+            ) : (
               <Button
                 variant="danger"
                 size="sm"

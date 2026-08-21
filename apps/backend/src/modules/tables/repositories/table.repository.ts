@@ -60,6 +60,13 @@ export class TableRepository {
     });
   }
 
+  async enable(id: string) {
+    return this.client.restaurantTable.update({
+      where: { id },
+      data: { status: TableStatus.AVAILABLE },
+    });
+  }
+
   async countActiveOrders(tableId: string): Promise<number> {
     return this.client.order.count({
       where: {

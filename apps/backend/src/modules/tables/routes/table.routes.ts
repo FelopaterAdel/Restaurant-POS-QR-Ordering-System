@@ -8,6 +8,7 @@ import { idParamSchema } from "../../../schemas/id-param.schema.js";
 import {
   createTable,
   disableTable,
+  enableTable,
   getTable,
   getTableQr,
   listTables,
@@ -69,6 +70,13 @@ router.delete(
   requireRole(...writeRoles),
   validate(idParamSchema(), "params"),
   disableTable as RequestHandler,
+);
+router.post(
+  "/:id/enable",
+  authMiddleware(),
+  requireRole(...writeRoles),
+  validate(idParamSchema(), "params"),
+  enableTable as RequestHandler,
 );
 
 export default router;

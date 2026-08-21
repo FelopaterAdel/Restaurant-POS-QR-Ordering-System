@@ -30,6 +30,7 @@ const expectedOperations: Record<string, string[]> = {
   "/api/v1/tables": ["get", "post"],
   "/api/v1/tables/{id}": ["get", "patch", "delete"],
   "/api/v1/tables/{id}/qr": ["get"],
+  "/api/v1/tables/{id}/enable": ["post"],
   "/api/v1/dashboard/summary": ["get"],
   "/api/v1/orders": ["get"],
   "/api/v1/orders/{id}": ["get"],

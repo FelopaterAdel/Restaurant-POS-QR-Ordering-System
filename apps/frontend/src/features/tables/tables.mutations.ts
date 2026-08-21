@@ -1,5 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createTable, disableTable, updateTable } from "./tables.api";
+import {
+  createTable,
+  disableTable,
+  enableTable,
+  updateTable,
+} from "./tables.api";
 import { tableKeys } from "./tables.queries";
 import type { CreateTableInput, UpdateTableInput } from "./tables.types";
 
@@ -31,6 +36,17 @@ export function useDisableTableMutation() {
 
   return useMutation({
     mutationFn: (tableId: string) => disableTable(tableId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: tableKeys.all });
+    },
+  });
+}
+
+export function useEnableTableMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (tableId: string) => enableTable(tableId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: tableKeys.all });
     },

@@ -7,6 +7,7 @@ export interface TableGridProps {
   canManage: boolean;
   onEdit: (table: Table) => void;
   onDisable: (table: Table) => void;
+  onEnable: (table: Table) => void;
   onShowQr: (table: Table) => void;
 }
 
@@ -15,6 +16,7 @@ export function TableGrid({
   canManage,
   onEdit,
   onDisable,
+  onEnable,
   onShowQr,
 }: TableGridProps) {
   return (
@@ -26,6 +28,7 @@ export function TableGrid({
           canManage={canManage}
           onEdit={onEdit}
           onDisable={onDisable}
+          onEnable={onEnable}
           onShowQr={onShowQr}
         />
       ))}
