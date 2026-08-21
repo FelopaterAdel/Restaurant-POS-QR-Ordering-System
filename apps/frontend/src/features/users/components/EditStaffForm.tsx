@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -55,6 +55,8 @@ export function EditStaffForm({
     },
   });
 
+  const [confirmDiscardOpen, setConfirmDiscardOpen] = useState(false);
+
   useEffect(() => {
     if (open && staff) {
       reset({
@@ -62,6 +64,7 @@ export function EditStaffForm({
         email: staff.email,
         role: staff.role,
       });
+      setConfirmDiscardOpen(false);
     }
   }, [open, staff, reset]);
 
@@ -70,74 +73,105 @@ export function EditStaffForm({
   }
 
   function handleClose() {
-    if (isDirty) {
-      if (!window.confirm("Unsaved changes will be discarded. Continue?")) {
-        return;
-      }
+    if (isDirty && !isPending) {
+      setConfirmDiscardOpen(true);
+      return;
     }
     onClose();
   }
 
+  function handleDiscard() {
+    setConfirmDiscardOpen(false);
+    onClose();
+  }
+
   return (
-    <Modal
-      open={open}
-      title="Edit Staff"
-      onClose={handleClose}
-      footer={
-        <div className="staff-form__actions">
-          <Button variant="outline" onClick={handleClose} disabled={isPending}>
-            Cancel
-          </Button>
-          <Button
-            onClick={() => void handleSubmit(handleFormSubmit)()}
-            disabled={isPending}
-          >
-            {isPending ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      }
-    >
-      <form
-        className="staff-form"
-        onSubmit={(e) => {
-          e.preventDefault();
-          void handleSubmit(handleFormSubmit)(e);
-        }}
-      >
-        {error && (
-          <div className="staff-form__error" role="alert">
-            {error}
+    <>
+      <Modal
+        open={open}
+        title="Edit Staff"
+        onClose={handleClose}
+        footer={
+          <div className="staff-form__actions">
+            <Button variant="outline" onClick={handleClose} disabled={isPending}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => void handleSubmit(handleFormSubmit)()}
+              disabled={isPending}
+            >
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
-        )}
-        <Input
-          label="Name"
-          placeholder="e.g. John Doe"
-          {...register("name")}
-          error={errors.name?.message}
-        />
-        <Input
-          label="Email"
-          type="email"
-          placeholder="e.g. john@restaurant.com"
-          {...register("email")}
-          error={errors.email?.message}
-        />
-        <label className="input">
-          <span className="input__label">Role</span>
-          <select className="input__control" {...register("role")}>
-            {STAFF_ROLES.map((role) => (
-              <option key={role} value={role}>
-                {role}
-              </option>
-            ))}
-          </select>
-          {errors.role?.message && (
-            <span className="input__error" role="alert">
-              {errors.role.message}
-            </span>
+        }
+      >
+        <form
+          className="staff-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void handleSubmit(handleFormSubmit)(e);
+          }}
+        >
+          {error && (
+            <div className="staff-form__error" role="alert">
+              {error}
+            </div>
           )}
-        </label>
-      </form>
-    </Modal>
+          <Input
+            label="Name"
+            placeholder="e.g. John Doe"
+            {...register("name")}
+            error={errors.name?.message}
+          />
+          <Input
+            label="Email"
+            type="email"
+            placeholder="e.g. john@restaurant.com"
+            {...register("email")}
+            error={errors.email?.message}
+          />
+          <label className="input">
+            <span className="input__label">Role</span>
+            <select className="input__control" {...register("role")}>
+              {STAFF_ROLES.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+            {errors.role?.message && (
+              <span className="input__error" role="alert">
+                {errors.role.message}
+              </span>
+            )}
+          </label>
+        </form>
+      </Modal>
+
+      <Modal
+        open={open && confirmDiscardOpen}
+        title="Discard changes?"
+        onClose={() => setConfirmDiscardOpen(false)}
+        footer={
+          <div className="staff-toggle-dialog__actions">
+            <Button
+              variant="outline"
+              onClick={() => setConfirmDiscardOpen(false)}
+            >
+              Keep Editing
+            </Button>
+            <Button variant="danger" onClick={handleDiscard}>
+              Discard
+            </Button>
+          </div>
+        }
+      >
+        <div className="staff-toggle-dialog">
+          <p className="staff-toggle-dialog__message">
+            Unsaved changes will be lost if you close this form now.
+          </p>
+        </div>
+      </Modal>
+    </>
   );
 }

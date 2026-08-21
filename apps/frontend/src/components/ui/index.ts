@@ -48,3 +48,5 @@ export type { ErrorStateProps } from "./error-state";
 export { Skeleton } from "./skeleton";
 export type { SkeletonProps } from "./skeleton";
 export { ErrorBoundary } from "./error-boundary";
+export { Toast } from "./toast";
+export type { ToastProps } from "./toast";

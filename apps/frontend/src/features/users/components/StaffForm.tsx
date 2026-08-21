@@ -38,9 +38,10 @@ export interface StaffFormProps {
   onClose: () => void;
   onSubmit: (data: AddStaffFormValues) => void;
   isPending: boolean;
+  error: string | null;
 }
 
-export function StaffForm({ open, onClose, onSubmit, isPending }: StaffFormProps) {
+export function StaffForm({ open, onClose, onSubmit, isPending, error }: StaffFormProps) {
   const {
     register,
     handleSubmit,
@@ -89,6 +90,11 @@ export function StaffForm({ open, onClose, onSubmit, isPending }: StaffFormProps
           void handleSubmit(handleFormSubmit)(e);
         }}
       >
+        {error && (
+          <div className="staff-form__error" role="alert">
+            {error}
+          </div>
+        )}
         <Input
           label="Name"
           placeholder="e.g. John Doe"

@@ -256,15 +256,15 @@ export const openapiSpec = {
     "/api/v1/users/{id}": {
       patch: {
         tags: ["Users"],
-        summary: "Update staff status",
+        summary: "Update staff profile",
         description:
-          "Updates a staff member's status (suspend, activate). Owner role only.",
-        operationId: "updateUserStatus",
+          "Updates a staff member's profile (name, email, role). Owner accounts cannot be modified. Owner role only.",
+        operationId: "updateUserProfile",
         security: [{ bearerAuth: [] }],
         parameters: [{ $ref: "#/components/parameters/IdPathParam" }],
-        requestBody: jsonBody("UpdateUserStatusRequest"),
+        requestBody: jsonBody("UpdateUserProfileRequest"),
         responses: {
-          200: successResponse("AdminUser", "Status updated"),
+          200: successResponse("AdminUser", "Profile updated"),
           400: { $ref: "#/components/responses/ValidationError" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
@@ -285,6 +285,27 @@ export const openapiSpec = {
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
           404: { $ref: "#/components/responses/NotFound" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/users/{id}/status": {
+      patch: {
+        tags: ["Users"],
+        summary: "Update staff status",
+        description:
+          "Updates a staff member's status (suspend, activate) following the allowed status transitions. Owner role only.",
+        operationId: "updateUserStatus",
+        security: [{ bearerAuth: [] }],
+        parameters: [{ $ref: "#/components/parameters/IdPathParam" }],
+        requestBody: jsonBody("UpdateUserStatusRequest"),
+        responses: {
+          200: successResponse("AdminUser", "Status updated"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          409: { $ref: "#/components/responses/Conflict" },
           500: { $ref: "#/components/responses/InternalServerError" },
         },
       },
@@ -1525,6 +1546,18 @@ export const openapiSpec = {
           },
         },
         required: ["name", "email", "password"],
+      },
+      UpdateUserProfileRequest: {
+        type: "object",
+        properties: {
+          name: { type: "string", minLength: 2, maxLength: 100 },
+          email: { type: "string", format: "email", maxLength: 255 },
+          role: {
+            type: "string",
+            enum: ["MANAGER", "CASHIER", "WAITER", "KITCHEN"],
+          },
+        },
+        required: ["name", "email", "role"],
       },
       UpdateUserStatusRequest: {
         type: "object",

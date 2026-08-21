@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import { render, within, act } from "@testing-library/react";
+import { render, within, screen, act, cleanup } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 import { EditStaffForm } from "./EditStaffForm";
 import type { Staff } from "../users.types";
 
@@ -53,6 +53,10 @@ function renderForm(
 describe("EditStaffForm", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   it("renders modal with Edit Staff title", () => {
@@ -112,6 +116,53 @@ describe("EditStaffForm", () => {
     await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
 
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it("asks for confirmation before discarding unsaved changes", async () => {
+    const { onClose } = renderForm();
+    const user = userEvent.setup();
+
+    const nameInput = screen.getByDisplayValue("John Doe") as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, "Jane Smith");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Discard changes?" }),
+    ).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it("closes the form when discard is confirmed", async () => {
+    const { onClose } = renderForm();
+    const user = userEvent.setup();
+
+    const nameInput = screen.getByDisplayValue("John Doe") as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, "Jane Smith");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Discard" }));
+
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("keeps the form open when discard is cancelled", async () => {
+    const { onClose } = renderForm();
+    const user = userEvent.setup();
+
+    const nameInput = screen.getByDisplayValue("John Doe") as HTMLInputElement;
+    await user.clear(nameInput);
+    await user.type(nameInput, "Jane Smith");
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }));
+    await user.click(screen.getByRole("button", { name: "Keep Editing" }));
+
+    expect(onClose).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("heading", { name: "Edit Staff" }),
+    ).toBeInTheDocument();
   });
 
   it("shows validation error for short name", async () => {

@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { Button, EmptyState, ErrorState } from "@/components/ui";
+import { Button, EmptyState, ErrorState, Toast } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api/errors";
 import { useStaffQuery } from "./users.queries";
 import {
@@ -16,33 +16,54 @@ import { EditStaffForm } from "./components/EditStaffForm";
 import { ApiError } from "@/lib/api/errors";
 import "./users.css";
 
+interface StaffToast {
+  type: "success" | "error";
+  message: string;
+}
+
 export default function UsersPage() {
   const [addFormOpen, setAddFormOpen] = useState(false);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [toggleDialogOpen, setToggleDialogOpen] = useState(false);
+  const [toast, setToast] = useState<StaffToast | null>(null);
 
   const { data, isLoading, error, refetch } = useStaffQuery();
   const createMutation = useCreateStaffMutation();
   const updateProfileMutation = useUpdateStaffProfileMutation();
   const updateStatusMutation = useUpdateStaffStatusMutation();
 
+  const dismissToast = useCallback(() => setToast(null), []);
+
   const handleSelectStaff = useCallback((staff: Staff) => {
     setSelectedStaff(staff);
     setDetailsOpen(true);
   }, []);
 
-  const handleEditStaff = useCallback((staff: Staff) => {
-    setDetailsOpen(false);
-    setSelectedStaff(staff);
-    setEditFormOpen(true);
-  }, []);
+  const handleOpenAddForm = useCallback(() => {
+    createMutation.reset();
+    setAddFormOpen(true);
+  }, [createMutation]);
 
-  const handleToggleStatus = useCallback((staff: Staff) => {
-    setSelectedStaff(staff);
-    setToggleDialogOpen(true);
-  }, []);
+  const handleEditStaff = useCallback(
+    (staff: Staff) => {
+      updateProfileMutation.reset();
+      setDetailsOpen(false);
+      setSelectedStaff(staff);
+      setEditFormOpen(true);
+    },
+    [updateProfileMutation],
+  );
+
+  const handleToggleStatus = useCallback(
+    (staff: Staff) => {
+      updateStatusMutation.reset();
+      setSelectedStaff(staff);
+      setToggleDialogOpen(true);
+    },
+    [updateStatusMutation],
+  );
 
   const closeAllModals = useCallback(() => {
     setAddFormOpen(false);
@@ -54,7 +75,15 @@ export default function UsersPage() {
 
   const handleAddSubmit = useCallback(
     (data: { name: string; email: string; password: string; role: "MANAGER" | "CASHIER" | "WAITER" | "KITCHEN" }) => {
-      createMutation.mutate(data, { onSuccess: closeAllModals });
+      createMutation.mutate(data, {
+        onSuccess: (created) => {
+          closeAllModals();
+          setToast({
+            type: "success",
+            message: `${created.name} was added to the team.`,
+          });
+        },
+      });
     },
     [createMutation, closeAllModals],
   );
@@ -64,7 +93,15 @@ export default function UsersPage() {
       if (!selectedStaff) return;
       updateProfileMutation.mutate(
         { staffId: selectedStaff.id, input: data },
-        { onSuccess: closeAllModals },
+        {
+          onSuccess: (updated) => {
+            closeAllModals();
+            setToast({
+              type: "success",
+              message: `${updated.name}'s profile was updated.`,
+            });
+          },
+        },
       );
     },
     [selectedStaff, updateProfileMutation, closeAllModals],
@@ -74,7 +111,25 @@ export default function UsersPage() {
     (staffId: string, status: StaffStatus) => {
       updateStatusMutation.mutate(
         { staffId, status },
-        { onSuccess: closeAllModals },
+        {
+          onSuccess: (updated) => {
+            closeAllModals();
+            setToast({
+              type: "success",
+              message:
+                status === "ACTIVE"
+                  ? `${updated.name} can access the system again.`
+                  : `${updated.name} can no longer access the system.`,
+            });
+          },
+          onError: (mutationError) => {
+            setToggleDialogOpen(false);
+            setToast({
+              type: "error",
+              message: getApiErrorMessage(mutationError),
+            });
+          },
+        },
       );
     },
     [updateStatusMutation, closeAllModals],
@@ -113,14 +168,14 @@ export default function UsersPage() {
     <div>
       <div className="users-header">
         <h1 className="users-header__title">Staff</h1>
-        <Button onClick={() => setAddFormOpen(true)}>+ Add Staff</Button>
+        <Button onClick={handleOpenAddForm}>+ Add Staff</Button>
       </div>
 
       {!data || data.length === 0 ? (
         <EmptyState
           title="No staff members yet."
           action={
-            <Button onClick={() => setAddFormOpen(true)}>Add Staff</Button>
+            <Button onClick={handleOpenAddForm}>Add Staff</Button>
           }
         />
       ) : (
@@ -136,6 +191,11 @@ export default function UsersPage() {
         onClose={closeAllModals}
         onSubmit={handleAddSubmit}
         isPending={createMutation.isPending}
+        error={
+          createMutation.error
+            ? getEditErrorMessage(createMutation.error)
+            : null
+        }
       />
 
       <StaffDetailsModal
@@ -166,6 +226,14 @@ export default function UsersPage() {
         onConfirm={handleToggleConfirm}
         isPending={updateStatusMutation.isPending}
       />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onDismiss={dismissToast}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import { Button, Modal } from "@/components/ui";
 import { useAuth } from "@/features/auth";
+import { canAccess } from "@/features/auth/permissions";
 import type { Staff } from "../users.types";
-import { StaffRoleBadge } from "./StaffRoleBadge";
-import { StaffStatusBadge } from "./StaffStatusBadge";
+import { StaffDetails } from "./StaffDetails";
 
 export interface StaffDetailsModalProps {
   open: boolean;
@@ -20,7 +20,7 @@ export function StaffDetailsModal({
   onToggleStatus,
 }: StaffDetailsModalProps) {
   const { user } = useAuth();
-  const canEdit = user?.role === "OWNER";
+  const canManage = user ? canAccess(user, "users") : false;
 
   return (
     <Modal
@@ -30,7 +30,7 @@ export function StaffDetailsModal({
       footer={
         <div className="staff-details__footer">
           <div className="staff-details__actions-left">
-            {staff && canEdit && (
+            {staff && canManage && (
               <Button
                 variant="outline"
                 size="sm"
@@ -41,7 +41,7 @@ export function StaffDetailsModal({
             )}
           </div>
           <div className="staff-details__actions-right">
-            {staff && staff.status === "ACTIVE" && (
+            {staff && canManage && staff.status === "ACTIVE" && (
               <Button
                 variant="danger"
                 size="sm"
@@ -50,15 +50,17 @@ export function StaffDetailsModal({
                 Suspend
               </Button>
             )}
-            {staff && (staff.status === "SUSPENDED" || staff.status === "INACTIVE") && (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => onToggleStatus(staff)}
-              >
-                Activate
-              </Button>
-            )}
+            {staff &&
+              canManage &&
+              (staff.status === "SUSPENDED" || staff.status === "INACTIVE") && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => onToggleStatus(staff)}
+                >
+                  Activate
+                </Button>
+              )}
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
@@ -66,32 +68,7 @@ export function StaffDetailsModal({
         </div>
       }
     >
-      {staff && (
-        <div className="staff-details">
-          <div className="staff-details__row">
-            <span className="staff-details__label">Name</span>
-            <span className="staff-details__value">{staff.name}</span>
-          </div>
-          <div className="staff-details__row">
-            <span className="staff-details__label">Email</span>
-            <span className="staff-details__value">{staff.email}</span>
-          </div>
-          <div className="staff-details__row">
-            <span className="staff-details__label">Role</span>
-            <StaffRoleBadge role={staff.role} />
-          </div>
-          <div className="staff-details__row">
-            <span className="staff-details__label">Status</span>
-            <StaffStatusBadge status={staff.status} />
-          </div>
-          <div className="staff-details__row">
-            <span className="staff-details__label">Created At</span>
-            <span className="staff-details__value">
-              {new Date(staff.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      )}
+      {staff && <StaffDetails staff={staff} />}
     </Modal>
   );
 }

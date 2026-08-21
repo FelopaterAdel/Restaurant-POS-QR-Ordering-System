@@ -128,4 +128,52 @@ describe("StaffDetailsModal", () => {
       within(dialog).getByRole("button", { name: "Activate" }),
     ).toBeInTheDocument();
   });
+
+  it("shows Activate button for INACTIVE staff", () => {
+    mockRole = "OWNER";
+    const { dialog } = renderModal({
+      staff: { ...mockStaff, status: "INACTIVE" },
+    });
+
+    expect(
+      within(dialog).getByRole("button", { name: "Activate" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides Suspend and Activate buttons for non-OWNER roles", () => {
+    mockRole = "MANAGER";
+    const { dialog } = renderModal();
+
+    expect(
+      within(dialog).queryByRole("button", { name: "Suspend" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole("button", { name: "Activate" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows the creation date", () => {
+    mockRole = "OWNER";
+    const { dialog } = renderModal();
+
+    const expected = new Date(mockStaff.createdAt).toLocaleDateString();
+    expect(within(dialog).getByText(expected)).toBeInTheDocument();
+  });
+
+  it("shows the last login date and time", () => {
+    mockRole = "OWNER";
+    const { dialog } = renderModal();
+
+    const expected = new Date(mockStaff.lastLoginAt!).toLocaleString();
+    expect(within(dialog).getByText(expected)).toBeInTheDocument();
+  });
+
+  it("shows Never when the staff member has no last login", () => {
+    mockRole = "OWNER";
+    const { dialog } = renderModal({
+      staff: { ...mockStaff, lastLoginAt: null },
+    });
+
+    expect(within(dialog).getByText("Never")).toBeInTheDocument();
+  });
 });

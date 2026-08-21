@@ -7,6 +7,8 @@ import {
   TableHeaderCell,
   TableCell,
 } from "@/components/ui";
+import { useAuth } from "@/features/auth";
+import { canAccess } from "@/features/auth/permissions";
 import type { Staff } from "../users.types";
 import { StaffRoleBadge } from "./StaffRoleBadge";
 import { StaffStatusBadge } from "./StaffStatusBadge";
@@ -32,6 +34,9 @@ export interface StaffTableProps {
 }
 
 export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps) {
+  const { user } = useAuth();
+  const canManage = user ? canAccess(user, "users") : false;
+
   return (
     <Table>
       <TableHeader>
@@ -70,7 +75,7 @@ export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps)
                 >
                   Details
                 </Button>
-                {member.status === "ACTIVE" && (
+                {canManage && member.status === "ACTIVE" && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -79,15 +84,17 @@ export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps)
                     Suspend
                   </Button>
                 )}
-                {(member.status === "SUSPENDED" || member.status === "INACTIVE") && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onToggleStatus(member)}
-                  >
-                    Activate
-                  </Button>
-                )}
+                {canManage &&
+                  (member.status === "SUSPENDED" ||
+                    member.status === "INACTIVE") && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onToggleStatus(member)}
+                    >
+                      Activate
+                    </Button>
+                  )}
               </div>
             </TableCell>
           </TableRow>
