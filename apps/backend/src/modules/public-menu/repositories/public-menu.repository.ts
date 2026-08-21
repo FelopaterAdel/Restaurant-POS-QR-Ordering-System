@@ -22,4 +22,8 @@ export class PublicMenuRepository {
       orderBy: { name: "asc" },
     });
   }
+
+  async findRestaurant() {
+    return this.client.restaurant.findFirst();
+  }
 }

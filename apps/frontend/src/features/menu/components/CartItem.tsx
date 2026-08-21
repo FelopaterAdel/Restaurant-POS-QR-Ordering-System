@@ -1,15 +1,12 @@
 import { Button } from "@/components/ui";
 import type { CartItem as CartItemType } from "../menu.types";
+import { formatPrice } from "../format-price";
 
 interface CartItemProps {
   item: CartItemType;
   onIncrement: (productId: string) => void;
   onDecrement: (productId: string) => void;
   onRemove: (productId: string) => void;
-}
-
-function formatPrice(price: number): string {
-  return `₹${price}`;
 }
 
 export function CartItem({

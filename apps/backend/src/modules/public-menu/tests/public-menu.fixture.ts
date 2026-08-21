@@ -1,5 +1,10 @@
 import { Prisma, TableStatus } from "@restaurant/database";
-import type { Category, Product, RestaurantTable } from "@restaurant/database";
+import type {
+  Category,
+  Product,
+  Restaurant,
+  RestaurantTable,
+} from "@restaurant/database";
 
 export interface CategoryWithProducts extends Category {
   products: Product[];
@@ -49,6 +54,24 @@ export function buildCategory(
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     products: [],
+    ...overrides,
+  };
+}
+
+export function buildRestaurant(
+  overrides: Partial<Restaurant> = {},
+): Restaurant {
+  return {
+    id: "rest_1",
+    name: "Test Restaurant",
+    description: null,
+    phone: null,
+    address: null,
+    logoUrl: "https://example.com/logo.png",
+    primaryColor: "#059669",
+    secondaryColor: null,
+    createdAt: new Date("2026-01-01T00:00:00.000Z"),
+    updatedAt: new Date("2026-01-01T00:00:00.000Z"),
     ...overrides,
   };
 }

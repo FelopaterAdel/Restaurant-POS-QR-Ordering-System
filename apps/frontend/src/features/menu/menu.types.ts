@@ -3,6 +3,11 @@ export interface PublicTable {
   number: number;
 }
 
+export interface PublicRestaurant {
+  name: string;
+  logoUrl: string | null;
+}
+
 export interface PublicProduct {
   id: string;
   name: string;
@@ -20,6 +25,7 @@ export interface PublicCategory {
 
 export interface PublicMenu {
   table: PublicTable;
+  restaurant: PublicRestaurant | null;
   categories: PublicCategory[];
 }
 
@@ -28,6 +34,13 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+}
+
+export interface CartSession {
+  qrCode: string;
+  tableId: string;
+  tableNumber: number;
+  items: CartItem[];
 }
 
 export interface CreatePublicOrderInput {

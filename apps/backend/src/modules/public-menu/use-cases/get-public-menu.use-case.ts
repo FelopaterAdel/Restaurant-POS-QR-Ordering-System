@@ -23,8 +23,14 @@ export interface PublicCategoryDTO {
   products: PublicProductDTO[];
 }
 
+export interface PublicRestaurantDTO {
+  name: string;
+  logoUrl: string | null;
+}
+
 export interface PublicMenuDTO {
   table: PublicTableDTO;
+  restaurant: PublicRestaurantDTO | null;
   categories: PublicCategoryDTO[];
 }
 
@@ -62,14 +68,22 @@ export class GetPublicMenuUseCase {
       throw new TableDisabledError();
     }
 
-    const categories =
-      await this.publicMenuRepository.findActiveCategoriesWithProducts();
+    const [categories, restaurant] = await Promise.all([
+      this.publicMenuRepository.findActiveCategoriesWithProducts(),
+      this.publicMenuRepository.findRestaurant(),
+    ]);
 
     return {
       table: {
         id: table.id,
         number: table.number,
       },
+      restaurant: restaurant
+        ? {
+            name: restaurant.name,
+            logoUrl: restaurant.logoUrl,
+          }
+        : null,
       categories: categories.map((category) => ({
         id: category.id,
         name: category.name,

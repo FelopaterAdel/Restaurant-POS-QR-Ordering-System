@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui";
 import type { CartItem as CartItemType } from "../menu.types";
+import { formatPrice } from "../format-price";
 
 interface OrderReviewProps {
   items: CartItemType[];
@@ -9,10 +10,6 @@ interface OrderReviewProps {
   onBack: () => void;
   isSubmitting: boolean;
   error: string | null;
-}
-
-function formatPrice(price: number): string {
-  return `₹${price}`;
 }
 
 export function OrderReview({

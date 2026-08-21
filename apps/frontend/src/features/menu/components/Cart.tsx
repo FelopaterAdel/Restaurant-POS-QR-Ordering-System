@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui";
 import { CartItem } from "./CartItem";
 import type { CartItem as CartItemType } from "../menu.types";
+import { formatPrice } from "../format-price";
 
 interface CartProps {
   items: CartItemType[];
@@ -12,10 +13,6 @@ interface CartProps {
   onDecrement: (productId: string) => void;
   onRemove: (productId: string) => void;
   onCheckout: () => void;
-}
-
-function formatPrice(price: number): string {
-  return `₹${price}`;
 }
 
 export function Cart({
@@ -61,7 +58,7 @@ export function Cart({
 
           <div className="cart__footer">
             <div className="cart__total">
-              <span>Total</span>
+              <span>Subtotal</span>
               <span className="cart__total-amount">
                 {formatPrice(totalAmount)}
               </span>

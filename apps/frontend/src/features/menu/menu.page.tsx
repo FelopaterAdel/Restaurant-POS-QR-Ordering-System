@@ -27,7 +27,14 @@ export default function MenuPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const cart = useCart();
+  const cartMeta = useMemo(
+    () =>
+      menu
+        ? { tableId: menu.table.id, tableNumber: menu.table.number }
+        : undefined,
+    [menu],
+  );
+  const cart = useCart(qrCode, cartMeta);
 
   const effectiveCategoryId = useMemo(() => {
     if (activeCategoryId && menu?.categories.some((c) => c.id === activeCategoryId)) {
@@ -184,30 +191,57 @@ export default function MenuPage() {
 
   return (
     <main className="menu-page">
-      <div className="menu-page__header">
+      <header className="menu-page__header">
         <div className="menu-page__brand">
-          <h1 className="menu-page__title">Menu</h1>
-          <span className="menu-page__table">Table {menu.table.number}</span>
+          {menu.restaurant?.logoUrl && (
+            <img
+              className="menu-page__logo"
+              src={menu.restaurant.logoUrl}
+              alt={`${menu.restaurant.name} logo`}
+            />
+          )}
+          <div className="menu-page__brand-text">
+            {menu.restaurant ? (
+              <>
+                <h1 className="menu-page__title">{menu.restaurant.name}</h1>
+                <span className="menu-page__subtitle">Menu</span>
+              </>
+            ) : (
+              <h1 className="menu-page__title">Menu</h1>
+            )}
+          </div>
         </div>
-      </div>
+        <span className="menu-page__table">Table {menu.table.number}</span>
+      </header>
 
-      <CategoryTabs
-        categories={menu.categories}
-        activeCategoryId={effectiveCategoryId}
-        onSelect={setActiveCategoryId}
-      />
-
-      <div className="menu-page__products">
-        {activeCategory && (
-          <ProductGrid
-            products={activeCategory.products}
-            getItemQuantity={cart.getItemQuantity}
-            onAdd={handleAdd}
-            onIncrement={cart.increment}
-            onDecrement={cart.decrement}
+      {menu.categories.length === 0 ? (
+        <div className="menu-page__empty">
+          <p className="menu-page__empty-title">No menu available yet</p>
+          <p className="menu-page__empty-message">
+            Please check back later or ask a staff member for assistance.
+          </p>
+        </div>
+      ) : (
+        <>
+          <CategoryTabs
+            categories={menu.categories}
+            activeCategoryId={effectiveCategoryId}
+            onSelect={setActiveCategoryId}
           />
-        )}
-      </div>
+
+          <div className="menu-page__products">
+            {activeCategory && (
+              <ProductGrid
+                products={activeCategory.products}
+                getItemQuantity={cart.getItemQuantity}
+                onAdd={handleAdd}
+                onIncrement={cart.increment}
+                onDecrement={cart.decrement}
+              />
+            )}
+          </div>
+        </>
+      )}
 
       <Cart
         items={cart.items}

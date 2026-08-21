@@ -1405,12 +1405,24 @@ export const openapiSpec = {
             },
             required: ["id", "number"],
           },
+          restaurant: {
+            nullable: true,
+            allOf: [{ $ref: "#/components/schemas/PublicRestaurant" }],
+          },
           categories: {
             type: "array",
             items: { $ref: "#/components/schemas/PublicCategory" },
           },
         },
-        required: ["table", "categories"],
+        required: ["table", "restaurant", "categories"],
+      },
+      PublicRestaurant: {
+        type: "object",
+        properties: {
+          name: { type: "string" },
+          logoUrl: { type: "string", nullable: true },
+        },
+        required: ["name", "logoUrl"],
       },
       LoginResult: {
         type: "object",

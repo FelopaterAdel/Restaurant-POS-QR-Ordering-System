@@ -19,6 +19,10 @@ import type { PublicMenu } from "./menu.types";
 
 const mockMenu: PublicMenu = {
   table: { id: "tbl_1", number: 5 },
+  restaurant: {
+    name: "Test Restaurant",
+    logoUrl: "https://example.com/logo.png",
+  },
   categories: [
     {
       id: "cat_1",
@@ -29,7 +33,7 @@ const mockMenu: PublicMenu = {
           name: "Margherita",
           description: "Classic cheese pizza",
           price: 150,
-          imageUrl: null,
+          imageUrl: "https://example.com/margherita.jpg",
           isAvailable: true,
         },
         {
@@ -116,7 +120,10 @@ const handlers = [
 const server = setupServer(...handlers);
 
 beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  window.sessionStorage.clear();
+});
 afterAll(() => server.close());
 
 function createQueryWrapper() {
@@ -162,7 +169,39 @@ describe("MenuPage", () => {
     expect(loading).toBeInTheDocument();
   });
 
-  it("renders the menu with categories and products", async () => {
+  it("renders the menu with restaurant branding", async () => {
+    const { container } = renderMenuPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".menu-page__title")).toBeInTheDocument();
+    });
+
+    expect(container.querySelector(".menu-page__title")?.textContent).toBe(
+      "Test Restaurant",
+    );
+    expect(container.querySelector(".menu-page__subtitle")?.textContent).toBe(
+      "Menu",
+    );
+    const logo = container.querySelector<HTMLImageElement>(
+      ".menu-page__logo",
+    );
+    expect(logo).toBeInTheDocument();
+    expect(logo?.src).toBe("https://example.com/logo.png");
+    expect(container.querySelector(".menu-page__table")?.textContent).toBe(
+      "Table 5",
+    );
+  });
+
+  it("falls back to plain title when no restaurant branding exists", async () => {
+    server.use(
+      http.get("*/api/v1/public/tables/:qrCode/menu", () => {
+        return HttpResponse.json({
+          success: true,
+          data: { ...mockMenu, restaurant: null },
+        });
+      }),
+    );
+
     const { container } = renderMenuPage();
 
     await waitFor(() => {
@@ -172,9 +211,38 @@ describe("MenuPage", () => {
     expect(container.querySelector(".menu-page__title")?.textContent).toBe(
       "Menu",
     );
-    expect(container.querySelector(".menu-page__table")?.textContent).toBe(
-      "Table 5",
+    expect(container.querySelector(".menu-page__subtitle")).toBeNull();
+    expect(container.querySelector(".menu-page__logo")).toBeNull();
+  });
+
+  it("shows empty state when the menu has no categories", async () => {
+    server.use(
+      http.get("*/api/v1/public/tables/:qrCode/menu", () => {
+        return HttpResponse.json({
+          success: true,
+          data: { ...mockMenu, categories: [] },
+        });
+      }),
     );
+
+    const { container } = renderMenuPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".menu-page__empty")).toBeInTheDocument();
+    });
+
+    expect(
+      container.querySelector(".menu-page__empty-title")?.textContent,
+    ).toBe("No menu available yet");
+    expect(container.querySelector(".category-tabs")).toBeNull();
+  });
+
+  it("renders category tabs and products", async () => {
+    const { container } = renderMenuPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".category-tabs")).toBeInTheDocument();
+    });
 
     const tabs = container.querySelectorAll(".category-tabs__tab");
     expect(tabs.length).toBe(2);
@@ -183,6 +251,83 @@ describe("MenuPage", () => {
 
     const products = container.querySelectorAll(".product-card");
     expect(products.length).toBe(2);
+  });
+
+  it("renders product images with fallback for missing images", async () => {
+    const { container } = renderMenuPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".product-card")).toBeInTheDocument();
+    });
+
+    const image = container.querySelector<HTMLImageElement>(
+      ".product-card__image img",
+    );
+    expect(image).toBeInTheDocument();
+    expect(image?.src).toBe("https://example.com/margherita.jpg");
+
+    const fallbacks = container.querySelectorAll(
+      ".product-card__image-fallback",
+    );
+    expect(fallbacks.length).toBe(1);
+    expect(fallbacks[0].textContent).toBe("P");
+  });
+
+  it("formats prices in EGP", async () => {
+    const { container } = renderMenuPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".product-card")).toBeInTheDocument();
+    });
+
+    const prices = Array.from(
+      container.querySelectorAll(".product-card__price"),
+    ).map((el) => el.textContent);
+    expect(prices).toContain("EGP 150");
+    expect(prices).toContain("EGP 200");
+
+    const user = userEvent.setup();
+    await user.click(
+      container.querySelector(".product-card .button--primary") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        container.querySelector(".cart__total-amount")?.textContent,
+      ).toContain("EGP");
+    });
+  });
+
+  it("preserves the cart for the same table across remounts", async () => {
+    const first = renderMenuPage();
+
+    await waitFor(() => {
+      expect(first.container.querySelector(".product-card")).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    await user.click(
+      first.container.querySelector(
+        ".product-card .button--primary",
+      ) as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(first.container.querySelector(".cart")).toBeInTheDocument();
+    });
+
+    first.unmount();
+
+    const second = renderMenuPage();
+
+    await waitFor(() => {
+      expect(
+        second.container.querySelector(".cart"),
+      ).toBeInTheDocument();
+    });
+
+    expect(second.container.textContent).toContain("Margherita");
+    second.unmount();
   });
 
   it("shows table error for disabled table", async () => {
@@ -263,7 +408,7 @@ describe("MenuPage", () => {
 
     const addButtons = container.querySelectorAll(".button--primary");
     const addTexts = Array.from(addButtons).map((b) => b.textContent);
-    expect(addTexts).toContain("Add");
+    expect(addTexts).toContain("+ Add");
   });
 
   it("shows Unavailable for unavailable products", async () => {

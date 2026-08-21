@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useReducer } from "react";
-import type { CartItem } from "./menu.types";
+import { useCallback, useEffect, useMemo, useReducer } from "react";
+import type { CartItem, CartSession } from "./menu.types";
 
 interface CartState {
   items: CartItem[];
@@ -11,6 +11,79 @@ type CartAction =
   | { type: "INCREMENT"; productId: string }
   | { type: "DECREMENT"; productId: string }
   | { type: "CLEAR" };
+
+export interface CartMeta {
+  tableId: string;
+  tableNumber: number;
+}
+
+function buildSession(
+  qrCode: string,
+  meta: CartMeta | undefined,
+  items: CartItem[],
+): CartSession | null {
+  if (!meta) return null;
+  return {
+    qrCode,
+    tableId: meta.tableId,
+    tableNumber: meta.tableNumber,
+    items,
+  };
+}
+
+const STORAGE_KEY_PREFIX = "restaurant-pos:cart:";
+
+function isValidCartItem(value: unknown): value is CartItem {
+  if (typeof value !== "object" || value === null) return false;
+  const item = value as Record<string, unknown>;
+  return (
+    typeof item.productId === "string" &&
+    typeof item.name === "string" &&
+    typeof item.price === "number" &&
+    Number.isFinite(item.price) &&
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0
+  );
+}
+
+function loadStoredItems(qrCode: string): CartItem[] {
+  if (!qrCode) return [];
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_KEY_PREFIX + qrCode);
+    if (!raw) return [];
+
+    const session = JSON.parse(raw) as Partial<CartSession>;
+    if (session.qrCode !== qrCode || !Array.isArray(session.items)) {
+      return [];
+    }
+    return session.items.filter(isValidCartItem);
+  } catch {
+    return [];
+  }
+}
+
+function persistItems(
+  qrCode: string,
+  meta: CartMeta | undefined,
+  items: CartItem[],
+) {
+  if (!qrCode || !meta) return;
+
+  try {
+    const storageKey = STORAGE_KEY_PREFIX + qrCode;
+    if (items.length === 0) {
+      window.sessionStorage.removeItem(storageKey);
+      return;
+    }
+
+    const session = buildSession(qrCode, meta, items);
+    if (!session) return;
+    window.sessionStorage.setItem(storageKey, JSON.stringify(session));
+  } catch {
+    // Storage may be unavailable (private mode); cart still works in memory.
+  }
+}
 
 function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
@@ -63,8 +136,16 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
-export function useCart() {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+export function useCart(qrCode = "", meta?: CartMeta) {
+  const [state, dispatch] = useReducer(
+    cartReducer,
+    qrCode,
+    (code: string) => ({ items: loadStoredItems(code) }),
+  );
+
+  useEffect(() => {
+    persistItems(qrCode, meta, state.items);
+  }, [qrCode, meta, state.items]);
 
   const addItem = useCallback(
     (item: Omit<CartItem, "quantity">) =>

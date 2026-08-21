@@ -6,7 +6,12 @@ import {
   TableDisabledError,
   TableNotFoundError,
 } from "../use-cases/get-public-menu.use-case.js";
-import { buildCategory, buildProduct, buildTable } from "./public-menu.fixture.js";
+import {
+  buildCategory,
+  buildProduct,
+  buildRestaurant,
+  buildTable,
+} from "./public-menu.fixture.js";
 
 function createMockRepository(
   overrides: Partial<PublicMenuRepository> = {},
@@ -14,6 +19,7 @@ function createMockRepository(
   return {
     findTableByQrCode: vi.fn(),
     findActiveCategoriesWithProducts: vi.fn(),
+    findRestaurant: vi.fn(),
     ...overrides,
   } as unknown as PublicMenuRepository;
 }
@@ -34,17 +40,20 @@ describe("GetPublicMenuUseCase", () => {
         }),
       ],
     });
+    const restaurant = buildRestaurant();
 
     vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(table);
     vi.mocked(repository.findActiveCategoriesWithProducts).mockResolvedValueOnce([
       category,
     ]);
+    vi.mocked(repository.findRestaurant).mockResolvedValueOnce(restaurant);
 
     const result = await useCase.execute("tbl_abc123");
 
     expect(repository.findTableByQrCode).toHaveBeenCalledWith("tbl_abc123");
     expect(result).toEqual({
       table: { id: "table_1", number: 5 },
+      restaurant: { name: "Test Restaurant", logoUrl: "https://example.com/logo.png" },
       categories: [
         {
           id: "cat_1",
@@ -62,6 +71,20 @@ describe("GetPublicMenuUseCase", () => {
         },
       ],
     });
+  });
+
+  it("returns null restaurant when no restaurant is configured", async () => {
+    const repository = createMockRepository();
+    const useCase = new GetPublicMenuUseCase(repository);
+    const table = buildTable();
+
+    vi.mocked(repository.findTableByQrCode).mockResolvedValueOnce(table);
+    vi.mocked(repository.findActiveCategoriesWithProducts).mockResolvedValueOnce([]);
+    vi.mocked(repository.findRestaurant).mockResolvedValueOnce(null);
+
+    const result = await useCase.execute("tbl_abc123");
+
+    expect(result.restaurant).toBeNull();
   });
 
   it("throws TableNotFoundError when no table matches the qr code", async () => {

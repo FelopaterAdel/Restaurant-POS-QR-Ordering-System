@@ -1,14 +1,11 @@
 import { Button } from "@/components/ui";
 import type { CreatePublicOrderResult } from "../menu.types";
+import { formatPrice } from "../format-price";
 
 interface OrderSuccessProps {
   order: CreatePublicOrderResult;
   tableNumber: number;
   onNewOrder: () => void;
-}
-
-function formatPrice(price: number): string {
-  return `₹${price}`;
 }
 
 export function OrderSuccess({
