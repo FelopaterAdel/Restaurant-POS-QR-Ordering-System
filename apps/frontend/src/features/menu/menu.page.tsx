@@ -16,6 +16,24 @@ import "./menu.css";
 
 type View = "menu" | "review" | "success";
 
+function getOrderSubmitErrorMessage(err: unknown): string {
+  if (err instanceof ApiError) {
+    if (err.code === "TABLE_NOT_FOUND") {
+      return "We couldn't find your table. Please scan the QR code on your table again.";
+    }
+    if (err.code === "TABLE_DISABLED") {
+      return "This table is currently unavailable. Please ask a staff member for assistance.";
+    }
+    if (
+      err.code === "PRODUCT_NOT_FOUND" ||
+      err.code === "PRODUCT_UNAVAILABLE"
+    ) {
+      return "Some items are no longer available. Please go back and update your order.";
+    }
+  }
+  return getApiErrorMessage(err);
+}
+
 export default function MenuPage() {
   const { qrCode = "" } = useParams();
   const { data: menu, isLoading, error } = usePublicMenuQuery(qrCode);
@@ -86,17 +104,7 @@ export default function MenuPage() {
       cart.clear();
       setView("success");
     } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.code === "TABLE_DISABLED") {
-          setSubmitError("This table is currently unavailable. Please ask a staff member for assistance.");
-        } else if (err.code === "PRODUCT_NOT_FOUND" || err.code === "PRODUCT_UNAVAILABLE") {
-          setSubmitError("Some items are no longer available. Please go back and update your order.");
-        } else {
-          setSubmitError(getApiErrorMessage(err));
-        }
-      } else {
-        setSubmitError(getApiErrorMessage(err));
-      }
+      setSubmitError(getOrderSubmitErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }

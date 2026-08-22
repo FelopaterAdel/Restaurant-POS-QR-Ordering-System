@@ -59,10 +59,11 @@ export function OrderReview({
           variant="primary"
           size="lg"
           onClick={onConfirm}
-          disabled={isSubmitting}
+          loading={isSubmitting}
+          loadingText="Placing Order…"
           className="order-review__confirm-btn"
         >
-          {isSubmitting ? "Placing Order…" : "Place Order"}
+          Place Order
         </Button>
       </div>
     </div>

@@ -71,49 +71,32 @@ const mockMenu: PublicMenu = {
   ],
 };
 
+const mockOrderResult = {
+  id: "ord_1",
+  orderNumber: 1024,
+  tableId: "tbl_1",
+  status: "PENDING",
+  totalAmount: 390,
+  createdAt: "2026-01-15T12:35:00Z",
+  updatedAt: "2026-01-15T12:35:00Z",
+  items: [
+    {
+      id: "item_1",
+      productId: "prod_1",
+      productName: "Margherita",
+      quantity: 1,
+      unitPrice: 150,
+      totalPrice: 150,
+    },
+  ],
+};
+
 const handlers = [
   http.get("*/api/v1/public/tables/:qrCode/menu", () => {
     return HttpResponse.json({ success: true, data: mockMenu });
   }),
-  http.post("*/api/v1/public/orders", async () => {
-    return HttpResponse.json({
-      success: true,
-      data: {
-        id: "ord_1",
-        orderNumber: 1,
-        tableId: "tbl_1",
-        status: "PENDING",
-        totalAmount: 390,
-        createdAt: "2026-01-15T12:35:00Z",
-        updatedAt: "2026-01-15T12:35:00Z",
-        items: [
-          {
-            id: "item_1",
-            productId: "prod_1",
-            productName: "Margherita",
-            quantity: 2,
-            unitPrice: 150,
-            totalPrice: 300,
-          },
-          {
-            id: "item_2",
-            productId: "prod_3",
-            productName: "Cola",
-            quantity: 1,
-            unitPrice: 40,
-            totalPrice: 40,
-          },
-          {
-            id: "item_3",
-            productId: "prod_3",
-            productName: "Cola",
-            quantity: 1,
-            unitPrice: 40,
-            totalPrice: 40,
-          },
-        ],
-      },
-    });
+  http.post("*/api/v1/public/orders", () => {
+    return HttpResponse.json({ success: true, data: mockOrderResult });
   }),
 ];
 
@@ -153,6 +136,33 @@ function renderMenuPage(qrCode = "tbl_test123") {
     </StrictMode>,
     { wrapper: createQueryWrapper() },
   );
+}
+
+async function goToReview(container: HTMLElement) {
+  await waitFor(() => {
+    expect(container.querySelector(".product-card")).toBeInTheDocument();
+  });
+
+  const user = userEvent.setup();
+  const addBtn = container.querySelector(
+    ".product-card .button--primary",
+  ) as HTMLElement;
+  await user.click(addBtn);
+
+  await waitFor(() => {
+    expect(container.querySelector(".cart__panel")).toBeInTheDocument();
+  });
+
+  const reviewBtn = container.querySelector(
+    ".cart__checkout-btn",
+  ) as HTMLElement;
+  await user.click(reviewBtn);
+
+  await waitFor(() => {
+    expect(container.querySelector(".order-review")).toBeInTheDocument();
+  });
+
+  return user;
 }
 
 describe("MenuPage", () => {
@@ -615,7 +625,7 @@ describe("MenuPage", () => {
     ).toBe("Order Placed!");
     expect(
       container.querySelector(".order-success__detail-value")?.textContent,
-    ).toBe("#1");
+    ).toBe("#1024");
   });
 
   it("shows error when order placement fails", async () => {
@@ -635,38 +645,187 @@ describe("MenuPage", () => {
     );
 
     const { container } = renderMenuPage();
+    const user = await goToReview(container);
 
-    await waitFor(() => {
-      expect(container.querySelector(".product-card")).toBeInTheDocument();
-    });
-
-    const user = userEvent.setup();
-    const addBtn = container.querySelector(
-      ".product-card .button--primary",
-    ) as HTMLElement;
-    await user.click(addBtn);
-
-    await waitFor(() => {
-      expect(container.querySelector(".cart__panel")).toBeInTheDocument();
-    });
-
-    const reviewBtn = container.querySelector(
-      ".cart__checkout-btn",
-    ) as HTMLElement;
-    await user.click(reviewBtn);
-
-    await waitFor(() => {
-      expect(container.querySelector(".order-review")).toBeInTheDocument();
-    });
-
-    const confirmBtn = container.querySelector(
-      ".order-review__confirm-btn",
-    ) as HTMLElement;
-    await user.click(confirmBtn);
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
 
     await waitFor(() => {
       expect(container.querySelector(".order-review__error")).toBeInTheDocument();
     });
+
+    expect(
+      container.querySelector(".order-review__error")?.textContent,
+    ).toBe(
+      "This table is currently unavailable. Please ask a staff member for assistance.",
+    );
+    expect(
+      window.sessionStorage.getItem("restaurant-pos:cart:tbl_test123"),
+    ).not.toBeNull();
+  });
+
+  it("shows error when the table is not found during submission", async () => {
+    server.use(
+      http.post("*/api/v1/public/orders", () => {
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: "TABLE_NOT_FOUND",
+              message: "Table not found",
+            },
+          },
+          { status: 404 },
+        );
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-review__error")).toBeInTheDocument();
+    });
+
+    expect(
+      container.querySelector(".order-review__error")?.textContent,
+    ).toBe(
+      "We couldn't find your table. Please scan the QR code on your table again.",
+    );
+  });
+
+  it("shows error and keeps cart when products are unavailable", async () => {
+    server.use(
+      http.post("*/api/v1/public/orders", () => {
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: "PRODUCT_UNAVAILABLE",
+              message: "Product is unavailable",
+            },
+          },
+          { status: 400 },
+        );
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-review__error")).toBeInTheDocument();
+    });
+
+    expect(
+      container.querySelector(".order-review__error")?.textContent,
+    ).toBe(
+      "Some items are no longer available. Please go back and update your order.",
+    );
+    expect(
+      window.sessionStorage.getItem("restaurant-pos:cart:tbl_test123"),
+    ).not.toBeNull();
+  });
+
+  it("sends only tableId and items to the create order API", async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post("*/api/v1/public/orders", async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true, data: mockOrderResult });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(requestBody).toEqual({
+      tableId: "tbl_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+    });
+  });
+
+  it("disables confirm button and prevents double submit while creating the order", async () => {
+    let callCount = 0;
+    let releaseOrder: (() => void) | undefined;
+    server.use(
+      http.post("*/api/v1/public/orders", async () => {
+        callCount += 1;
+        await new Promise<void>((resolve) => {
+          releaseOrder = resolve;
+        });
+        return HttpResponse.json({ success: true, data: mockOrderResult });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const confirmBtn = container.querySelector(
+      ".order-review__confirm-btn",
+    ) as HTMLButtonElement;
+
+    await user.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(confirmBtn).toBeDisabled();
+      expect(confirmBtn.textContent).toBe("Placing Order…");
+    });
+
+    await user.click(confirmBtn).catch(() => {});
+
+    releaseOrder?.();
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(callCount).toBe(1);
+  });
+
+  it("clears the cart only after success and shows backend totals", async () => {
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    expect(
+      window.sessionStorage.getItem("restaurant-pos:cart:tbl_test123"),
+    ).not.toBeNull();
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    const detailValues = Array.from(
+      container.querySelectorAll(".order-success__detail-value"),
+    ).map((el) => el.textContent);
+    expect(detailValues[0]).toBe("#1024");
+    expect(detailValues[1]).toBe("5");
+    expect(detailValues[2]).toBe("EGP 390");
+
+    expect(
+      window.sessionStorage.getItem("restaurant-pos:cart:tbl_test123"),
+    ).toBeNull();
   });
 
   it("navigates back to menu from success screen", async () => {
