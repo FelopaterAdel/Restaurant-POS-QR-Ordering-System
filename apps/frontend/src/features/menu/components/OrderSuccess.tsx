@@ -5,12 +5,14 @@ import { formatPrice } from "../format-price";
 interface OrderSuccessProps {
   order: CreatePublicOrderResult;
   tableNumber: number;
+  onTrackOrder: () => void;
   onNewOrder: () => void;
 }
 
 export function OrderSuccess({
   order,
   tableNumber,
+  onTrackOrder,
   onNewOrder,
 }: OrderSuccessProps) {
   return (
@@ -57,14 +59,24 @@ export function OrderSuccess({
         you need assistance.
       </p>
 
-      <Button
-        variant="primary"
-        size="lg"
-        onClick={onNewOrder}
-        className="order-success__new-btn"
-      >
-        Place Another Order
-      </Button>
+      <div className="order-success__actions">
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={onTrackOrder}
+          className="order-success__track-btn"
+        >
+          View Order
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onNewOrder}
+          className="order-success__new-btn"
+        >
+          Place Another Order
+        </Button>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Button, Spinner } from "@/components/ui";
 import { getApiErrorMessage } from "@/lib/api";
 import { ApiError } from "@/lib/api";
@@ -36,6 +36,7 @@ function getOrderSubmitErrorMessage(err: unknown): string {
 
 export default function MenuPage() {
   const { qrCode = "" } = useParams();
+  const navigate = useNavigate();
   const { data: menu, isLoading, error } = usePublicMenuQuery(qrCode);
 
   const [activeCategoryId, setActiveCategoryId] = useState("");
@@ -116,6 +117,14 @@ export default function MenuPage() {
     setSubmitError(null);
   }, []);
 
+  const handleTrackOrder = useCallback(() => {
+    if (!orderResult) return;
+    navigate(
+      `/public/menu/${encodeURIComponent(qrCode)}/orders/${encodeURIComponent(orderResult.id)}`,
+      { replace: true },
+    );
+  }, [navigate, orderResult, qrCode]);
+
   if (error) {
     const isDisabled =
       error instanceof ApiError && error.code === "TABLE_DISABLED";
@@ -172,6 +181,7 @@ export default function MenuPage() {
           <OrderSuccess
             order={orderResult}
             tableNumber={menu.table.number}
+            onTrackOrder={handleTrackOrder}
             onNewOrder={handleNewOrder}
           />
         </div>

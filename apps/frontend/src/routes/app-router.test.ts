@@ -5,7 +5,7 @@ import { AccessDeniedPage } from "@/pages/access-denied/access-denied-page";
 import { HomePage } from "@/pages/home/home-page";
 import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
-import { MenuPage } from "@/features/menu";
+import { MenuPage, OrderTrackingPage } from "@/features/menu";
 import { appRoutes } from "./app-router";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
@@ -106,6 +106,13 @@ describe("app routes", () => {
     expect(menu).not.toBeNull();
     expect(elementType(menu?.route.element)).toBe(MenuPage);
     expect(menu?.parentElement).toBeNull();
+  });
+
+  it("keeps the order tracking page outside any auth guard", () => {
+    const tracking = locate(appRoutes, "/public/menu/:qrCode/orders/:orderId");
+    expect(tracking).not.toBeNull();
+    expect(elementType(tracking?.route.element)).toBe(OrderTrackingPage);
+    expect(tracking?.parentElement).toBeNull();
   });
 
   it("protects every business route with a matching role guard", () => {

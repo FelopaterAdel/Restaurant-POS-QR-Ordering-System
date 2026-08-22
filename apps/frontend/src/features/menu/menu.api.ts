@@ -3,6 +3,7 @@ import type {
   CreatePublicOrderInput,
   CreatePublicOrderResult,
   PublicMenu,
+  PublicOrder,
 } from "./menu.types";
 
 export async function getPublicMenu(qrCode: string): Promise<PublicMenu> {
@@ -17,4 +18,14 @@ export async function createPublicOrder(
   return api.post<CreatePublicOrderResult>("/public/orders", input, {
     skipAuthRefresh: true,
   });
+}
+
+export async function getPublicOrder(
+  orderId: string,
+  qrCode: string,
+): Promise<PublicOrder> {
+  return api.get<PublicOrder>(
+    `/public/orders/${encodeURIComponent(orderId)}?qrCode=${encodeURIComponent(qrCode)}`,
+    { skipAuthRefresh: true },
+  );
 }

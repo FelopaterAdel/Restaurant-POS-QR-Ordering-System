@@ -11,6 +11,7 @@ import OrdersPage from "@/features/orders/orders.page";
 import OrderHistoryPage from "@/features/orders/history.page";
 import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
+import OrderTrackingPage from "@/features/menu/order-tracking.page";
 import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
@@ -35,6 +36,10 @@ export const appRoutes: RouteObject[] = [
   {
     path: "/public/menu/:qrCode",
     element: <MenuPage />,
+  },
+  {
+    path: "/public/menu/:qrCode/orders/:orderId",
+    element: <OrderTrackingPage />,
   },
   {
     element: <ProtectedRoute />,

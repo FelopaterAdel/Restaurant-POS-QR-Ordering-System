@@ -43,6 +43,38 @@ export interface CartSession {
   items: CartItem[];
 }
 
+export type PublicOrderStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PREPARING"
+  | "READY"
+  | "SERVED"
+  | "COMPLETED"
+  | "CANCELLED";
+
+export interface PublicOrderItem {
+  id: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface PublicOrder {
+  id: string;
+  orderNumber: number;
+  tableId: string;
+  tableNumber: number;
+  status: PublicOrderStatus;
+  totalAmount: number;
+  cancelledAt: string | null;
+  cancelledReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  items: PublicOrderItem[];
+}
+
 export interface CreatePublicOrderInput {
   tableId: string;
   items: Array<{ productId: string; quantity: number }>;

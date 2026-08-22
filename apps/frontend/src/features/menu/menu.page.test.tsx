@@ -828,6 +828,50 @@ describe("MenuPage", () => {
     ).toBeNull();
   });
 
+  it("navigates to the tracking page when clicking View Order", async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false, gcTime: 0 } },
+    });
+
+    const { container } = render(
+      <StrictMode>
+        <MemoryRouter initialEntries={["/public/menu/tbl_test123"]}>
+          <QueryClientProvider client={queryClient}>
+            <Routes>
+              <Route path="/public/menu/:qrCode" element={<MenuPage />} />
+              <Route
+                path="/public/menu/:qrCode/orders/:orderId"
+                element={<div data-testid="tracking-stub" />}
+              />
+            </Routes>
+          </QueryClientProvider>
+        </MemoryRouter>
+      </StrictMode>,
+    );
+
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        container.querySelector(".order-success__track-btn"),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(
+      container.querySelector(".order-success__track-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        container.querySelector('[data-testid="tracking-stub"]'),
+      ).toBeInTheDocument();
+    });
+  });
+
   it("navigates back to menu from success screen", async () => {
     const { container } = renderMenuPage();
 

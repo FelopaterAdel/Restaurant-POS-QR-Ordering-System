@@ -68,6 +68,29 @@ export type StaffOrderWithRelations = Prisma.OrderGetPayload<{
   include: typeof staffOrderInclude;
 }>;
 
+const publicOrderInclude = {
+  items: {
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
+  table: {
+    select: {
+      number: true,
+      qrCode: true,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+export type PublicOrderWithRelations = Prisma.OrderGetPayload<{
+  include: typeof publicOrderInclude;
+}>;
+
 export interface OrderQueuePageInput {
   statuses: OrderStatus[];
   page: number;
@@ -163,6 +186,13 @@ export class OrderRepository {
     return this.client.order.findUnique({
       where: { id },
       include: orderInclude,
+    });
+  }
+
+  async findPublicViewById(id: string): Promise<PublicOrderWithRelations | null> {
+    return this.client.order.findUnique({
+      where: { id },
+      include: publicOrderInclude,
     });
   }
 
