@@ -49,7 +49,7 @@ describe("OrderHistoryRow", () => {
   it("renders total amount", () => {
     const { row } = renderRow();
 
-    expect(within(row).getByText("EGP 390")).toBeInTheDocument();
+    expect(within(row).getByText("390 EGP")).toBeInTheDocument();
   });
 
   it("renders status badge", () => {

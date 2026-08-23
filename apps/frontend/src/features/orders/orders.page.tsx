@@ -14,6 +14,7 @@ import type { StatusAction } from "./orders.role-config";
 import {
   getCompleteOrderErrorMessage,
   getPaymentErrorMessage,
+  isStalePaymentError,
 } from "./orders.errors";
 import {
   OrderFilters,
@@ -159,6 +160,11 @@ export default function OrdersPage() {
             setToast({ message: "Payment recorded", type: "success" });
           },
           onError: (error) => {
+            if (isStalePaymentError(error)) {
+              // Someone else already paid (or the order changed). The queue
+              // has been refetched — drop the dialog and show the outcome.
+              setPayingOrder(null);
+            }
             setToast({
               message: getPaymentErrorMessage(error),
               type: "error",

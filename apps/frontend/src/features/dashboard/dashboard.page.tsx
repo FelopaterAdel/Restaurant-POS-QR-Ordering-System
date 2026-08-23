@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button, Card, CardBody, EmptyState, ErrorState, Skeleton } from "@/components/ui";
+import { formatCurrency, formatNumber } from "@/lib/format";
 import { useRestaurant } from "@/features/settings/restaurant-context";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { DateFilter, type DatePreset } from "./components/DateFilter";
@@ -14,14 +15,6 @@ import { StatCard } from "./components/StatCard";
 import { useDashboardQuery } from "./dashboard.queries";
 import type { DashboardSummary } from "./dashboard.types";
 import "./dashboard.css";
-
-function formatCurrency(value: number): string {
-  return `EGP ${value.toLocaleString("en-US")}`;
-}
-
-function formatNumber(value: number): string {
-  return value.toLocaleString("en-US");
-}
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();

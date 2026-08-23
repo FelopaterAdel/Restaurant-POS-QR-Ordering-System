@@ -366,10 +366,15 @@ describe("PaymentsPage", () => {
     expect(cards).toHaveLength(1);
   });
 
-  it("maps PAYMENT_ALREADY_EXISTS to a clear message on concurrent payment", async () => {
+  it("handles PAYMENT_ALREADY_EXISTS by closing the dialog, toasting, and refetching", async () => {
+    // Cashier B paid this order right before Cashier A confirmed.
     server.use(
-      http.post("*/api/v1/orders/:orderId/payment", () =>
-        HttpResponse.json(
+      http.post("*/api/v1/orders/:orderId/payment", ({ params }) => {
+        const order = state.orders.find((o) => o.id === String(params.orderId));
+        if (order) {
+          order.paymentStatus = "PAID";
+        }
+        return HttpResponse.json(
           {
             success: false,
             error: {
@@ -378,8 +383,8 @@ describe("PaymentsPage", () => {
             },
           },
           { status: 409 },
-        ),
-      ),
+        );
+      }),
     );
 
     const { container } = renderPage();
@@ -401,11 +406,22 @@ describe("PaymentsPage", () => {
     );
 
     await waitFor(() => {
-      const error = document.body.querySelector(".payment-confirm__error");
-      expect(error?.textContent).toBe("This order has already been paid.");
+      const toast = document.body.querySelector(".status-toast__message");
+      expect(toast?.textContent).toBe("This order has already been paid.");
     });
 
-    expect(state.paymentCalls).toHaveLength(0);
+    // No stale dialog left behind.
+    await waitFor(() => {
+      expect(document.body.querySelector(".payment-confirm")).toBeNull();
+    });
+    expect(document.body.querySelector(".payment-success")).toBeNull();
+
+    // The refreshed queue no longer offers the paid order.
+    await waitFor(() => {
+      const remaining = container.querySelectorAll(".payable-card");
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].textContent).toContain("#1025");
+    });
   });
 
   it("renders loading skeletons before data arrives", () => {

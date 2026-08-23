@@ -1,10 +1,7 @@
 import { useCallback, useState } from "react";
 import { Button, Modal, Spinner } from "@/components/ui";
 import type { PaymentMethod } from "@/components/ui";
-
-function formatCurrency(value: number): string {
-  return `EGP ${value.toLocaleString("en-US")}`;
-}
+import { formatCurrency } from "@/lib/format";
 
 export interface PaymentConfirmationModalProps {
   open: boolean;

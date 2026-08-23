@@ -1,20 +1,8 @@
 import { useCallback } from "react";
 import { Card, CardBody, OrderStatusBadge } from "@/components/ui";
+import { formatCurrency, formatTime } from "@/lib/format";
 import type { Order } from "../orders.types";
 import type { StatusAction } from "../orders.role-config";
-
-function formatCurrency(value: number): string {
-  return `EGP ${value.toLocaleString("en-US")}`;
-}
-
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
 
 export interface OrderCardProps {
   order: Order;

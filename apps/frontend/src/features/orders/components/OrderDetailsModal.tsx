@@ -7,22 +7,10 @@ import {
   Spinner,
 } from "@/components/ui";
 import type { OrderStatus } from "@/components/ui";
+import { formatCurrency, formatTime } from "@/lib/format";
 import type { UserRole } from "@/features/auth/types";
 import type { Order } from "../orders.types";
 import { getOrderActions, canPayOrder, canCompleteOrder } from "../orders.role-config";
-
-function formatCurrency(value: number): string {
-  return `EGP ${value.toLocaleString("en-US")}`;
-}
-
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-}
 
 export interface OrderDetailsModalProps {
   open: boolean;

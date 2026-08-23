@@ -292,6 +292,30 @@ select.input__control {
   padding: var(--space-2) var(--space-5) var(--space-5);
 }
 
+@media (max-width: 640px) {
+  .modal {
+    padding: var(--space-2);
+    place-items: end center;
+  }
+
+  .modal__content {
+    max-width: 100%;
+  }
+
+  .modal__header {
+    padding: var(--space-3) var(--space-4) var(--space-2);
+  }
+
+  .modal__body {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .modal__footer {
+    flex-wrap: wrap;
+    padding: var(--space-2) var(--space-4) var(--space-4);
+  }
+}
+
 /* Table */
 .table-wrap {
   width: 100%;

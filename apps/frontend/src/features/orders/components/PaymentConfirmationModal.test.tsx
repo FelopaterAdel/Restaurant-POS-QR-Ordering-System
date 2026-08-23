@@ -40,7 +40,7 @@ describe("PaymentConfirmationModal", () => {
     const { dialog } = renderModal();
 
     expect(within(dialog).getByText("#1024")).toBeInTheDocument();
-    expect(within(dialog).getByText("EGP 390")).toBeInTheDocument();
+    expect(within(dialog).getByText("390 EGP")).toBeInTheDocument();
   });
 
   it("renders modal title", () => {

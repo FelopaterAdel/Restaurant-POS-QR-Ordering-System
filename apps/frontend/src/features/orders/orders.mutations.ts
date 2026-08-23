@@ -6,6 +6,7 @@ import {
   payOrder,
   updateOrderStatus,
 } from "./orders.api";
+import { isStalePaymentError } from "./orders.errors";
 import { orderKeys } from "./orders.queries";
 import type {
   CancelOrderInput,
@@ -68,6 +69,14 @@ export function usePayOrderMutation(orderId: string) {
     mutationFn: (input: CreatePaymentInput) => payOrder(orderId, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: orderKeys.all });
+    },
+    // The backend rejected the payment because our copy of the order is
+    // outdated (paid elsewhere, no longer payable, or removed). Refetch so
+    // the UI reflects the real state instead of staying stale.
+    onError: (error) => {
+      if (isStalePaymentError(error)) {
+        void queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      }
     },
   });
 }

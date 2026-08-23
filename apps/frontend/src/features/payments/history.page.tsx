@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Card, CardBody } from "@/components/ui";
+import { formatCurrency, formatNumber } from "@/lib/format";
 import { hasRole } from "@/features/auth/permissions";
 import { useAuth } from "@/features/auth/use-auth";
 import {
@@ -17,10 +18,6 @@ import { PaymentHistoryTable } from "./components/PaymentHistoryTable";
 import "./payments.css";
 
 const PAGE_SIZE = 20;
-
-function formatCurrency(value: number): string {
-  return `EGP ${value.toLocaleString("en-US")}`;
-}
 
 function toDateString(date: Date): string {
   const y = date.getFullYear();
@@ -97,7 +94,7 @@ function SummaryCards({
         <CardBody className="phistory-summary__card">
           <span className="phistory-summary__title">Payments</span>
           <p className="phistory-summary__value">
-            {paidCount === undefined ? "—" : paidCount.toLocaleString("en-US")}
+            {paidCount === undefined ? "—" : formatNumber(paidCount)}
           </p>
         </CardBody>
       </Card>

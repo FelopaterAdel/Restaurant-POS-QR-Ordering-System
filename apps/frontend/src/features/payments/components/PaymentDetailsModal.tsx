@@ -1,5 +1,5 @@
 import { Button, Modal, PaymentStatusBadge } from "@/components/ui";
-import { formatCurrency, formatPaidAt } from "../history.format";
+import { formatCurrency, formatPaidAt } from "@/lib/format";
 import type { PaymentHistoryItem } from "../history.types";
 
 export interface PaymentDetailsModalProps {

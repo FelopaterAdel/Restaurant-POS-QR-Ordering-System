@@ -1,8 +1,5 @@
 import { Button, Modal } from "@/components/ui";
-
-function formatCurrency(value: number): string {
-  return `${value.toLocaleString("en-US")} EGP`;
-}
+import { formatCurrency } from "@/lib/format";
 
 export interface PaymentSuccessModalProps {
   open: boolean;

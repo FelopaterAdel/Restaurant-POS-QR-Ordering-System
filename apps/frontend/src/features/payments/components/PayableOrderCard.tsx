@@ -1,9 +1,6 @@
 import { Button, OrderStatusBadge } from "@/components/ui";
 import type { OrderStatus } from "@/components/ui";
-
-function formatCurrency(value: number): string {
-  return `${value.toLocaleString("en-US")} EGP`;
-}
+import { formatCurrency } from "@/lib/format";
 
 export interface PayableOrderCardProps {
   orderNumber: number;

@@ -34,6 +34,24 @@ export function getPaymentErrorMessage(error: unknown): string {
   );
 }
 
+const STALE_PAYMENT_ERROR_CODES = new Set([
+  "PAYMENT_ALREADY_EXISTS",
+  "PAYMENT_NOT_ALLOWED",
+  "ORDER_NOT_FOUND",
+]);
+
+/**
+ * True when a payment failure means the local order data is outdated
+ * (paid elsewhere, no longer payable, or removed). The UI should refetch
+ * instead of leaving stale screens on display.
+ */
+export function isStalePaymentError(error: unknown): boolean {
+  if (error instanceof ApiError) {
+    return STALE_PAYMENT_ERROR_CODES.has(error.code);
+  }
+  return false;
+}
+
 export function getCompleteOrderErrorMessage(error: unknown): string {
   return (
     mapErrorCode(error, COMPLETE_ERROR_MESSAGES) ??

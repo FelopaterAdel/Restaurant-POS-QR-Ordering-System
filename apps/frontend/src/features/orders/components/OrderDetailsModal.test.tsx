@@ -69,15 +69,15 @@ describe("OrderDetailsModal", () => {
 
     const quantities = within(dialog).getAllByText(/^x\d+$/);
     expect(quantities.length).toBeGreaterThanOrEqual(1);
-    expect(within(dialog).getByText("EGP 200")).toBeInTheDocument();
-    expect(within(dialog).getByText("EGP 50")).toBeInTheDocument();
-    expect(within(dialog).getByText("EGP 40")).toBeInTheDocument();
+    expect(within(dialog).getByText("200 EGP")).toBeInTheDocument();
+    expect(within(dialog).getByText("50 EGP")).toBeInTheDocument();
+    expect(within(dialog).getByText("40 EGP")).toBeInTheDocument();
   });
 
   it("renders total amount", () => {
     const { dialog } = renderModal();
 
-    const totals = within(dialog).getAllByText("EGP 290");
+    const totals = within(dialog).getAllByText("290 EGP");
     expect(totals.length).toBeGreaterThanOrEqual(1);
   });
 

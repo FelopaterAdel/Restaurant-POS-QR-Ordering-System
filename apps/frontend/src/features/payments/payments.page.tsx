@@ -10,6 +10,7 @@ import { StatusToast } from "@/features/orders/components/StatusToast";
 import {
   getCompleteOrderErrorMessage,
   getPaymentErrorMessage,
+  isStalePaymentError,
 } from "@/features/orders/orders.errors";
 import {
   useCompleteOrderMutation,
@@ -93,6 +94,21 @@ export default function PaymentsPage() {
           onSuccess: (_payment) => {
             setIsConfirmingPayment(false);
             setPaidOrder(flowOrder);
+          },
+          onError: (error) => {
+            if (isStalePaymentError(error)) {
+              // The order was paid or changed elsewhere; the queue query has
+              // been invalidated and refetched. Close the dialog so the
+              // cashier sees the refreshed queue instead of a stale card.
+              setIsConfirmingPayment(false);
+              setFlowOrder(null);
+              payOrderMutation.reset();
+              setToast({
+                message: getPaymentErrorMessage(error),
+                type: "error",
+              });
+            }
+            // Other failures stay inline in the dialog for an immediate retry.
           },
         },
       );

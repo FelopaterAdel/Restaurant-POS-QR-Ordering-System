@@ -70,7 +70,7 @@ describe("OrderCard", () => {
   it("renders total amount in EGP", () => {
     const { card } = renderCard();
 
-    expect(card.querySelector(".order-card__total")).toHaveTextContent("EGP 450");
+    expect(card.querySelector(".order-card__total")).toHaveTextContent("450 EGP");
   });
 
   it("renders status badge", () => {

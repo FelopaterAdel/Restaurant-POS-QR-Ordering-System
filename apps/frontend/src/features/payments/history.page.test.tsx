@@ -178,11 +178,11 @@ describe("PaymentHistoryPage", () => {
 
     expect(container.textContent).toContain("#1024");
     expect(container.textContent).toContain("#1023");
-    expect(container.textContent).toContain("EGP 480");
-    expect(container.textContent).toContain("EGP 320");
+    expect(container.textContent).toContain("480 EGP");
+    expect(container.textContent).toContain("320 EGP");
 
     expect(container.textContent).toContain("Total Sales");
-    expect(container.textContent).toContain("EGP 12,450");
+    expect(container.textContent).toContain("12,450 EGP");
     expect(container.textContent).toContain("Payments");
     expect(container.textContent).toMatch(/Payments38|Payments\s*38/);
   });
@@ -254,7 +254,7 @@ describe("PaymentHistoryPage", () => {
     expect(dialog.textContent).toContain("Payment Details");
     expect(dialog.textContent).toContain("Order #1024");
     expect(dialog.textContent).toContain("Table 12");
-    expect(dialog.textContent).toContain("EGP 480");
+    expect(dialog.textContent).toContain("480 EGP");
     expect(dialog.textContent).toContain("Amount");
     expect(dialog.textContent).toContain("Paid At");
   });

@@ -377,6 +377,7 @@
   justify-content: space-between;
   gap: var(--space-3);
   width: 100%;
+  flex-wrap: wrap;
 }
 
 /* Badges row */
@@ -485,6 +486,32 @@
   display: flex;
   gap: var(--space-2);
   justify-content: flex-end;
+}
+
+/* Mobile payment dialogs: full-width stacked buttons */
+@media (max-width: 640px) {
+  .order-details__footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .order-details__footer .button,
+  .order-details__actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .payment-confirm__actions {
+    flex-direction: column-reverse;
+  }
+
+  .payment-confirm__actions > * {
+    width: 100%;
+  }
+
+  .order-details__info {
+    flex-wrap: wrap;
+  }
 }
 
 /* Complete order confirmation modal */

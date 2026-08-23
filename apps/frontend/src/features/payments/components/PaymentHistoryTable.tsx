@@ -11,7 +11,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import type { Pagination } from "@/types/pagination";
-import { formatCurrency, formatPaidAt } from "../history.format";
+import { formatCurrency, formatPaidAt } from "@/lib/format";
 import type { PaymentHistoryItem } from "../history.types";
 
 function PaymentHistoryRow({

@@ -3,6 +3,7 @@ import { ApiError } from "@/lib/api";
 import {
   getCompleteOrderErrorMessage,
   getPaymentErrorMessage,
+  isStalePaymentError,
 } from "./orders.errors";
 
 describe("getPaymentErrorMessage", () => {
@@ -51,5 +52,31 @@ describe("getCompleteOrderErrorMessage", () => {
   it("falls back to the API message for unmapped codes", () => {
     const error = new ApiError(0, "NETWORK_ERROR", "Unable to reach the server");
     expect(getCompleteOrderErrorMessage(error)).toBe("Unable to reach the server");
+  });
+});
+
+describe("isStalePaymentError", () => {
+  it.each([
+    "PAYMENT_ALREADY_EXISTS",
+    "PAYMENT_NOT_ALLOWED",
+    "ORDER_NOT_FOUND",
+  ] as const)("treats %s as stale state requiring a refetch", (code) => {
+    expect(isStalePaymentError(new ApiError(409, code, "conflict"))).toBe(true);
+  });
+
+  it("does not treat retryable errors as stale", () => {
+    expect(
+      isStalePaymentError(new ApiError(403, "FORBIDDEN", "Insufficient role")),
+    ).toBe(false);
+    expect(
+      isStalePaymentError(
+        new ApiError(0, "NETWORK_ERROR", "Unable to reach the server"),
+      ),
+    ).toBe(false);
+  });
+
+  it("handles non-ApiError values", () => {
+    expect(isStalePaymentError(null)).toBe(false);
+    expect(isStalePaymentError(new Error("boom"))).toBe(false);
   });
 });

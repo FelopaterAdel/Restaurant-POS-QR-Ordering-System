@@ -123,7 +123,7 @@ describe("DashboardPage", () => {
       expect(screen.getAllByText("Total Sales").length).toBeGreaterThan(0);
     });
 
-    expect(screen.getAllByText("EGP 4,250").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("4,250 EGP").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Total Orders").length).toBeGreaterThan(0);
     expect(screen.getAllByText("35").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Paid Orders").length).toBeGreaterThan(0);

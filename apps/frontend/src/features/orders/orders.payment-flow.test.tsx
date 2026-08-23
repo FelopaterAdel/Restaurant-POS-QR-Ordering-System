@@ -56,6 +56,7 @@ const state = {
   ] as MockOrderState[],
   paymentCalls: [] as Array<{ orderId: string; body: unknown }>,
   completeCalls: 0,
+  queueRequests: 0,
 };
 
 function resetState() {
@@ -66,6 +67,7 @@ function resetState() {
   ];
   state.paymentCalls = [];
   state.completeCalls = 0;
+  state.queueRequests = 0;
 }
 
 function toItem(order: MockOrderState) {
@@ -98,6 +100,7 @@ function toApiOrder(order: MockOrderState): Order {
 
 const server = setupServer(
   http.get("*/api/v1/orders/queue", () => {
+    state.queueRequests += 1;
     return HttpResponse.json({
       success: true,
       data: state.orders.map(toApiOrder),
@@ -310,9 +313,14 @@ describe("OrdersPage staff payment workflow", () => {
     expect(paidBadge?.textContent).toBe("Paid");
   });
 
-  it("shows a clear message when the order was already paid concurrently", async () => {
+  it("handles a concurrent payment: rejects, refetches, and shows PAID", async () => {
+    // Cashier B pays order #1024 right before Cashier A confirms.
     server.use(
-      http.post("*/api/v1/orders/:orderId/payment", () => {
+      http.post("*/api/v1/orders/:orderId/payment", ({ params }) => {
+        const order = state.orders.find((o) => o.id === String(params.orderId));
+        if (order) {
+          order.paymentStatus = "PAID";
+        }
         return HttpResponse.json(
           {
             success: false,
@@ -341,19 +349,164 @@ describe("OrdersPage staff payment workflow", () => {
       ) as HTMLElement,
     );
 
+    await waitFor(() => {
+      expect(
+        document.body.querySelector(".payment-confirm"),
+      ).toBeInTheDocument();
+    });
+
+    const queueRequestsBefore = state.queueRequests;
+
     const payDialogs = document.body.querySelectorAll('[role="dialog"]');
-    const payDialog = payDialogs[payDialogs.length - 1] as HTMLElement;
     await user.click(
-      Array.from(payDialog.querySelectorAll("button")).find((b) =>
-        b.textContent?.includes("Confirm Payment"),
+      Array.from(payDialogs[payDialogs.length - 1].querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Confirm Payment"),
+      ) as HTMLElement,
+    );
+
+    await waitFor(() => {
+      const toast = document.body.querySelector(".status-toast__message");
+      expect(toast?.textContent).toBe("This order has already been paid.");
+    });
+
+    // The stale dialog is closed instead of staying on screen.
+    await waitFor(() => {
+      expect(document.body.querySelector(".payment-confirm")).toBeNull();
+    });
+
+    // The queue was refetched after the rejected payment.
+    await waitFor(() => {
+      expect(state.queueRequests).toBeGreaterThan(queueRequestsBefore);
+    });
+
+    // Reopening the order reflects the real PAID state from the backend.
+    const reopened = await openOrderDetails(container, 1024);
+    expect(
+      Array.from(reopened.dialog.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Pay Order"),
+      ),
+    ).toBeUndefined();
+    expect(reopened.dialog.querySelector(".badge--success")?.textContent).toBe(
+      "Paid",
+    );
+  });
+
+  it("refetches and informs the cashier when the order is no longer payable", async () => {
+    // The order moved out of READY/SERVED before the payment landed.
+    server.use(
+      http.post("*/api/v1/orders/:orderId/payment", ({ params }) => {
+        const order = state.orders.find((o) => o.id === String(params.orderId));
+        if (order) {
+          order.status = "PREPARING";
+        }
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: "PAYMENT_NOT_ALLOWED",
+              message: "Order in status PREPARING cannot be paid",
+            },
+          },
+          { status: 409 },
+        );
+      }),
+    );
+
+    const { container } = render(
+      <StrictMode>
+        <OrdersPage />
+      </StrictMode>,
+      { wrapper: createQueryWrapper() },
+    );
+
+    const { user, dialog } = await openOrderDetails(container, 1024);
+
+    await user.click(
+      Array.from(dialog.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Pay Order"),
+      ) as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.body.querySelector(".payment-confirm"),
+      ).toBeInTheDocument();
+    });
+
+    const queueRequestsBefore = state.queueRequests;
+
+    const payDialogs = document.body.querySelectorAll('[role="dialog"]');
+    await user.click(
+      Array.from(payDialogs[payDialogs.length - 1].querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Confirm Payment"),
+      ) as HTMLElement,
+    );
+
+    await waitFor(() => {
+      const toast = document.body.querySelector(".status-toast__message");
+      expect(toast?.textContent).toBe(
+        "This order can't be paid in its current status.",
+      );
+    });
+
+    await waitFor(() => {
+      expect(document.body.querySelector(".payment-confirm")).toBeNull();
+    });
+
+    await waitFor(() => {
+      expect(state.queueRequests).toBeGreaterThan(queueRequestsBefore);
+    });
+  });
+
+  it("keeps the dialog open with a permission message when the backend forbids payment", async () => {
+    server.use(
+      http.post("*/api/v1/orders/:orderId/payment", () =>
+        HttpResponse.json(
+          {
+            success: false,
+            error: { code: "FORBIDDEN", message: "Forbidden" },
+          },
+          { status: 403 },
+        ),
+      ),
+    );
+
+    const { container } = render(
+      <StrictMode>
+        <OrdersPage />
+      </StrictMode>,
+      { wrapper: createQueryWrapper() },
+    );
+
+    const { user, dialog } = await openOrderDetails(container, 1024);
+
+    await user.click(
+      Array.from(dialog.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Pay Order"),
+      ) as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(
+        document.body.querySelector(".payment-confirm"),
+      ).toBeInTheDocument();
+    });
+
+    const payDialogs = document.body.querySelectorAll('[role="dialog"]');
+    await user.click(
+      Array.from(payDialogs[payDialogs.length - 1].querySelectorAll("button")).find(
+        (b) => b.textContent?.includes("Confirm Payment"),
       ) as HTMLElement,
     );
 
     await waitFor(() => {
       const error = document.body.querySelector(".payment-confirm__error");
-      expect(error?.textContent).toBe("This order has already been paid.");
+      expect(error?.textContent).toBe(
+        "You don't have permission to record payments.",
+      );
     });
 
+    // Not a stale-state error: the dialog stays open for a retry.
     expect(document.body.querySelector(".payment-confirm")).not.toBeNull();
   });
 
