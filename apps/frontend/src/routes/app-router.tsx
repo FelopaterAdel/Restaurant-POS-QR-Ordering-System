@@ -15,6 +15,7 @@ import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
 import { PaymentsPage } from "@/features/payments";
+import PaymentHistoryPage from "@/features/payments/history.page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -111,6 +112,10 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/payments",
                 element: <PaymentsPage />,
+              },
+              {
+                path: "/payments/history",
+                element: <PaymentHistoryPage />,
               },
             ],
           },

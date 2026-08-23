@@ -110,7 +110,7 @@ export const openapiSpec = {
     { name: "Order Queue", description: "Active kitchen queue" },
     { name: "Order History", description: "Completed order search" },
     { name: "Staff Orders", description: "Order details for staff" },
-    { name: "Payments", description: "Order payments" },
+    { name: "Payments", description: "Order payments and payment history" },
     {
       name: "Public Menu",
       description: "Customer-facing menu by table QR code",
@@ -620,6 +620,52 @@ export const openapiSpec = {
         },
       },
     },
+    "/api/v1/payments/history": {
+      get: {
+        tags: ["Payments"],
+        summary: "List payment history",
+        description:
+          "Read-only paginated list of paid payments, newest first. Dates are resolved against the restaurant timezone (Africa/Cairo). Owner and manager roles only.",
+        operationId: "getPaymentHistory",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { $ref: "#/components/parameters/FromDateQueryParam" },
+          { $ref: "#/components/parameters/ToDateQueryParam" },
+          { $ref: "#/components/parameters/OrderNumberQueryParam" },
+          { $ref: "#/components/parameters/PageQueryParam" },
+          { $ref: "#/components/parameters/LimitQueryParam" },
+        ],
+        responses: {
+          200: paginatedResponse("PaymentHistoryItem"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/payments/summary": {
+      get: {
+        tags: ["Payments"],
+        summary: "Payment summary",
+        description:
+          "Read-only totals (sales amount and paid payment count) for the same filters as the payment history list. Owner and manager roles only.",
+        operationId: "getPaymentSummary",
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { $ref: "#/components/parameters/FromDateQueryParam" },
+          { $ref: "#/components/parameters/ToDateQueryParam" },
+          { $ref: "#/components/parameters/OrderNumberQueryParam" },
+        ],
+        responses: {
+          200: successResponse("PaymentSummary"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
     "/api/v1/orders": {
       get: {
         tags: ["Orders"],
@@ -917,6 +963,35 @@ export const openapiSpec = {
           type: "string",
           pattern: "^\\d{4}-\\d{2}-\\d{2}$",
         },
+      },
+      FromDateQueryParam: {
+        name: "from",
+        in: "query",
+        required: false,
+        description:
+          "Range start date (inclusive, restaurant-local) in YYYY-MM-DD format",
+        schema: {
+          type: "string",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        },
+      },
+      ToDateQueryParam: {
+        name: "to",
+        in: "query",
+        required: false,
+        description:
+          "Range end date (inclusive, restaurant-local) in YYYY-MM-DD format",
+        schema: {
+          type: "string",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        },
+      },
+      OrderNumberQueryParam: {
+        name: "orderNumber",
+        in: "query",
+        required: false,
+        description: "Filter by order number",
+        schema: { type: "integer", minimum: 1 },
       },
     },
     responses: {
@@ -1266,6 +1341,37 @@ export const openapiSpec = {
           "paidAt",
           "createdAt",
         ],
+      },
+      PaymentHistoryItem: {
+        type: "object",
+        description:
+          "Paid payment in the history list. Internal identifiers beyond the payment id are intentionally omitted.",
+        properties: {
+          id: { type: "string" },
+          orderNumber: { type: "integer" },
+          tableNumber: { type: "integer" },
+          amount: { type: "number" },
+          method: { $ref: "#/components/schemas/PaymentMethod" },
+          status: { $ref: "#/components/schemas/PaymentStatus" },
+          paidAt: { type: "string", format: "date-time", nullable: true },
+        },
+        required: [
+          "id",
+          "orderNumber",
+          "tableNumber",
+          "amount",
+          "method",
+          "status",
+          "paidAt",
+        ],
+      },
+      PaymentSummary: {
+        type: "object",
+        properties: {
+          totalSales: { type: "number" },
+          paidCount: { type: "integer" },
+        },
+        required: ["totalSales", "paidCount"],
       },
       OrderHistoryItem: {
         type: "object",

@@ -15,6 +15,7 @@ import orderHistoryRouter from "./modules/orders/routes/order-history.routes.js"
 import orderQueueRouter from "./modules/orders/routes/order-queue.routes.js";
 import publicOrderRouter from "./modules/orders/routes/public-order.routes.js";
 import paymentRouter from "./modules/payments/routes/payment.routes.js";
+import paymentHistoryRouter from "./modules/payments/routes/payment-history.routes.js";
 import productRouter from "./modules/products/routes/product.routes.js";
 import staffOrderRouter from "./modules/orders/routes/staff-order.routes.js";
 import tableRouter from "./modules/tables/routes/table.routes.js";
@@ -52,6 +53,7 @@ app.use("/api/v1/orders/queue", orderQueueRouter);
 app.use("/api/v1/orders/history", orderHistoryRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/orders", paymentRouter);
+app.use("/api/v1/payments", paymentHistoryRouter);
 app.use("/api/v1/staff/orders", staffOrderRouter);
 
 if (env.swaggerEnabled) {

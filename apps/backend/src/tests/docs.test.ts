@@ -40,6 +40,8 @@ const expectedOperations: Record<string, string[]> = {
   "/api/v1/orders/{orderId}/payment": ["post"],
   "/api/v1/orders/queue": ["get"],
   "/api/v1/orders/history": ["get"],
+  "/api/v1/payments/history": ["get"],
+  "/api/v1/payments/summary": ["get"],
   "/api/v1/staff/orders/{orderId}": ["get"],
   "/api/v1/public/tables/{qrCode}/menu": ["get"],
   "/api/v1/public/orders": ["post"],

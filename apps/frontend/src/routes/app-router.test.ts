@@ -125,6 +125,7 @@ describe("app routes", () => {
       ["/categories", "categories"],
       ["/users", "users"],
       ["/payments", "payments"],
+      ["/payments/history", "payments"],
       ["/settings", "settings"],
     ];
 
@@ -163,6 +164,7 @@ describe("app routes", () => {
       "/categories",
       "/users",
       "/payments",
+      "/payments/history",
       "/settings",
     ];
 

@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
+import { Link } from "react-router-dom";
 import { Button, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import type { PaymentMethod } from "@/components/ui";
+import { hasRole } from "@/features/auth/permissions";
+import { useAuth } from "@/features/auth/use-auth";
 import { PaymentConfirmationModal } from "@/features/orders/components/PaymentConfirmationModal";
 import { StatusToast } from "@/features/orders/components/StatusToast";
 import {
@@ -36,6 +39,8 @@ function parseOrderNumber(value: string): number | null {
 }
 
 export default function PaymentsPage() {
+  const { user } = useAuth();
+  const canViewHistory = user !== null && hasRole(user, ["OWNER", "MANAGER"]);
   const [searchValue, setSearchValue] = useState("");
   const [searchedNumber, setSearchedNumber] = useState<number | null>(null);
   const [flowOrder, setFlowOrder] = useState<PayableOrder | null>(null);
@@ -137,6 +142,11 @@ export default function PaymentsPage() {
 
       <div className="payments-header">
         <h1 className="payments-header__title">Payments</h1>
+        {canViewHistory && (
+          <Link className="payments-header__link" to="/payments/history">
+            Payment History
+          </Link>
+        )}
       </div>
 
       <form

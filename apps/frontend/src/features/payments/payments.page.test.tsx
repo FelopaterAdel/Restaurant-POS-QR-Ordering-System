@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { StrictMode } from "react";
+import { MemoryRouter } from "react-router-dom";
 import {
   afterAll,
   afterEach,
@@ -12,9 +13,20 @@ import {
   describe,
   expect,
   it,
+  vi,
 } from "vitest";
 import type { Order, OrderHistoryItem } from "@/features/orders/orders.types";
 import PaymentsPage from "./payments.page";
+
+vi.mock("@/features/auth/use-auth", () => ({
+  useAuth: () => ({
+    user: { id: "u1", name: "Test Manager", email: "manager@test.com", role: "MANAGER" },
+    isAuthenticated: true,
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
+}));
 
 interface MockOrderState {
   id: string;
@@ -182,7 +194,9 @@ function createQueryWrapper() {
 function renderPage() {
   return render(
     <StrictMode>
-      <PaymentsPage />
+      <MemoryRouter>
+        <PaymentsPage />
+      </MemoryRouter>
     </StrictMode>,
     { wrapper: createQueryWrapper() },
   );
