@@ -6,6 +6,7 @@ describe("admin navigation", () => {
     expect(ADMIN_NAVIGATION.map((item) => item.label)).toEqual([
       "Dashboard",
       "Orders",
+      "Payments",
       "Tables",
       "Products",
       "Categories",
@@ -20,6 +21,7 @@ describe("admin navigation", () => {
     ).toEqual([
       "/dashboard",
       "/orders",
+      "/payments",
       "/tables",
       "/products",
       "/categories",
@@ -31,11 +33,26 @@ describe("admin navigation", () => {
   it("hides Users from MANAGER but shows Settings", () => {
     expect(
       getVisibleNavigation({ role: "MANAGER" }).map((item) => item.path),
-    ).toEqual(["/dashboard", "/orders", "/tables", "/products", "/categories", "/settings"]);
+    ).toEqual([
+      "/dashboard",
+      "/orders",
+      "/payments",
+      "/tables",
+      "/products",
+      "/categories",
+      "/settings",
+    ]);
   });
 
-  it("limits CASHIER, WAITER, and KITCHEN to Orders", () => {
-    for (const role of ["CASHIER", "WAITER", "KITCHEN"] as const) {
+  it("limits CASHIER to Orders and Payments", () => {
+    expect(getVisibleNavigation({ role: "CASHIER" }).map((item) => item.path)).toEqual([
+      "/orders",
+      "/payments",
+    ]);
+  });
+
+  it("hides Payments from WAITER and KITCHEN", () => {
+    for (const role of ["WAITER", "KITCHEN"] as const) {
       expect(getVisibleNavigation({ role }).map((item) => item.path)).toEqual([
         "/orders",
       ]);

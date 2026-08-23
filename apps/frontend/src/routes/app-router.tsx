@@ -1,5 +1,4 @@
 import { createBrowserRouter, type RouteObject } from "react-router-dom";
-import { PagePlaceholder } from "@/components/ui/page-placeholder";
 import { DashboardPage } from "@/features/dashboard/dashboard.page";
 import { AdminLayout } from "@/layouts/AdminLayout";
 import { AccessDeniedPage } from "@/pages/access-denied/access-denied-page";
@@ -15,6 +14,7 @@ import OrderTrackingPage from "@/features/menu/order-tracking.page";
 import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
+import { PaymentsPage } from "@/features/payments";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -110,7 +110,7 @@ export const appRoutes: RouteObject[] = [
             children: [
               {
                 path: "/payments",
-                element: <PagePlaceholder title="Payments" />,
+                element: <PaymentsPage />,
               },
             ],
           },
