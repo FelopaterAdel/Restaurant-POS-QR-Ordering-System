@@ -12,6 +12,10 @@ import {
 import { getRoleOrderConfig } from "./orders.role-config";
 import type { StatusAction } from "./orders.role-config";
 import {
+  getCompleteOrderErrorMessage,
+  getPaymentErrorMessage,
+} from "./orders.errors";
+import {
   OrderFilters,
   queueFilterToStatus,
   type QueueFilterKey,
@@ -156,7 +160,7 @@ export default function OrdersPage() {
           },
           onError: (error) => {
             setToast({
-              message: getApiErrorMessage(error) || "Payment failed",
+              message: getPaymentErrorMessage(error),
               type: "error",
             });
           },
@@ -190,7 +194,7 @@ export default function OrdersPage() {
       },
       onError: (error) => {
         setToast({
-          message: getApiErrorMessage(error) || "Unable to complete order",
+          message: getCompleteOrderErrorMessage(error),
           type: "error",
         });
       },
@@ -272,7 +276,7 @@ export default function OrdersPage() {
         isProcessing={payOrderMutation.isPending}
         error={
           payOrderMutation.isError
-            ? getApiErrorMessage(payOrderMutation.error)
+            ? getPaymentErrorMessage(payOrderMutation.error)
             : null
         }
       />
@@ -286,7 +290,7 @@ export default function OrdersPage() {
         isProcessing={completeOrderMutation.isPending}
         error={
           completeOrderMutation.isError
-            ? getApiErrorMessage(completeOrderMutation.error)
+            ? getCompleteOrderErrorMessage(completeOrderMutation.error)
             : null
         }
       />
