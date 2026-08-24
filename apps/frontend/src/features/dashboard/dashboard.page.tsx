@@ -2,9 +2,18 @@ import { useCallback, useMemo, useState } from "react";
 import { Button, Card, CardBody, EmptyState, ErrorState, Skeleton } from "@/components/ui";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { useRestaurant } from "@/features/settings/restaurant-context";
+import {
+  addDaysToDateString,
+  cairoDateString,
+  formatLongDate,
+  formatShortDate,
+  getWeekRange,
+} from "./date-utils";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { DateFilter, type DatePreset } from "./components/DateFilter";
 import { OrderStatusCard } from "./components/OrderStatusCard";
+import { QuickLinks } from "./components/QuickLinks";
+import { SalesChart } from "./components/SalesChart";
 import {
   BanknoteIcon,
   CheckCircleIcon,
@@ -13,61 +22,24 @@ import {
 } from "./components/icons";
 import { StatCard } from "./components/StatCard";
 import { useDashboardQuery } from "./dashboard.queries";
-import type { DashboardSummary } from "./dashboard.types";
+import type { DashboardQueryParams, DashboardSummary } from "./dashboard.types";
 import "./dashboard.css";
 
-function toDateString(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
-function getDateForPreset(preset: DatePreset, customDate: string): string | undefined {
-  const now = new Date();
-  switch (preset) {
-    case "today":
-      return toDateString(now);
-    case "yesterday": {
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      return toDateString(yesterday);
-    }
-    case "custom":
-      return customDate || toDateString(now);
-  }
-}
-
 function formatDateLabel(preset: DatePreset, customDate: string): string {
-  const now = new Date();
+  const today = cairoDateString();
+
   switch (preset) {
     case "today":
-      return now.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    case "yesterday": {
-      const yesterday = new Date(now);
-      yesterday.setDate(now.getDate() - 1);
-      return yesterday.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      return formatLongDate(today);
+    case "yesterday":
+      return formatLongDate(addDaysToDateString(today, -1));
+    case "week": {
+      const { from, to } = getWeekRange();
+      return `${formatShortDate(from)} – ${formatShortDate(to)}`;
     }
     case "custom": {
       if (!customDate) return "Select a date";
-      const [y, m, d] = customDate.split("-").map(Number);
-      const date = new Date(y, m - 1, d);
-      return date.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      return formatLongDate(customDate);
     }
   }
 }
@@ -103,6 +75,13 @@ function DashboardSkeleton() {
 }
 
 function DashboardOverview({ summary }: { summary: DashboardSummary }) {
+  const activeOrders =
+    summary.orders.pending +
+    summary.orders.confirmed +
+    summary.orders.preparing +
+    summary.orders.ready;
+  const kitchenOrders = summary.orders.confirmed + summary.orders.preparing;
+
   return (
     <>
       <div className="dashboard-grid">
@@ -126,19 +105,20 @@ function DashboardOverview({ summary }: { summary: DashboardSummary }) {
         />
         <StatCard
           title="Active Orders"
-          value={formatNumber(
-            summary.orders.pending +
-              summary.orders.confirmed +
-              summary.orders.preparing +
-              summary.orders.ready,
-          )}
+          value={formatNumber(activeOrders)}
           icon={<ClockIcon />}
           tone="warning"
         />
       </div>
       <div className="dashboard-details">
         <OrderStatusCard orders={summary.orders} />
+        <SalesChart sales={summary.sales} />
       </div>
+      <QuickLinks
+        activeOrders={activeOrders}
+        kitchenOrders={kitchenOrders}
+        readyOrders={summary.orders.ready}
+      />
     </>
   );
 }
@@ -154,15 +134,27 @@ function hasData(summary: DashboardSummary): boolean {
 export function DashboardPage() {
   const { restaurant } = useRestaurant();
   const [datePreset, setDatePreset] = useState<DatePreset>("today");
-  const [customDate, setCustomDate] = useState(() => toDateString(new Date()));
+  const [customDate, setCustomDate] = useState(() => cairoDateString());
 
-  const dateParam = useMemo(
-    () => getDateForPreset(datePreset, customDate),
-    [datePreset, customDate],
-  );
+  const dateParams = useMemo<DashboardQueryParams>(() => {
+    const today = cairoDateString();
+
+    switch (datePreset) {
+      case "today":
+        return { date: today };
+      case "yesterday":
+        return { date: addDaysToDateString(today, -1) };
+      case "week": {
+        const { from, to } = getWeekRange();
+        return { from, to };
+      }
+      case "custom":
+        return { date: customDate || today };
+    }
+  }, [datePreset, customDate]);
 
   const { data, isLoading, isError, refetch, isFetching } =
-    useDashboardQuery({ date: dateParam });
+    useDashboardQuery(dateParams);
 
   const handleRetry = useCallback(() => {
     void refetch();
@@ -211,7 +203,7 @@ export function DashboardPage() {
           <CardBody>
             <EmptyState
               title="No data yet"
-              description="There is no activity to display for this date."
+              description="There is no activity to display for this period."
             />
           </CardBody>
         </Card>

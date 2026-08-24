@@ -1,4 +1,4 @@
-export type DatePreset = "today" | "yesterday" | "custom";
+export type DatePreset = "today" | "yesterday" | "week" | "custom";
 
 export interface DateFilterProps {
   active: DatePreset;
@@ -9,6 +9,7 @@ export interface DateFilterProps {
 const PRESETS: { key: DatePreset; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "yesterday", label: "Yesterday" },
+  { key: "week", label: "This Week" },
   { key: "custom", label: "Custom" },
 ];
 

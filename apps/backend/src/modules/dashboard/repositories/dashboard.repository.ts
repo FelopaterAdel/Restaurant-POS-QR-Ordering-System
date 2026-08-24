@@ -10,16 +10,22 @@ export interface DayRange {
   end: Date;
 }
 
+export interface PaidPaymentRow {
+  paidAt: Date;
+  amount: Prisma.Decimal;
+}
+
 export interface DashboardSummaryResult {
   orderCountsByStatus: { status: OrderStatus; count: number }[];
   paidOrdersCount: number;
   totalSales: Prisma.Decimal | null;
+  paidPayments: PaidPaymentRow[];
 }
 
 export class DashboardRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
 
-  async findTodaySummary(range: DayRange): Promise<DashboardSummaryResult> {
+  async findSummary(range: DayRange): Promise<DashboardSummaryResult> {
     const [orderCountsByStatus, paidOrdersCount, sales] =
       await this.client.$transaction([
         this.client.order.groupBy({
@@ -44,6 +50,19 @@ export class DashboardRepository {
         }),
       ]);
 
+    const paidPaymentsRaw = await this.client.payment.findMany({
+      where: {
+        status: PaymentStatus.PAID,
+        paidAt: { gte: range.start, lt: range.end },
+      },
+      select: { paidAt: true, amount: true },
+      orderBy: { paidAt: "asc" },
+    });
+
+    const paidPayments: PaidPaymentRow[] = paidPaymentsRaw.filter(
+      (row): row is PaidPaymentRow => row.paidAt !== null,
+    );
+
     return {
       orderCountsByStatus: orderCountsByStatus.map((group) => ({
         status: group.status,
@@ -51,6 +70,7 @@ export class DashboardRepository {
       })),
       paidOrdersCount,
       totalSales: sales._sum.amount,
+      paidPayments,
     };
   }
 }

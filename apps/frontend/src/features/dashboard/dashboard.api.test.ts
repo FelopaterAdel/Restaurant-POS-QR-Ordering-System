@@ -27,6 +27,13 @@ const mockSummary: DashboardSummary = {
     paidOrders: 22,
     totalSales: 4250,
   },
+  sales: {
+    granularity: "hourly",
+    points: Array.from({ length: 24 }, (_, hour) => ({
+      key: String(hour).padStart(2, "0"),
+      amount: 0,
+    })),
+  },
 };
 
 describe("fetchDashboardSummary", () => {
@@ -46,6 +53,16 @@ describe("fetchDashboardSummary", () => {
 
     expect(mockGet).toHaveBeenCalledWith("/dashboard/summary", {
       params: { date: "2025-01-15" },
+    });
+  });
+
+  it("passes from/to query params for a range", async () => {
+    mockGet.mockResolvedValueOnce(mockSummary);
+
+    await fetchDashboardSummary({ from: "2025-01-12", to: "2025-01-18" });
+
+    expect(mockGet).toHaveBeenCalledWith("/dashboard/summary", {
+      params: { from: "2025-01-12", to: "2025-01-18" },
     });
   });
 

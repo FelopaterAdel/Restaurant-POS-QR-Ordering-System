@@ -3,6 +3,7 @@ import { RESTAURANT_TIMEZONE } from "../../../config/restaurant.js";
 import {
   DashboardRepository,
   type DayRange,
+  type PaidPaymentRow,
 } from "../repositories/dashboard.repository.js";
 
 export interface DashboardOrdersDTO {
@@ -21,13 +22,26 @@ export interface DashboardPaymentsDTO {
   totalSales: number;
 }
 
+export interface DashboardSalesPointDTO {
+  key: string;
+  amount: number;
+}
+
+export interface DashboardSalesDTO {
+  granularity: "hourly" | "daily";
+  points: DashboardSalesPointDTO[];
+}
+
 export interface DashboardSummaryDTO {
   orders: DashboardOrdersDTO;
   payments: DashboardPaymentsDTO;
+  sales: DashboardSalesDTO;
 }
 
 export interface GetDashboardSummaryInput {
   date?: string;
+  from?: string;
+  to?: string;
   now?: Date;
 }
 
@@ -63,7 +77,7 @@ function formatOffset(totalMinutes: number): string {
   return `${sign}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
-function addDays(date: string, days: number): string {
+export function addDays(date: string, days: number): string {
   const [year, month, day] = date.split("-").map(Number);
   const next = new Date(Date.UTC(year, month - 1, day + days));
 
@@ -110,6 +124,96 @@ export function getDayRangeInTimeZone(
   return getDayRangeForDateInTimeZone(localDateOf(now, timeZone), timeZone);
 }
 
+export function getDateRangeInTimeZone(
+  from: string,
+  to: string,
+  timeZone: string,
+): DayRange {
+  const start = startOfLocalDay(from, timeZone);
+  const end = startOfLocalDay(addDays(to, 1), timeZone);
+
+  return { start, end };
+}
+
+function countDaysInRange(range: DayRange, timeZone: string): number {
+  const startDate = localDateOf(range.start, timeZone);
+  const endDate = localDateOf(new Date(range.end.getTime() - 1), timeZone);
+
+  const [startY, startM, startD] = startDate.split("-").map(Number);
+  const [endY, endM, endD] = endDate.split("-").map(Number);
+
+  const startUtc = Date.UTC(startY, startM - 1, startD);
+  const endUtc = Date.UTC(endY, endM - 1, endD);
+
+  return Math.round((endUtc - startUtc) / (24 * 60 * 60 * 1000)) + 1;
+}
+
+function localHourOf(instant: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(instant);
+
+  const hour = parts.find((part) => part.type === "hour")?.value ?? "00";
+
+  return Number(hour) % 24;
+}
+
+function buildHourlyTrend(
+  payments: PaidPaymentRow[],
+  timeZone: string,
+): DashboardSalesDTO {
+  const amounts = Array.from<number>({ length: 24 }).fill(0);
+
+  for (const payment of payments) {
+    amounts[localHourOf(payment.paidAt, timeZone)] += Number(payment.amount);
+  }
+
+  return {
+    granularity: "hourly",
+    points: amounts.map((amount, hour) => ({
+      key: String(hour).padStart(2, "0"),
+      amount,
+    })),
+  };
+}
+
+function buildDailyTrend(
+  payments: PaidPaymentRow[],
+  range: DayRange,
+  timeZone: string,
+): DashboardSalesDTO {
+  const days: string[] = [];
+  const dayCount = countDaysInRange(range, timeZone);
+  let cursor = localDateOf(range.start, timeZone);
+
+  for (let index = 0; index < dayCount; index += 1) {
+    days.push(cursor);
+    cursor = addDays(cursor, 1);
+  }
+
+  const amountsByDay = new Map<string, number>(
+    days.map((day) => [day, 0]),
+  );
+
+  for (const payment of payments) {
+    const day = localDateOf(payment.paidAt, timeZone);
+    const current = amountsByDay.get(day);
+    if (current !== undefined) {
+      amountsByDay.set(day, current + Number(payment.amount));
+    }
+  }
+
+  return {
+    granularity: "daily",
+    points: days.map((day) => ({
+      key: day,
+      amount: amountsByDay.get(day) ?? 0,
+    })),
+  };
+}
+
 function toZeroedStatusCounts(): Record<OrderStatus, number> {
   return {
     [OrderStatus.PENDING]: 0,
@@ -132,11 +236,17 @@ export class GetDashboardSummaryUseCase {
   }
 
   async execute(input: GetDashboardSummaryInput = {}): Promise<DashboardSummaryDTO> {
-    const range = input.date
-      ? getDayRangeForDateInTimeZone(input.date, RESTAURANT_TIMEZONE)
-      : getDayRangeInTimeZone(input.now ?? new Date(), RESTAURANT_TIMEZONE);
+    let range: DayRange;
 
-    const result = await this.dashboardRepository.findTodaySummary(range);
+    if (input.from && input.to) {
+      range = getDateRangeInTimeZone(input.from, input.to, RESTAURANT_TIMEZONE);
+    } else if (input.date) {
+      range = getDayRangeForDateInTimeZone(input.date, RESTAURANT_TIMEZONE);
+    } else {
+      range = getDayRangeInTimeZone(input.now ?? new Date(), RESTAURANT_TIMEZONE);
+    }
+
+    const result = await this.dashboardRepository.findSummary(range);
 
     const statusCounts = toZeroedStatusCounts();
     let total = 0;
@@ -145,6 +255,11 @@ export class GetDashboardSummaryUseCase {
       statusCounts[group.status] = group.count;
       total += group.count;
     }
+
+    const sales =
+      countDaysInRange(range, RESTAURANT_TIMEZONE) > 1
+        ? buildDailyTrend(result.paidPayments, range, RESTAURANT_TIMEZONE)
+        : buildHourlyTrend(result.paidPayments, RESTAURANT_TIMEZONE);
 
     return {
       orders: {
@@ -161,6 +276,7 @@ export class GetDashboardSummaryUseCase {
         paidOrders: result.paidOrdersCount,
         totalSales: Number(result.totalSales ?? 0),
       },
+      sales,
     };
   }
 }

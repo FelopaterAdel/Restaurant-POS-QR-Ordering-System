@@ -11,9 +11,9 @@ export async function getDashboardSummary(
   res: Response,
   next: NextFunction,
 ) {
-  const { date } = req.query as unknown as DashboardQueryDTO;
+  const { date, from, to } = req.query as unknown as DashboardQueryDTO;
 
-  const result = await getDashboardSummaryUseCase.execute({ date });
+  const result = await getDashboardSummaryUseCase.execute({ date, from, to });
 
   sendSuccess(res, result);
 }

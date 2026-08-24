@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import { DashboardPage } from "./dashboard.page";
 import type { DashboardSummary } from "./dashboard.types";
 
@@ -41,6 +42,13 @@ const mockSummary: DashboardSummary = {
     paidOrders: 22,
     totalSales: 4250,
   },
+  sales: {
+    granularity: "hourly",
+    points: Array.from({ length: 24 }, (_, hour) => ({
+      key: String(hour).padStart(2, "0"),
+      amount: hour === 13 ? 2500 : hour === 14 ? 1750 : 0,
+    })),
+  },
 };
 
 const emptySummary: DashboardSummary = {
@@ -57,6 +65,13 @@ const emptySummary: DashboardSummary = {
   payments: {
     paidOrders: 0,
     totalSales: 0,
+  },
+  sales: {
+    granularity: "hourly",
+    points: Array.from({ length: 24 }, (_, hour) => ({
+      key: String(hour).padStart(2, "0"),
+      amount: 0,
+    })),
   },
 };
 
@@ -84,7 +99,9 @@ function createQueryWrapper() {
 
   function QueryWrapper({ children }: { children: React.ReactNode }) {
     return (
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter>{children}</MemoryRouter>
+      </QueryClientProvider>
     );
   }
 
@@ -145,6 +162,38 @@ describe("DashboardPage", () => {
     expect(screen.getAllByText("Completed").length).toBeGreaterThan(0);
   });
 
+  it("renders the sales chart", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByLabelText(/Sales by hour, total 4,250 EGP/).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it("renders quick navigation links to operations pages", async () => {
+    renderDashboard();
+
+    await waitFor(() => {
+      expect(screen.getAllByText("Total Sales").length).toBeGreaterThan(0);
+    });
+
+    expect(screen.getByRole("link", { name: /Active Orders/ })).toHaveAttribute(
+      "href",
+      "/orders",
+    );
+    expect(
+      screen.getByRole("link", { name: /Kitchen Orders/ }),
+    ).toHaveAttribute("href", "/kds");
+    expect(
+      screen.getByRole("link", { name: /Ready Orders/ }),
+    ).toHaveAttribute("href", "/waiter");
+    expect(
+      screen.getByRole("link", { name: /Pending Payments/ }),
+    ).toHaveAttribute("href", "/payments");
+  });
+
   it("renders date filter with Today active by default", async () => {
     renderDashboard();
 
@@ -170,7 +219,9 @@ describe("DashboardPage", () => {
     });
 
     expect(
-      screen.getAllByText("There is no activity to display for this date.").length,
+      screen
+        .getAllByText("There is no activity to display for this period.")
+        .length,
     ).toBeGreaterThan(0);
   });
 

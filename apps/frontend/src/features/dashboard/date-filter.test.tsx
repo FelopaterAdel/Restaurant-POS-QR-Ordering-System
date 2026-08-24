@@ -5,13 +5,14 @@ import { describe, expect, it, vi } from "vitest";
 import { DateFilter } from "./components/DateFilter";
 
 describe("DateFilter", () => {
-  it("renders three preset tabs", () => {
+  it("renders the four preset tabs", () => {
     const { unmount } = render(
       <DateFilter active="today" customDate="" onChange={vi.fn()} />,
     );
 
     expect(screen.getByRole("button", { name: "Today" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Yesterday" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "This Week" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Custom" })).toBeInTheDocument();
     unmount();
   });
@@ -51,9 +52,9 @@ describe("DateFilter", () => {
     );
 
     const user = userEvent.setup();
-    await user.click(screen.getByRole("button", { name: "Yesterday" }));
+    await user.click(screen.getByRole("button", { name: "This Week" }));
 
-    expect(onChange).toHaveBeenCalledWith("yesterday");
+    expect(onChange).toHaveBeenCalledWith("week");
     unmount();
   });
 

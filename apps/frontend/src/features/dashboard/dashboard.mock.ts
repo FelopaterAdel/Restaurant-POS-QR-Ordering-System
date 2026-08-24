@@ -19,6 +19,13 @@ export const dashboardMock: DashboardSummary = {
     paidOrders: 71,
     totalSales: 12450,
   },
+  sales: {
+    granularity: "hourly",
+    points: Array.from({ length: 24 }, (_, hour) => ({
+      key: String(hour).padStart(2, "0"),
+      amount: hour === 13 ? 2450 : hour === 20 ? 1800 : 0,
+    })),
+  },
 };
 
 export type DashboardScenario = "data" | "empty" | "error";
