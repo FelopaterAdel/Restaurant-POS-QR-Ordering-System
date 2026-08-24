@@ -10,6 +10,7 @@ export interface OrderCardProps {
   actions?: StatusAction[];
   onAction?: (order: Order, action: StatusAction) => void;
   isUpdating?: boolean;
+  itemCount?: number | null;
 }
 
 export function OrderCard({
@@ -18,8 +19,9 @@ export function OrderCard({
   actions,
   onAction,
   isUpdating,
+  itemCount,
 }: OrderCardProps) {
-  const itemCount = order.items.length;
+  const count = itemCount !== undefined ? itemCount : order.items.length;
 
   const handleActionClick = useCallback(
     (e: React.MouseEvent, action: StatusAction) => {
@@ -58,9 +60,11 @@ export function OrderCard({
         </div>
 
         <div className="order-card__meta">
-          <span className="order-card__items">
-            {itemCount} {itemCount === 1 ? "item" : "items"}
-          </span>
+          {count !== null && (
+            <span className="order-card__items">
+              {count} {count === 1 ? "item" : "items"}
+            </span>
+          )}
           <span className="order-card__total">
             {formatCurrency(order.totalAmount)}
           </span>

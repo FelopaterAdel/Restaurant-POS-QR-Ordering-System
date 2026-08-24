@@ -16,6 +16,7 @@ export interface RoleOrderConfig {
   getStatusActions: (order: Order) => StatusAction[];
   canPay: boolean;
   canComplete: boolean;
+  canSearch: boolean;
 }
 
 const PAYABLE_STATUSES: OrderStatus[] = ["READY", "SERVED"];
@@ -94,6 +95,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleOrderConfig> = {
     getStatusActions: kitchenActions,
     canPay: false,
     canComplete: false,
+    canSearch: false,
   },
   WAITER: {
     visibleStatuses: ["READY"],
@@ -102,6 +104,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleOrderConfig> = {
     getStatusActions: waiterActions,
     canPay: false,
     canComplete: false,
+    canSearch: false,
   },
   CASHIER: {
     visibleStatuses: ["READY", "SERVED"],
@@ -110,22 +113,59 @@ const ROLE_CONFIGS: Record<UserRole, RoleOrderConfig> = {
     getStatusActions: cashierActions,
     canPay: true,
     canComplete: true,
+    canSearch: false,
   },
   OWNER: {
-    visibleStatuses: ["PENDING", "CONFIRMED", "PREPARING", "READY", "SERVED"],
+    visibleStatuses: [
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "SERVED",
+      "COMPLETED",
+      "CANCELLED",
+    ],
     defaultFilter: "all",
-    filters: ["all", "PENDING", "CONFIRMED", "PREPARING", "READY"],
+    filters: [
+      "all",
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "SERVED",
+      "COMPLETED",
+      "CANCELLED",
+    ],
     getStatusActions: managerActions,
     canPay: true,
     canComplete: true,
+    canSearch: true,
   },
   MANAGER: {
-    visibleStatuses: ["PENDING", "CONFIRMED", "PREPARING", "READY", "SERVED"],
+    visibleStatuses: [
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "SERVED",
+      "COMPLETED",
+      "CANCELLED",
+    ],
     defaultFilter: "all",
-    filters: ["all", "PENDING", "CONFIRMED", "PREPARING", "READY"],
+    filters: [
+      "all",
+      "PENDING",
+      "CONFIRMED",
+      "PREPARING",
+      "READY",
+      "SERVED",
+      "COMPLETED",
+      "CANCELLED",
+    ],
     getStatusActions: managerActions,
     canPay: true,
     canComplete: true,
+    canSearch: true,
   },
 };
 

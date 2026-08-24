@@ -1,8 +1,8 @@
+import type { ReactNode } from "react";
 import {
   Button,
   Card,
   CardBody,
-  EmptyState,
   ErrorState,
   Skeleton,
 } from "@/components/ui";
@@ -10,10 +10,10 @@ import type { Order, Pagination } from "../orders.types";
 import type { UserRole } from "@/features/auth/types";
 import { getOrderActions } from "../orders.role-config";
 import type { StatusAction } from "../orders.role-config";
-import type { QueueFilterKey } from "./OrderFilters";
 import { OrderCard } from "./OrderCard";
+import { OrdersTable } from "./OrdersTable";
 
-function OrderGridSkeleton() {
+function OrdersSkeleton() {
   return (
     <div className="orders-grid" aria-label="Loading orders">
       {Array.from({ length: 6 }).map((_, index) => (
@@ -29,54 +29,37 @@ function OrderGridSkeleton() {
   );
 }
 
-function EmptyFilterMessage({ filter }: { filter: QueueFilterKey }) {
-  if (filter === "all") {
-    return (
-      <EmptyState
-        title="No active orders"
-        description="New orders will appear here."
-      />
-    );
-  }
-
-  const label = filter.charAt(0) + filter.slice(1).toLowerCase();
-  return (
-    <EmptyState
-      title={`No ${label.toLowerCase()} orders`}
-      description={`Orders with ${label.toLowerCase()} status will appear here.`}
-    />
-  );
-}
-
-export interface OrderQueueProps {
+export interface OrdersResultsProps {
   orders: Order[];
   pagination: Pagination | undefined;
   isLoading: boolean;
   error: Error | null;
-  filter: QueueFilterKey;
+  showItems: boolean;
+  role?: UserRole;
+  emptyState: ReactNode;
   onRetry: () => void;
   onOrderClick: (order: Order) => void;
   onPageChange: (page: number) => void;
-  role?: UserRole;
   onAction?: (order: Order, action: StatusAction) => void;
   isUpdating?: boolean;
 }
 
-export function OrderQueue({
+export function OrdersResults({
   orders,
   pagination,
   isLoading,
   error,
-  filter,
+  showItems,
+  role,
+  emptyState,
   onRetry,
   onOrderClick,
   onPageChange,
-  role,
   onAction,
   isUpdating,
-}: OrderQueueProps) {
+}: OrdersResultsProps) {
   if (isLoading) {
-    return <OrderGridSkeleton />;
+    return <OrdersSkeleton />;
   }
 
   if (error) {
@@ -90,25 +73,42 @@ export function OrderQueue({
   }
 
   if (orders.length === 0) {
-    return <EmptyFilterMessage filter={filter} />;
+    return <>{emptyState}</>;
   }
+
+  const getRowActions =
+    role && onAction ? (order: Order) => getOrderActions(order, role) : undefined;
 
   return (
     <>
-      <div className="orders-grid">
-        {orders.map((order) => {
-          const actions = role ? getOrderActions(order, role) : [];
-          return (
-            <OrderCard
-              key={order.id}
-              order={order}
-              onClick={onOrderClick}
-              actions={actions.length > 0 ? actions : undefined}
-              onAction={onAction}
-              isUpdating={isUpdating}
-            />
-          );
-        })}
+      <div className="orders-table-region">
+        <OrdersTable
+          orders={orders}
+          showItems={showItems}
+          getRowActions={getRowActions}
+          onAction={onAction}
+          isUpdating={isUpdating}
+          onRowClick={onOrderClick}
+        />
+      </div>
+
+      <div className="orders-cards-region">
+        <div className="orders-grid">
+          {orders.map((order) => {
+            const actions = getRowActions ? getRowActions(order) : [];
+            return (
+              <OrderCard
+                key={order.id}
+                order={order}
+                onClick={onOrderClick}
+                itemCount={showItems ? undefined : null}
+                actions={actions.length > 0 ? actions : undefined}
+                onAction={onAction}
+                isUpdating={isUpdating}
+              />
+            );
+          })}
+        </div>
       </div>
 
       {pagination && pagination.totalPages > 1 && (

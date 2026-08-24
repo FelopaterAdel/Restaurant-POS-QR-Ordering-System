@@ -102,6 +102,25 @@ describe("getRoleOrderConfig", () => {
       expect(config.visibleStatuses).toContain("SERVED");
     });
 
+    it("has the full operations filter set including terminal statuses", () => {
+      const config = getRoleOrderConfig("OWNER");
+      expect(config.filters).toEqual([
+        "all",
+        "PENDING",
+        "CONFIRMED",
+        "PREPARING",
+        "READY",
+        "SERVED",
+        "COMPLETED",
+        "CANCELLED",
+      ]);
+    });
+
+    it("can search orders by number", () => {
+      const config = getRoleOrderConfig("OWNER");
+      expect(config.canSearch).toBe(true);
+    });
+
     it("can pay and complete", () => {
       const config = getRoleOrderConfig("OWNER");
       expect(config.canPay).toBe(true);
@@ -117,11 +136,40 @@ describe("getRoleOrderConfig", () => {
       expect(config.visibleStatuses).toContain("SERVED");
     });
 
+    it("has the full operations filter set including terminal statuses", () => {
+      const config = getRoleOrderConfig("MANAGER");
+      expect(config.filters).toEqual([
+        "all",
+        "PENDING",
+        "CONFIRMED",
+        "PREPARING",
+        "READY",
+        "SERVED",
+        "COMPLETED",
+        "CANCELLED",
+      ]);
+    });
+
+    it("can search orders by number", () => {
+      const config = getRoleOrderConfig("MANAGER");
+      expect(config.canSearch).toBe(true);
+    });
+
     it("can pay and complete", () => {
       const config = getRoleOrderConfig("MANAGER");
       expect(config.canPay).toBe(true);
       expect(config.canComplete).toBe(true);
     });
+  });
+
+  describe("operational roles", () => {
+    it.each(["KITCHEN", "WAITER", "CASHIER"] as UserRole[])(
+      "%s cannot search orders",
+      (role) => {
+        const config = getRoleOrderConfig(role);
+        expect(config.canSearch).toBe(false);
+      },
+    );
   });
 });
 

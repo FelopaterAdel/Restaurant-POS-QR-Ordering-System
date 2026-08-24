@@ -2,7 +2,11 @@
 import { render, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { OrderFilters, queueFilterToStatus } from "./OrderFilters";
+import {
+  OrderFilters,
+  isHistoryFilter,
+  queueFilterToStatus,
+} from "./OrderFilters";
 
 describe("OrderFilters", () => {
   it("renders all filter buttons", () => {
@@ -124,5 +128,23 @@ describe("queueFilterToStatus", () => {
     expect(queueFilterToStatus("PREPARING")).toBe("PREPARING");
     expect(queueFilterToStatus("READY")).toBe("READY");
     expect(queueFilterToStatus("SERVED")).toBe("SERVED");
+    expect(queueFilterToStatus("COMPLETED")).toBe("COMPLETED");
+    expect(queueFilterToStatus("CANCELLED")).toBe("CANCELLED");
+  });
+});
+
+describe("isHistoryFilter", () => {
+  it("routes active statuses and all to the queue endpoint", () => {
+    expect(isHistoryFilter("all")).toBe(false);
+    expect(isHistoryFilter("PENDING")).toBe(false);
+    expect(isHistoryFilter("CONFIRMED")).toBe(false);
+    expect(isHistoryFilter("PREPARING")).toBe(false);
+    expect(isHistoryFilter("READY")).toBe(false);
+  });
+
+  it("routes statuses unsupported by the queue endpoint to history", () => {
+    expect(isHistoryFilter("SERVED")).toBe(true);
+    expect(isHistoryFilter("COMPLETED")).toBe(true);
+    expect(isHistoryFilter("CANCELLED")).toBe(true);
   });
 });

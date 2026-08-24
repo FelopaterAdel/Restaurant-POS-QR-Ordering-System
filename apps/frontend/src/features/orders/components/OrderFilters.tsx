@@ -7,6 +7,8 @@ export const QUEUE_FILTERS = [
   { key: "PREPARING", label: "Preparing" },
   { key: "READY", label: "Ready" },
   { key: "SERVED", label: "Served" },
+  { key: "COMPLETED", label: "Completed" },
+  { key: "CANCELLED", label: "Cancelled" },
 ] as const;
 
 export const QUEUE_FILTER_MAP: Record<
@@ -59,4 +61,15 @@ export function queueFilterToStatus(
 ): OrderStatus | undefined {
   if (filter === "all") return undefined;
   return filter as OrderStatus;
+}
+
+const QUEUE_SUPPORTED_STATUSES: readonly string[] = [
+  "PENDING",
+  "CONFIRMED",
+  "PREPARING",
+  "READY",
+];
+
+export function isHistoryFilter(filter: QueueFilterKey): boolean {
+  return filter !== "all" && !QUEUE_SUPPORTED_STATUSES.includes(filter);
 }

@@ -1,9 +1,16 @@
-import { useCallback, useState } from "react";
-import { Button, Spinner } from "@/components/ui";
+import { useCallback, useMemo, useState } from "react";
+import { Button, EmptyState, Input, Spinner } from "@/components/ui";
 import type { PaymentMethod } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { getApiErrorMessage } from "@/lib/api";
-import { useOrderQueueQuery } from "./orders.queries";
+import {
+  HISTORY_POLL_INTERVAL_MS,
+  OPERATIONS_POLL_INTERVAL_MS,
+  useOrderDetailQuery,
+  useOrderHistoryQuery,
+  useOrderQueueQuery,
+} from "./orders.queries";
 import {
   useUpdateOrderStatusMutation,
   usePayOrderMutation,
@@ -18,17 +25,65 @@ import {
 } from "./orders.errors";
 import {
   OrderFilters,
+  isHistoryFilter,
   queueFilterToStatus,
   type QueueFilterKey,
 } from "./components/OrderFilters";
-import { OrderQueue } from "./components/OrderQueue";
+import { OrdersResults } from "./components/OrdersResults";
 import { OrderDetailsModal } from "./components/OrderDetailsModal";
 import { PaymentConfirmationModal } from "./components/PaymentConfirmationModal";
 import { CompleteConfirmationModal } from "./components/CompleteConfirmationModal";
 import { StatusToast } from "./components/StatusToast";
-import type { Order } from "./orders.types";
+import type {
+  Order,
+  OrderHistoryItem,
+  Pagination,
+} from "./orders.types";
 import type { OrderStatus } from "@/components/ui";
 import "./orders.css";
+
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 300;
+
+function historyItemToOrder(item: OrderHistoryItem): Order {
+  return {
+    id: item.id,
+    orderNumber: item.orderNumber,
+    tableId: "",
+    tableNumber: item.table.number,
+    status: item.status,
+    paymentStatus: item.payment.status,
+    totalAmount: item.totalAmount,
+    cancelledAt: null,
+    cancelledReason: null,
+    createdAt: item.createdAt,
+    updatedAt: item.createdAt,
+    items: [],
+  };
+}
+
+function buildEmptyMessage(
+  filter: QueueFilterKey,
+  hasSearch: boolean,
+): { title: string; description: string } {
+  if (hasSearch) {
+    return {
+      title: "No orders found",
+      description: "No orders match your search.",
+    };
+  }
+  if (filter === "all") {
+    return {
+      title: "No active orders",
+      description: "New orders will appear here.",
+    };
+  }
+  const label = filter.charAt(0) + filter.slice(1).toLowerCase();
+  return {
+    title: `No ${label.toLowerCase()} orders`,
+    description: `Orders with ${label.toLowerCase()} status will appear here.`,
+  };
+}
 
 export default function OrdersPage() {
   const { user } = useAuth();
@@ -38,7 +93,11 @@ export default function OrdersPage() {
     roleConfig?.defaultFilter ?? "all",
   );
   const [page, setPage] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [selected, setSelected] = useState<{
+    order: Order;
+    needsDetail: boolean;
+  } | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
   const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
   const [toast, setToast] = useState<{
@@ -46,17 +105,50 @@ export default function OrdersPage() {
     type: "success" | "error";
   } | null>(null);
 
-  const status = queueFilterToStatus(filter);
-  const limit = 20;
+  const search = useDebouncedValue(searchInput.trim(), SEARCH_DEBOUNCE_MS);
+  const searchOrderNumber = /^\d+$/.test(search) ? Number(search) : undefined;
 
-  const { data, isLoading, error, refetch } = useOrderQueueQuery({
-    status,
-    page,
-    limit,
-  });
+  const historyStatus = isHistoryFilter(filter)
+    ? queueFilterToStatus(filter)
+    : undefined;
+  const historyMode =
+    historyStatus !== undefined || searchOrderNumber !== undefined;
+
+  const status = queueFilterToStatus(filter);
+
+  const queueQuery = useOrderQueueQuery(
+    { status, page, limit: PAGE_SIZE },
+    {
+      refetchInterval: OPERATIONS_POLL_INTERVAL_MS,
+      enabled: !historyMode,
+    },
+  );
+
+  const historyQuery = useOrderHistoryQuery(
+    { status: historyStatus, orderNumber: searchOrderNumber, page, limit: PAGE_SIZE },
+    {
+      refetchInterval: HISTORY_POLL_INTERVAL_MS,
+      enabled: historyMode,
+    },
+  );
+
+  const activeQuery = historyMode ? historyQuery : queueQuery;
+  const isLoading = activeQuery.isLoading;
+  const error = activeQuery.error;
+  const refetch = activeQuery.refetch;
+
+  const orders: Order[] = useMemo(
+    () =>
+      historyMode
+        ? (historyQuery.data?.data ?? []).map(historyItemToOrder)
+        : (queueQuery.data?.data ?? []),
+    [historyMode, historyQuery.data, queueQuery.data],
+  );
+  const pagination: Pagination | undefined =
+    historyMode ? historyQuery.data?.pagination : queueQuery.data?.pagination;
 
   const updateStatusMutation = useUpdateOrderStatusMutation(
-    selectedOrder?.id ?? "",
+    selected?.order.id ?? "",
   );
 
   const payOrderMutation = usePayOrderMutation(payingOrder?.id ?? "");
@@ -65,8 +157,23 @@ export default function OrdersPage() {
     completingOrder?.id ?? "",
   );
 
+  const detailOrderId = selected?.needsDetail ? selected.order.id : "";
+  const { data: fetchedDetail } = useOrderDetailQuery(detailOrderId);
+
+  const modalOrder = selected
+    ? selected.needsDetail
+      ? fetchedDetail ?? null
+      : selected.order
+    : null;
+
   const handleFilterChange = useCallback((newFilter: QueueFilterKey) => {
     setFilter(newFilter);
+    setSearchInput("");
+    setPage(1);
+  }, []);
+
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchInput(value.replace(/\D/g, "").slice(0, 6));
     setPage(1);
   }, []);
 
@@ -75,30 +182,34 @@ export default function OrdersPage() {
   }, []);
 
   const handleOrderClick = useCallback((order: Order) => {
-    setSelectedOrder(order);
+    setSelected({ order, needsDetail: false });
+  }, []);
+
+  const handleHistoryOrderClick = useCallback((order: Order) => {
+    setSelected({ order, needsDetail: true });
   }, []);
 
   const handleCloseDetails = useCallback(() => {
-    setSelectedOrder(null);
+    setSelected(null);
     updateStatusMutation.reset();
   }, [updateStatusMutation]);
 
   const handleStatusUpdate = useCallback(
-    (_orderId: string, status: OrderStatus) => {
+    (_orderId: string, nextStatus: OrderStatus) => {
       updateStatusMutation.mutate(
-        { status },
+        { status: nextStatus },
         {
           onSuccess: () => {
-            setSelectedOrder(null);
+            setSelected(null);
             setToast({
-              message: `Order marked as ${status.toLowerCase()}`,
+              message: `Order marked as ${nextStatus.toLowerCase()}`,
               type: "success",
             });
           },
-          onError: (error) => {
+          onError: (mutationError) => {
             setToast({
               message:
-                getApiErrorMessage(error) ||
+                getApiErrorMessage(mutationError) ||
                 "Unable to update order. The order may have changed.",
               type: "error",
             });
@@ -120,10 +231,10 @@ export default function OrdersPage() {
               type: "success",
             });
           },
-          onError: (error) => {
+          onError: (mutationError) => {
             setToast({
               message:
-                getApiErrorMessage(error) ||
+                getApiErrorMessage(mutationError) ||
                 "Unable to update order. The order may have changed.",
               type: "error",
             });
@@ -134,15 +245,22 @@ export default function OrdersPage() {
     [updateStatusMutation],
   );
 
+  const findOrder = useCallback(
+    (orderId: string) => orders.find((o) => o.id === orderId) ?? null,
+    [orders],
+  );
+
   const handlePayOrder = useCallback(
     (orderId: string) => {
-      const order = data?.data.find((o) => o.id === orderId) ?? null;
+      const order = selected?.order.id === orderId
+        ? selected.order
+        : findOrder(orderId);
       if (order) {
         setPayingOrder(order);
-        setSelectedOrder(null);
+        setSelected(null);
       }
     },
-    [data?.data],
+    [selected, findOrder],
   );
 
   const handleClosePayment = useCallback(() => {
@@ -159,14 +277,14 @@ export default function OrdersPage() {
             setPayingOrder(null);
             setToast({ message: "Payment recorded", type: "success" });
           },
-          onError: (error) => {
-            if (isStalePaymentError(error)) {
+          onError: (mutationError) => {
+            if (isStalePaymentError(mutationError)) {
               // Someone else already paid (or the order changed). The queue
               // has been refetched — drop the dialog and show the outcome.
               setPayingOrder(null);
             }
             setToast({
-              message: getPaymentErrorMessage(error),
+              message: getPaymentErrorMessage(mutationError),
               type: "error",
             });
           },
@@ -178,13 +296,15 @@ export default function OrdersPage() {
 
   const handleCompleteOrder = useCallback(
     (orderId: string) => {
-      const order = data?.data.find((o) => o.id === orderId) ?? null;
+      const order = selected?.order.id === orderId
+        ? selected.order
+        : findOrder(orderId);
       if (order) {
         setCompletingOrder(order);
-        setSelectedOrder(null);
+        setSelected(null);
       }
     },
-    [data?.data],
+    [selected, findOrder],
   );
 
   const handleCloseComplete = useCallback(() => {
@@ -198,9 +318,9 @@ export default function OrdersPage() {
         setCompletingOrder(null);
         setToast({ message: "Order completed", type: "success" });
       },
-      onError: (error) => {
+      onError: (mutationError) => {
         setToast({
-          message: getCompleteOrderErrorMessage(error),
+          message: getCompleteOrderErrorMessage(mutationError),
           type: "error",
         });
       },
@@ -215,8 +335,7 @@ export default function OrdersPage() {
     setToast(null);
   }, []);
 
-  const orders = data?.data ?? [];
-  const pagination = data?.pagination;
+  const emptyMessage = buildEmptyMessage(filter, searchOrderNumber !== undefined);
 
   return (
     <div>
@@ -240,30 +359,52 @@ export default function OrdersPage() {
         </Button>
       </div>
 
-      <OrderFilters
-        active={filter}
-        onChange={handleFilterChange}
-        filters={roleConfig?.filters}
-      />
+      <div className="orders-toolbar">
+        <OrderFilters
+          active={filter}
+          onChange={handleFilterChange}
+          filters={roleConfig?.filters}
+        />
 
-      <OrderQueue
+        {roleConfig?.canSearch && (
+          <div className="orders-search">
+            <Input
+              label="Search"
+              type="text"
+              inputMode="numeric"
+              placeholder="Order #"
+              value={searchInput}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              aria-label="Search orders by number"
+            />
+          </div>
+        )}
+      </div>
+
+      <OrdersResults
         orders={orders}
         pagination={pagination}
         isLoading={isLoading}
         error={error}
-        filter={filter}
-        onRetry={() => void refetch()}
-        onOrderClick={handleOrderClick}
-        onPageChange={handlePageChange}
+        showItems={!historyMode}
         role={user?.role}
+        emptyState={
+          <EmptyState
+            title={emptyMessage.title}
+            description={emptyMessage.description}
+          />
+        }
+        onRetry={() => void refetch()}
+        onOrderClick={historyMode ? handleHistoryOrderClick : handleOrderClick}
+        onPageChange={handlePageChange}
         onAction={handleCardAction}
         isUpdating={updateStatusMutation.isPending}
       />
 
       {user && (
         <OrderDetailsModal
-          open={selectedOrder !== null}
-          order={selectedOrder}
+          open={selected !== null}
+          order={modalOrder}
           role={user.role}
           onClose={handleCloseDetails}
           onStatusUpdate={handleStatusUpdate}

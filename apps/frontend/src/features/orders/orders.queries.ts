@@ -26,6 +26,14 @@ export const orderKeys = {
     [...orderKeys.all, "staff", orderId] as const,
 };
 
+export const OPERATIONS_POLL_INTERVAL_MS = 10_000;
+export const HISTORY_POLL_INTERVAL_MS = 30_000;
+
+export interface OrderQueryOptions {
+  refetchInterval?: number;
+  enabled?: boolean;
+}
+
 export function useOrdersQuery(params?: ListOrdersParams) {
   return useQuery({
     queryKey: orderKeys.list(params),
@@ -41,17 +49,29 @@ export function useOrderDetailQuery(orderId: string) {
   });
 }
 
-export function useOrderQueueQuery(params?: OrderQueueParams) {
+export function useOrderQueueQuery(
+  params?: OrderQueueParams,
+  options?: OrderQueryOptions,
+) {
   return useQuery({
     queryKey: orderKeys.queue(params),
     queryFn: () => getOrderQueue(params),
+    refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
-export function useOrderHistoryQuery(params?: OrderHistoryParams) {
+export function useOrderHistoryQuery(
+  params?: OrderHistoryParams,
+  options?: OrderQueryOptions,
+) {
   return useQuery({
     queryKey: orderKeys.history(params),
     queryFn: () => getOrderHistory(params),
+    refetchInterval: options?.refetchInterval,
+    refetchIntervalInBackground: false,
+    enabled: options?.enabled ?? true,
   });
 }
 
