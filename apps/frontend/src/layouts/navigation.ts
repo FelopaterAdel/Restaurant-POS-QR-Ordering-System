@@ -17,6 +17,12 @@ export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
     permission: "orders",
     roles: ["OWNER", "MANAGER", "KITCHEN"],
   },
+  {
+    label: "Ready Orders",
+    path: "/waiter",
+    permission: "orders",
+    roles: ["OWNER", "MANAGER", "WAITER"],
+  },
   { label: "Payments", path: "/payments", permission: "payments" },
   { label: "Tables", path: "/tables", permission: "tables" },
   { label: "Products", path: "/products", permission: "products" },

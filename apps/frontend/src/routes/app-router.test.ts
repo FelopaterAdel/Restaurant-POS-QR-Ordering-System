@@ -11,6 +11,7 @@ import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
 import { KitchenRoute } from "./kitchen-route";
+import { WaiterRoute } from "./waiter-route";
 
 interface LocatedRoute {
   route: RouteObject;
@@ -155,6 +156,13 @@ describe("app routes", () => {
     expect(elementType(kds?.rootElement)).toBe(ProtectedRoute);
   });
 
+  it("guards the waiter ready-orders display to serving-capable roles", () => {
+    const waiter = locate(appRoutes, "/waiter");
+    expect(waiter).not.toBeNull();
+    expect(elementType(waiter?.parentElement)).toBe(WaiterRoute);
+    expect(elementType(waiter?.rootElement)).toBe(ProtectedRoute);
+  });
+
   it("serves /403 inside the protected area", () => {
     const denied = locate(appRoutes, "/403");
     expect(denied).not.toBeNull();
@@ -168,6 +176,7 @@ describe("app routes", () => {
       "/orders",
       "/orders/history",
       "/kds",
+      "/waiter",
       "/tables",
       "/products",
       "/categories",

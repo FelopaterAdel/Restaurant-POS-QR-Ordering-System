@@ -1,0 +1,220 @@
+/* Waiter ready orders — tablet-first */
+
+.waiter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.waiter__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.waiter__title {
+  margin: 0;
+}
+
+.waiter__count {
+  margin-right: auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stacked large cards; two columns only on wide desktops */
+.ready-orders {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 1024px) {
+  .ready-orders {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Order card */
+.ready-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+
+.ready-card__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ready-card__number {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.ready-card__table {
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-muted);
+}
+
+.ready-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ready-card__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-h3);
+}
+
+.ready-card__item-name {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.ready-card__item-qty {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.ready-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.ready-card__status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.ready-card__time {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Large, easy-to-hit action button for touch screens */
+.ready-card__action-btn {
+  min-height: 56px;
+  padding: var(--space-3) var(--space-5);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  white-space: nowrap;
+}
+
+.ready-card__action-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.ready-card__action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .ready-card__footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .ready-card__status {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .ready-card__action-btn {
+    width: 100%;
+  }
+}
+
+/* Skeleton */
+.ready-card-skeleton {
+  height: 220px;
+  border-radius: var(--radius-md);
+}
+
+/* Toast */
+.waiter-toast {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  z-index: 9999;
+  box-shadow: var(--shadow-lg);
+}
+
+.waiter-toast--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.waiter-toast--error {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.waiter-toast__message {
+  flex: 1;
+}
+
+.waiter-toast__dismiss {
+  background: none;
+  border: none;
+  font-size: var(--font-size-h2);
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  line-height: 1;
+  padding: 0;
+}
+
+.waiter-toast__dismiss:hover {
+  opacity: 1;
+}

@@ -7,6 +7,7 @@ describe("admin navigation", () => {
       "Dashboard",
       "Orders",
       "Kitchen",
+      "Ready Orders",
       "Payments",
       "Tables",
       "Products",
@@ -23,6 +24,7 @@ describe("admin navigation", () => {
       "/dashboard",
       "/orders",
       "/kds",
+      "/waiter",
       "/payments",
       "/tables",
       "/products",
@@ -39,6 +41,7 @@ describe("admin navigation", () => {
       "/dashboard",
       "/orders",
       "/kds",
+      "/waiter",
       "/payments",
       "/tables",
       "/products",
@@ -54,9 +57,10 @@ describe("admin navigation", () => {
     ]);
   });
 
-  it("hides the kitchen display from WAITER", () => {
+  it("shows Orders and the ready queue to WAITER, and hides the kitchen display", () => {
     expect(getVisibleNavigation({ role: "WAITER" }).map((item) => item.path)).toEqual([
       "/orders",
+      "/waiter",
     ]);
   });
 
