@@ -5,11 +5,18 @@ export interface NavigationItem {
   label: string;
   path: string;
   permission: PagePermission;
+  roles?: readonly UserRole[];
 }
 
 export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
   { label: "Dashboard", path: "/dashboard", permission: "dashboard" },
   { label: "Orders", path: "/orders", permission: "orders" },
+  {
+    label: "Kitchen",
+    path: "/kds",
+    permission: "orders",
+    roles: ["OWNER", "MANAGER", "KITCHEN"],
+  },
   { label: "Payments", path: "/payments", permission: "payments" },
   { label: "Tables", path: "/tables", permission: "tables" },
   { label: "Products", path: "/products", permission: "products" },
@@ -24,5 +31,9 @@ export function getVisibleNavigation(
   if (!user) {
     return [];
   }
-  return ADMIN_NAVIGATION.filter((item) => canAccess(user, item.permission));
+  return ADMIN_NAVIGATION.filter(
+    (item) =>
+      canAccess(user, item.permission) &&
+      (!item.roles || item.roles.includes(user.role)),
+  );
 }

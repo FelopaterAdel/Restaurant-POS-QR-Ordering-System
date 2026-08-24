@@ -1,0 +1,206 @@
+/* Kitchen Display System (KDS) — tablet-first */
+
+.kitchen {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.kitchen__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.kitchen__title {
+  margin: 0;
+}
+
+.kitchen__count {
+  margin-right: auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.kitchen__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .kitchen__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .kitchen__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .kitchen__grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Order card */
+.kitchen-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  height: 100%;
+}
+
+.kitchen-card--done {
+  opacity: 0.75;
+}
+
+.kitchen-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.kitchen-card__number {
+  margin: 0;
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+}
+
+.kitchen-card__table {
+  margin: 0;
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-muted);
+}
+
+.kitchen-card__items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kitchen-card__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--font-size-h3);
+}
+
+.kitchen-card__item-name {
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.kitchen-card__item-qty {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.kitchen-card__footer {
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.kitchen-card__time {
+  font-size: var(--font-size-sm);
+  color: var(--color-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Large, easy-to-hit action button for touch screens */
+.kitchen-card__action-btn {
+  width: 100%;
+  min-height: 56px;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.kitchen-card__action-btn:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.kitchen-card__action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Skeleton */
+.kitchen-card-skeleton {
+  height: 280px;
+  border-radius: var(--radius-md);
+}
+
+/* Toast */
+.kitchen-toast {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  z-index: 9999;
+  box-shadow: var(--shadow-lg);
+}
+
+.kitchen-toast--success {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}
+
+.kitchen-toast--error {
+  background: var(--color-danger-subtle);
+  color: var(--color-danger);
+  border: 1px solid var(--color-danger);
+}
+
+.kitchen-toast__message {
+  flex: 1;
+}
+
+.kitchen-toast__dismiss {
+  background: none;
+  border: none;
+  font-size: var(--font-size-h3);
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  line-height: 1;
+  padding: 0;
+}
+
+.kitchen-toast__dismiss:hover {
+  opacity: 1;
+}

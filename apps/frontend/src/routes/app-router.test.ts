@@ -10,6 +10,7 @@ import { appRoutes } from "./app-router";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
+import { KitchenRoute } from "./kitchen-route";
 
 interface LocatedRoute {
   route: RouteObject;
@@ -147,6 +148,13 @@ describe("app routes", () => {
     }
   });
 
+  it("guards the kitchen display to kitchen-capable roles", () => {
+    const kds = locate(appRoutes, "/kds");
+    expect(kds).not.toBeNull();
+    expect(elementType(kds?.parentElement)).toBe(KitchenRoute);
+    expect(elementType(kds?.rootElement)).toBe(ProtectedRoute);
+  });
+
   it("serves /403 inside the protected area", () => {
     const denied = locate(appRoutes, "/403");
     expect(denied).not.toBeNull();
@@ -159,6 +167,7 @@ describe("app routes", () => {
       "/dashboard",
       "/orders",
       "/orders/history",
+      "/kds",
       "/tables",
       "/products",
       "/categories",

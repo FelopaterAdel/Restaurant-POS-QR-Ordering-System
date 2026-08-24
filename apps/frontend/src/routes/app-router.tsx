@@ -8,6 +8,7 @@ import { LoginPage } from "@/pages/login/login-page";
 import { NotFoundPage } from "@/pages/not-found/not-found-page";
 import OrdersPage from "@/features/orders/orders.page";
 import OrderHistoryPage from "@/features/orders/history.page";
+import KitchenPage from "@/features/kitchen/kitchen.page";
 import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
 import OrderTrackingPage from "@/features/menu/order-tracking.page";
@@ -19,6 +20,7 @@ import PaymentHistoryPage from "@/features/payments/history.page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
+import { KitchenRoute } from "./kitchen-route";
 
 export const appRoutes: RouteObject[] = [
   {
@@ -67,6 +69,15 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/orders/history",
                 element: <OrderHistoryPage />,
+              },
+            ],
+          },
+          {
+            element: <KitchenRoute />,
+            children: [
+              {
+                path: "/kds",
+                element: <KitchenPage />,
               },
             ],
           },

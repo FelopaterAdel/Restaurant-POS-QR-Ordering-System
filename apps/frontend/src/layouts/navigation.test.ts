@@ -6,6 +6,7 @@ describe("admin navigation", () => {
     expect(ADMIN_NAVIGATION.map((item) => item.label)).toEqual([
       "Dashboard",
       "Orders",
+      "Kitchen",
       "Payments",
       "Tables",
       "Products",
@@ -21,6 +22,7 @@ describe("admin navigation", () => {
     ).toEqual([
       "/dashboard",
       "/orders",
+      "/kds",
       "/payments",
       "/tables",
       "/products",
@@ -36,6 +38,7 @@ describe("admin navigation", () => {
     ).toEqual([
       "/dashboard",
       "/orders",
+      "/kds",
       "/payments",
       "/tables",
       "/products",
@@ -51,12 +54,17 @@ describe("admin navigation", () => {
     ]);
   });
 
-  it("hides Payments from WAITER and KITCHEN", () => {
-    for (const role of ["WAITER", "KITCHEN"] as const) {
-      expect(getVisibleNavigation({ role }).map((item) => item.path)).toEqual([
-        "/orders",
-      ]);
-    }
+  it("hides the kitchen display from WAITER", () => {
+    expect(getVisibleNavigation({ role: "WAITER" }).map((item) => item.path)).toEqual([
+      "/orders",
+    ]);
+  });
+
+  it("shows Orders and the kitchen display to KITCHEN", () => {
+    expect(getVisibleNavigation({ role: "KITCHEN" }).map((item) => item.path)).toEqual([
+      "/orders",
+      "/kds",
+    ]);
   });
 
   it("returns an empty list without a user", () => {
