@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Button, Modal } from "@/components/ui";
+import { ApiError, getApiErrorMessage } from "@/lib/api";
 import type { Table } from "../tables.types";
 
 export interface DisableTableDialogProps {
@@ -15,7 +17,22 @@ export function DisableTableDialog({
   onClose,
   onConfirm,
   isPending,
-}: DisableTableDialogProps) {
+  error,
+}: DisableTableDialogProps & { error?: unknown }) {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error instanceof ApiError && error.code === "TABLE_HAS_ACTIVE_ORDERS") {
+      setSubmitError(
+        "This table has active orders and cannot be disabled.",
+      );
+    } else if (error) {
+      setSubmitError(getApiErrorMessage(error));
+    } else {
+      setSubmitError(null);
+    }
+  }, [error]);
+
   return (
     <Modal
       open={open}
@@ -45,6 +62,11 @@ export function DisableTableDialog({
           <div className="table-disable-dialog__table-info">
             Table #{table.number} &mdash; {table.name}
           </div>
+        )}
+        {submitError && (
+          <p className="table-disable-dialog__error" role="alert">
+            {submitError}
+          </p>
         )}
       </div>
     </Modal>

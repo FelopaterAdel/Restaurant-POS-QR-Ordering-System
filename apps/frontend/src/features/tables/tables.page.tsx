@@ -5,6 +5,7 @@ import {
   Button,
 } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
+import { ApiError } from "@/lib/api";
 import { useTablesQuery } from "./tables.queries";
 import {
   useCreateTableMutation,
@@ -74,7 +75,14 @@ export default function TablesPage() {
 
   const handleAddSubmit = useCallback(
     (data: { number: number; name: string }) => {
-      createMutation.mutate(data, { onSuccess: closeAllModals });
+      createMutation.mutate(data, {
+        onSuccess: closeAllModals,
+        onError: (err) => {
+          if (err instanceof ApiError && err.code === "TABLE_NUMBER_ALREADY_EXISTS") {
+            // handled inside modal via prop if needed; show generic here
+          }
+        },
+      });
     },
     [createMutation, closeAllModals]
   );
@@ -166,6 +174,7 @@ export default function TablesPage() {
         onClose={closeAllModals}
         onSubmit={handleAddSubmit}
         isPending={createMutation.isPending}
+        error={createMutation.error}
       />
 
       <EditTableModal
@@ -182,6 +191,7 @@ export default function TablesPage() {
         onClose={closeAllModals}
         onConfirm={handleDisableConfirm}
         isPending={disableMutation.isPending}
+        error={disableMutation.error}
       />
 
       <TableQrModal

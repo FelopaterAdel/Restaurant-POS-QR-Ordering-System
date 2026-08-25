@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button, Input, Modal } from "@/components/ui";
+import { ApiError, getApiErrorMessage } from "@/lib/api";
 
 const addTableSchema = z.object({
   number: z
@@ -23,6 +24,7 @@ export interface AddTableModalProps {
   onClose: () => void;
   onSubmit: (data: AddTableFormValues) => void;
   isPending: boolean;
+  error?: unknown;
 }
 
 export function AddTableModal({
@@ -30,7 +32,10 @@ export function AddTableModal({
   onClose,
   onSubmit,
   isPending,
+  error,
 }: AddTableModalProps) {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -41,12 +46,22 @@ export function AddTableModal({
   });
 
   useEffect(() => {
+    if (error instanceof ApiError && error.code === "TABLE_NUMBER_ALREADY_EXISTS") {
+      setSubmitError("Table number already exists. Please choose a different number.");
+    } else if (error) {
+      setSubmitError(getApiErrorMessage(error));
+    }
+  }, [error]);
+
+  useEffect(() => {
     if (!open) {
       reset({ number: undefined, name: "" });
+      setSubmitError(null);
     }
   }, [open, reset]);
 
   function handleFormSubmit(data: AddTableFormValues) {
+    setSubmitError(null);
     onSubmit(data);
   }
 
@@ -89,6 +104,11 @@ export function AddTableModal({
           {...register("name")}
           error={errors.name?.message}
         />
+        {submitError && (
+          <p className="table-form__error" role="alert">
+            {submitError}
+          </p>
+        )}
       </form>
     </Modal>
   );
