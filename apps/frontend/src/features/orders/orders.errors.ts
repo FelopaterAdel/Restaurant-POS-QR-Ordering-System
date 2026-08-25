@@ -5,6 +5,8 @@ const PAYMENT_ERROR_MESSAGES: Record<string, string> = {
   PAYMENT_NOT_ALLOWED: "This order can't be paid in its current status.",
   ORDER_NOT_FOUND: "This order no longer exists.",
   FORBIDDEN: "You don't have permission to record payments.",
+  ORDER_INVALID_STATUS: "Order status has changed. Please refresh.",
+  ORDER_ALREADY_CANCELLED: "This order was cancelled.",
 };
 
 const COMPLETE_ERROR_MESSAGES: Record<string, string> = {
@@ -14,6 +16,7 @@ const COMPLETE_ERROR_MESSAGES: Record<string, string> = {
   ORDER_CANNOT_BE_COMPLETED: "This order can't be completed right now.",
   ORDER_NOT_FOUND: "This order no longer exists.",
   FORBIDDEN: "You don't have permission to complete orders.",
+  ORDER_INVALID_STATUS: "Order status has changed. Please refresh.",
 };
 
 function mapErrorCode(error: unknown, messages: Record<string, string>): string | null {
@@ -38,6 +41,8 @@ const STALE_PAYMENT_ERROR_CODES = new Set([
   "PAYMENT_ALREADY_EXISTS",
   "PAYMENT_NOT_ALLOWED",
   "ORDER_NOT_FOUND",
+  "ORDER_INVALID_STATUS",
+  "ORDER_ALREADY_CANCELLED",
 ]);
 
 /**

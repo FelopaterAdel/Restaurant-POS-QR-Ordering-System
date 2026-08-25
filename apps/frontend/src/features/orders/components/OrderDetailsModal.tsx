@@ -11,6 +11,7 @@ import { formatCurrency, formatTime } from "@/lib/format";
 import type { UserRole } from "@/features/auth/types";
 import type { Order } from "../orders.types";
 import { getOrderActions, canPayOrder, canCompleteOrder } from "../orders.role-config";
+import { OrderStatusTimeline } from "@/features/menu/components/OrderStatusTimeline";
 
 export interface OrderDetailsModalProps {
   open: boolean;
@@ -133,22 +134,46 @@ export function OrderDetailsModal({
         </div>
 
         <div className="order-details__total-row">
-          <span className="order-details__total-label">Subtotal</span>
-          <span className="order-details__total-value">
-            {formatCurrency(order.totalAmount)}
-          </span>
-        </div>
-
-        <div className="order-details__total-row">
           <span className="order-details__total-label">Total</span>
           <span className="order-details__total-value">
             {formatCurrency(order.totalAmount)}
           </span>
         </div>
 
+        <div className="order-details__timeline">
+          <OrderStatusTimeline status={order.status} />
+        </div>
+
+        <div className="order-details__payment">
+          <div className="order-details__payment-row">
+            <span>Payment</span>
+            <PaymentStatusBadge status={order.paymentStatus} />
+          </div>
+          {order.paymentStatus === "PAID" ? (
+            <div className="order-details__payment-info">
+              <span>Amount: {formatCurrency(order.totalAmount)}</span>
+            </div>
+          ) : (
+            payAction && (
+              <div className="order-details__payment-info">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handlePayClick}
+                  disabled={isUpdating}
+                >
+                  Pay Order
+                </Button>
+              </div>
+            )
+          )}
+        </div>
+
         <div className="order-details__info">
-          <span>Status: {order.status}</span>
           <span>Created {formatTime(order.createdAt)}</span>
+          {order.status === "CANCELLED" && (
+            <span className="order-details__cancelled">Order Cancelled</span>
+          )}
         </div>
       </div>
     </Modal>
