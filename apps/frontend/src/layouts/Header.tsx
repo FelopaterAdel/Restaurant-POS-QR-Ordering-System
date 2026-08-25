@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui";
 import { useAuth } from "@/features/auth";
 import { useRestaurant } from "@/features/settings";
+import { NotificationBell } from "@/features/notifications/components";
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -43,6 +44,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       </div>
       {user && (
         <div className="header__end">
+          <NotificationBell />
           <div className="header__identity">
             <span className="header__user-name">{user.name}</span>
             <span className="header__role">{user.role}</span>

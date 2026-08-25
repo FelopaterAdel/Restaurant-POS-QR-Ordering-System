@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { App } from "@/app/App";
 import { AuthProvider } from "@/features/auth";
 import { RestaurantProvider } from "@/features/settings";
+import { NotificationsProvider } from "@/features/notifications";
+import { mockNotificationAdapter } from "@/features/notifications";
 import { initTheme } from "@/theme";
 import "@/assets/styles/index.css";
 
@@ -23,7 +25,9 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <RestaurantProvider>
-          <App />
+          <NotificationsProvider adapter={mockNotificationAdapter}>
+            <App />
+          </NotificationsProvider>
         </RestaurantProvider>
       </AuthProvider>
     </QueryClientProvider>
