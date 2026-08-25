@@ -13,6 +13,7 @@ import WaiterPage from "@/features/waiter/waiter.page";
 import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
 import OrderTrackingPage from "@/features/menu/order-tracking.page";
+import MenuPreviewPage from "@/features/menu/MenuPreviewPage";
 import TablesPage from "@/features/tables/tables.page";
 import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
@@ -147,6 +148,15 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/settings",
                 element: <SettingsPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute permission="categories" />,
+            children: [
+              {
+                path: "/menu/preview",
+                element: <MenuPreviewPage />,
               },
             ],
           },

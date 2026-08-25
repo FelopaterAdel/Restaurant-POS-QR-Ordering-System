@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EmptyState, ErrorState, Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
 import { useCategoriesQuery } from "./categories.queries";
@@ -15,6 +16,7 @@ import { ToggleCategoryDialog } from "./components/ToggleCategoryDialog";
 import "./categories.css";
 
 export default function CategoriesPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const canManage = user?.role === "OWNER" || user?.role === "MANAGER";
 
@@ -103,9 +105,17 @@ export default function CategoriesPage() {
     <div>
       <div className="categories-header">
         <h1 className="categories-header__title">Categories</h1>
-        {canManage && (
-          <Button onClick={() => setAddModalOpen(true)}>+ Add</Button>
-        )}
+        <div className="categories-header__actions">
+          <Button
+            variant="outline"
+            onClick={() => navigate("/menu/preview")}
+          >
+            Preview Customer Menu
+          </Button>
+          {canManage && (
+            <Button onClick={() => setAddModalOpen(true)}>+ Add</Button>
+          )}
+        </div>
       </div>
 
       {!data || data.length === 0 ? (

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { EmptyState, ErrorState, Button } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
 import { useCategoriesQuery } from "@/features/categories/categories.queries";
@@ -16,6 +17,7 @@ import { ToggleProductDialog } from "./components/ToggleProductDialog";
 import "./products.css";
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const canManage = user?.role === "OWNER" || user?.role === "MANAGER";
 
@@ -117,9 +119,14 @@ export default function ProductsPage() {
     <div>
       <div className="products-header">
         <h1 className="products-header__title">Products</h1>
-        {canManage && (
-          <Button onClick={() => setAddModalOpen(true)}>+ Add</Button>
-        )}
+        <div className="products-header__actions">
+          <Button variant="outline" onClick={() => navigate("/menu/preview")}>
+            Preview Customer Menu
+          </Button>
+          {canManage && (
+            <Button onClick={() => setAddModalOpen(true)}>+ Add</Button>
+          )}
+        </div>
       </div>
 
       {!data || data.length === 0 ? (
