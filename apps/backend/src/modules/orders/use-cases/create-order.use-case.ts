@@ -6,6 +6,7 @@ import {
 } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
+import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 import {
   createOrderSchema,
   type CreateOrderDTO,
@@ -118,6 +119,13 @@ export class CreateOrderUseCase {
       tableId: data.tableId,
       totalAmount,
       items,
+    });
+
+    await createNotificationForRoles("ORDER_CREATED", {
+      title: "New Order",
+      message: `Order #${order.orderNumber}`,
+      entityType: "ORDER",
+      entityId: order.id,
     });
 
     return {

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, createContext, useContext } from "react";
+import { useCallback, createContext, useContext } from "react";
 import type { Notification, NotificationAdapter } from "./types";
-import { useAuth } from "@/features/auth";
+import { useQuery } from "@tanstack/react-query";
 
 interface NotificationsContextValue {
   notifications: Notification[];
@@ -19,37 +19,23 @@ interface NotificationsProviderProps {
 }
 
 export function NotificationsProvider({ children, adapter }: NotificationsProviderProps) {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: () => adapter.getNotifications(),
+    refetchInterval: 15000,
+  });
 
-  const loadNotifications = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await adapter.getNotifications();
-      // Client-side role filtering
-      const filtered = user ? data.filter(n => !n.role || n.role === user.role) : data;
-      setNotifications(filtered);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adapter, user?.role]);
-
-  useEffect(() => {
-    void loadNotifications();
-  }, [loadNotifications]);
+  const notifications = data ?? [];
 
   const markAsRead = useCallback(async (id: string) => {
     await adapter.markAsRead(id);
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
-  }, [adapter]);
+    await refetch();
+  }, [adapter, refetch]);
 
   const markAllAsRead = useCallback(async () => {
     await adapter.markAllAsRead();
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  }, [adapter]);
+    await refetch();
+  }, [adapter, refetch]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -59,7 +45,7 @@ export function NotificationsProvider({ children, adapter }: NotificationsProvid
     isLoading,
     markAsRead,
     markAllAsRead,
-    refresh: loadNotifications,
+    refresh: async () => { await refetch(); },
   };
 
   return (

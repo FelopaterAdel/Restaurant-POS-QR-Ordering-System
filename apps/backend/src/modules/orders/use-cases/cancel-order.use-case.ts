@@ -12,6 +12,7 @@ import {
   type OrderDTO,
 } from "./get-order.use-case.js";
 import { CANCELLABLE_ORDER_STATUSES } from "./update-order-status.use-case.js";
+import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 
 export class OrderAlreadyCancelledError extends ConflictError {
   constructor() {
@@ -77,6 +78,13 @@ export class CancelOrderUseCase {
         orderId: order.id,
         cancelledReason: data.reason ?? null,
       });
+
+    await createNotificationForRoles("ORDER_CANCELLED", {
+      title: "Order Cancelled",
+      message: `Order #${cancelled.orderNumber}`,
+      entityType: "ORDER",
+      entityId: cancelled.id,
+    });
 
     return toOrderDTO(cancelled);
   }

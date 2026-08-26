@@ -5,7 +5,7 @@ import { App } from "@/app/App";
 import { AuthProvider } from "@/features/auth";
 import { RestaurantProvider } from "@/features/settings";
 import { NotificationsProvider } from "@/features/notifications";
-import { mockNotificationAdapter } from "@/features/notifications";
+import { apiNotificationAdapter } from "@/features/notifications/api/api.adapter";
 import { initTheme } from "@/theme";
 import "@/assets/styles/index.css";
 
@@ -25,7 +25,7 @@ createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <RestaurantProvider>
-          <NotificationsProvider adapter={mockNotificationAdapter}>
+          <NotificationsProvider adapter={apiNotificationAdapter}>
             <App />
           </NotificationsProvider>
         </RestaurantProvider>

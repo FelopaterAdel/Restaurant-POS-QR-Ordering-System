@@ -79,6 +79,7 @@ model User {
   updatedAt    DateTime        @updatedAt
 
   refreshTokens RefreshToken[]
+  notifications   Notification[]
 }
 
 model RefreshToken {
@@ -201,4 +202,22 @@ model OrderItem {
 
   @@index([orderId])
   @@index([productId])
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  title      String
+  message    String
+  entityType String?
+  entityId   String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@index([createdAt])
 }

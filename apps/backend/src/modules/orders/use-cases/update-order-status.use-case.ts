@@ -15,6 +15,7 @@ import {
   toOrderDTO,
   type OrderDTO,
 } from "./get-order.use-case.js";
+import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 
 const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
@@ -115,6 +116,15 @@ export class UpdateOrderStatusUseCase {
       order.id,
       data.status,
     );
+
+    if (data.status === OrderStatus.READY) {
+      await createNotificationForRoles("ORDER_READY", {
+        title: "Order Ready",
+        message: `Order #${updated.orderNumber}`,
+        entityType: "ORDER",
+        entityId: updated.id,
+      });
+    }
 
     return toOrderDTO(updated);
   }

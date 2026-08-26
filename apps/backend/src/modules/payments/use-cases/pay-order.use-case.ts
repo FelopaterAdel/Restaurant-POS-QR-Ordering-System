@@ -11,6 +11,7 @@ import {
   createPaymentSchema,
   type CreatePaymentDTO,
 } from "../schemas/create-payment.schema.js";
+import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 
 const PAYABLE_ORDER_STATUSES: readonly OrderStatus[] = [
   OrderStatus.READY,
@@ -86,8 +87,7 @@ export class PayOrderUseCase {
 
     let payment;
     try {
-      payment =
-        await this.paymentRepository.createPaidPaymentAndUpdateOrder(input);
+      payment = await this.paymentRepository.createPaidPaymentAndUpdateOrder(input);
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -97,6 +97,14 @@ export class PayOrderUseCase {
       }
       throw error;
     }
+
+    const paidOrder = await this.orderRepository.findById(payment.orderId);
+    await createNotificationForRoles("PAYMENT_RECEIVED", {
+      title: "Payment Received",
+      message: `Order #${paidOrder?.orderNumber ?? ""}`,
+      entityType: "PAYMENT",
+      entityId: payment.id,
+    });
 
     return {
       id: payment.id,
