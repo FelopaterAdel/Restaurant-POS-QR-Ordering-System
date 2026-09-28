@@ -8,6 +8,7 @@ const ROLE_MAP = {
   ORDER_READY: ["WAITER"],
   PAYMENT_RECEIVED: ["OWNER", "MANAGER"],
   ORDER_CANCELLED: ["OWNER", "MANAGER"],
+  LOW_STOCK: ["OWNER", "MANAGER"],
 } as const;
 
 export async function createNotificationForRoles(

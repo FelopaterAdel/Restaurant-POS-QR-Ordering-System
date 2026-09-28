@@ -11,6 +11,7 @@ import {
 } from "./date-utils";
 import { DashboardHeader } from "./components/DashboardHeader";
 import { DateFilter, type DatePreset } from "./components/DateFilter";
+import { LowStockBanner } from "./components/LowStockBanner";
 import { OrderStatusCard } from "./components/OrderStatusCard";
 import { QuickLinks } from "./components/QuickLinks";
 import { SalesChart } from "./components/SalesChart";
@@ -186,6 +187,7 @@ export function DashboardPage() {
         customDate={customDate}
         onChange={handleDateChange}
       />
+      <LowStockBanner />
       {isLoading && <DashboardSkeleton />}
       {isError && (
         <Card>

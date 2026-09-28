@@ -126,9 +126,43 @@ model Product {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
 
   orderItems OrderItem[]
+  recipe     ProductIngredient[]
 
   @@index([categoryId])
   @@index([isAvailable])
+}
+
+model Ingredient {
+  id                String   @id @default(cuid())
+  name              String   @unique
+  unit              String
+  quantityInStock   Decimal  @default(0)
+  lowStockThreshold Decimal  @default(0)
+  isActive          Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products ProductIngredient[]
+
+  @@index([isActive])
+}
+
+model ProductIngredient {
+  id           String  @id @default(cuid())
+  productId    String
+  ingredientId String
+  quantityUsed Decimal
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id], onDelete: Restrict)
+
+  @@unique([productId, ingredientId])
+  @@index([productId])
+  @@index([ingredientId])
 }
 
 model RestaurantTable {

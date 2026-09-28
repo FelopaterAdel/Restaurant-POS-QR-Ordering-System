@@ -178,6 +178,15 @@ export const api = {
     return response.data.data;
   },
 
+  async put<T>(
+    url: string,
+    body?: unknown,
+    config?: ApiRequestConfig,
+  ): Promise<T> {
+    const response = await apiClient.put<ApiSuccess<T>>(url, body, config);
+    return response.data.data;
+  },
+
   async delete<T>(url: string, config?: ApiRequestConfig): Promise<T> {
     const response = await apiClient.delete<ApiSuccess<T>>(url, config);
     return response.data.data;

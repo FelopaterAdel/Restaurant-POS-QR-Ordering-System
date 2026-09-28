@@ -23,6 +23,10 @@ function createMockRepository(
   } as unknown as OrderRepository;
 }
 
+const stubStockDeduction = {
+  deductForOrder: vi.fn(async () => ({ deducted: [], lowStock: [] })),
+};
+
 function setupStatusWalk(repository: OrderRepository) {
   let current = buildOrder({ status: OrderStatus.PENDING });
 
@@ -43,7 +47,7 @@ function setupStatusWalk(repository: OrderRepository) {
 describe("UpdateOrderStatusUseCase", () => {
   it("walks the full lifecycle PENDING → SERVED as an owner", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const owner = buildUser();
     setupStatusWalk(repository);
 
@@ -69,7 +73,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("lets a kitchen user advance PENDING → CONFIRMED → PREPARING → READY", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const kitchen = buildUser({ role: UserRole.KITCHEN });
     setupStatusWalk(repository);
 
@@ -89,7 +93,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("forbids a kitchen user from serving an order", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const kitchen = buildUser({ role: UserRole.KITCHEN });
     const order = buildOrder({ status: OrderStatus.READY });
 
@@ -107,7 +111,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("forbids a kitchen user from cancelling an order", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const kitchen = buildUser({ role: UserRole.KITCHEN });
     const order = buildOrder({ status: OrderStatus.PENDING });
 
@@ -124,7 +128,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("lets a waiter serve a ready order", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const waiter = buildUser({ role: UserRole.WAITER });
     const order = buildOrder({ status: OrderStatus.READY });
 
@@ -144,7 +148,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("forbids a waiter from advancing an order to READY", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const waiter = buildUser({ role: UserRole.WAITER });
     const order = buildOrder({ status: OrderStatus.PREPARING });
 
@@ -161,7 +165,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("lets owner and manager cancel a pending order", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
 
     for (const role of [UserRole.OWNER, UserRole.MANAGER]) {
       const order = buildOrder({ status: OrderStatus.PENDING });
@@ -182,7 +186,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("forbids a cashier from changing any status", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const cashier = buildUser({ role: UserRole.CASHIER });
     const order = buildOrder({ status: OrderStatus.PENDING });
 
@@ -199,7 +203,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("rejects invalid transitions even for an owner", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const owner = buildUser();
 
     const cases: Array<[OrderStatus, OrderStatus]> = [
@@ -229,7 +233,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("rejects a transition from a cancelled order", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
     const owner = buildUser();
     const order = buildOrder({ status: OrderStatus.CANCELLED });
 
@@ -246,7 +250,7 @@ describe("UpdateOrderStatusUseCase", () => {
 
   it("throws OrderNotFoundError when the order does not exist", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
 
     vi.mocked(repository.findById).mockResolvedValueOnce(null);
 
@@ -259,9 +263,64 @@ describe("UpdateOrderStatusUseCase", () => {
     ).rejects.toBeInstanceOf(OrderNotFoundError);
   });
 
+  it("deducts recipe stock when an order moves to PREPARING", async () => {
+    const repository = createMockRepository();
+    const deductForOrder = vi.fn(async () => ({
+      deducted: [],
+      lowStock: [],
+    }));
+    const useCase = new UpdateOrderStatusUseCase(repository, {
+      deductForOrder,
+    });
+    const owner = buildUser();
+
+    vi.mocked(repository.findById).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.CONFIRMED }),
+    );
+    vi.mocked(repository.updateStatus).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.PREPARING }),
+    );
+
+    await useCase.execute({
+      orderId: "order_1",
+      user: owner,
+      input: { status: OrderStatus.PREPARING },
+    });
+
+    expect(deductForOrder).toHaveBeenCalledTimes(1);
+    expect(deductForOrder).toHaveBeenCalledWith("order_1");
+  });
+
+  it("does not deduct recipe stock for non-PREPARING transitions", async () => {
+    const repository = createMockRepository();
+    const deductForOrder = vi.fn(async () => ({
+      deducted: [],
+      lowStock: [],
+    }));
+    const useCase = new UpdateOrderStatusUseCase(repository, {
+      deductForOrder,
+    });
+    const owner = buildUser();
+
+    vi.mocked(repository.findById).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.PREPARING }),
+    );
+    vi.mocked(repository.updateStatus).mockResolvedValueOnce(
+      buildOrder({ status: OrderStatus.READY }),
+    );
+
+    await useCase.execute({
+      orderId: "order_1",
+      user: owner,
+      input: { status: OrderStatus.READY },
+    });
+
+    expect(deductForOrder).not.toHaveBeenCalled();
+  });
+
   it("rejects an unknown status value", async () => {
     const repository = createMockRepository();
-    const useCase = new UpdateOrderStatusUseCase(repository);
+    const useCase = new UpdateOrderStatusUseCase(repository, stubStockDeduction);
 
     vi.mocked(repository.findById).mockResolvedValueOnce(buildOrder());
 

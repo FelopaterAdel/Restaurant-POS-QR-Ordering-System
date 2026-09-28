@@ -19,6 +19,7 @@ import { UsersPage } from "@/features/users";
 import { SettingsPage } from "@/features/settings";
 import { PaymentsPage } from "@/features/payments";
 import PaymentHistoryPage from "@/features/payments/history.page";
+import InventoryPage from "@/features/inventory/inventory.page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -117,6 +118,15 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/categories",
                 element: <CategoriesPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute permission="products" />,
+            children: [
+              {
+                path: "/inventory",
+                element: <InventoryPage />,
               },
             ],
           },

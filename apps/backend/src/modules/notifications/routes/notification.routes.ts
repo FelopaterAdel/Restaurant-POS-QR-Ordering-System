@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { authMiddleware } from "../../../middleware/auth.middleware.js";
 import { validate } from "../../../middleware/validate.middleware.js";
-import { listNotificationsSchema } from "../schemas/list-notifications.schema.js";
+import { listNotificationsQuerySchema } from "../schemas/list-notifications.schema.js";
 import { NotificationRepository } from "../repositories/notification.repository.js";
 import { GetUserNotificationsUseCase } from "../use-cases/get-user-notifications.use-case.js";
 import { MarkNotificationReadUseCase } from "../use-cases/mark-notification-read.use-case.js";
@@ -16,8 +16,8 @@ const markAll = new MarkAllNotificationsReadUseCase(repo);
 
 router.get(
   "/",
-  authMiddleware,
-  validate(listNotificationsSchema),
+  authMiddleware(),
+  validate(listNotificationsQuerySchema, "query"),
   async (req: any, res: any) => {
     const userId = req.user.id;
     const { page, limit } = req.query as any;
@@ -26,13 +26,13 @@ router.get(
   }
 );
 
-router.patch("/:id/read", authMiddleware, async (req: any, res: any) => {
+router.patch("/:id/read", authMiddleware(), async (req: any, res: any) => {
   const userId = req.user.id;
   await markRead.execute(req.params.id, userId);
   res.status(204).send();
 });
 
-router.patch("/read-all", authMiddleware, async (req: any, res: any) => {
+router.patch("/read-all", authMiddleware(), async (req: any, res: any) => {
   const userId = req.user.id;
   await markAll.execute(userId);
   res.status(204).send();

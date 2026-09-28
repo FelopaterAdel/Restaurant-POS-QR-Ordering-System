@@ -16,6 +16,7 @@ import {
   type OrderDTO,
 } from "./get-order.use-case.js";
 import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
+import { DeductOrderStockUseCase } from "../../ingredients/use-cases/deduct-order-stock.use-case.js";
 
 const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
@@ -77,9 +78,20 @@ export interface UpdateOrderStatusParams {
 
 export class UpdateOrderStatusUseCase {
   private readonly orderRepository: OrderRepository;
+  private readonly stockDeduction: Pick<
+    DeductOrderStockUseCase,
+    "deductForOrder"
+  >;
 
-  constructor(orderRepository: OrderRepository = new OrderRepository()) {
+  constructor(
+    orderRepository: OrderRepository = new OrderRepository(),
+    stockDeduction: Pick<
+      DeductOrderStockUseCase,
+      "deductForOrder"
+    > = new DeductOrderStockUseCase(),
+  ) {
     this.orderRepository = orderRepository;
+    this.stockDeduction = stockDeduction;
   }
 
   private isTransitionAllowed(from: OrderStatus, to: OrderStatus): boolean {
@@ -116,6 +128,19 @@ export class UpdateOrderStatusUseCase {
       order.id,
       data.status,
     );
+
+    if (data.status === OrderStatus.PREPARING) {
+      // Best-effort: the status change is already committed, so an
+      // inventory failure must never break the kitchen flow.
+      try {
+        await this.stockDeduction.deductForOrder(order.id);
+      } catch (error) {
+        console.error(
+          `Failed to deduct recipe stock for order ${order.id}`,
+          error,
+        );
+      }
+    }
 
     if (data.status === OrderStatus.READY) {
       await createNotificationForRoles("ORDER_READY", {

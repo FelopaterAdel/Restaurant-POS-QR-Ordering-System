@@ -10,10 +10,12 @@ export {
 } from "./generated/prisma/client.js";
 export type {
   Category,
+  Ingredient,
   Order,
   OrderItem,
   Payment,
   Product,
+  ProductIngredient,
   PrismaClient,
   RefreshToken,
   Restaurant,

@@ -7,4 +7,9 @@ export const listNotificationsSchema = z.object({
   }),
 });
 
+export const listNotificationsQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional(),
+  limit: z.coerce.number().int().positive().max(100).optional(),
+});
+
 export type ListNotificationsQuery = z.infer<typeof listNotificationsSchema>["query"];
