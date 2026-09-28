@@ -8,6 +8,8 @@ interface OrderReviewProps {
   tableNumber: number;
   couponCode: string;
   onCouponChange: (code: string) => void;
+  phone: string;
+  onPhoneChange: (phone: string) => void;
   onConfirm: () => void;
   onBack: () => void;
   isSubmitting: boolean;
@@ -20,6 +22,8 @@ export function OrderReview({
   tableNumber,
   couponCode,
   onCouponChange,
+  phone,
+  onPhoneChange,
   onConfirm,
   onBack,
   isSubmitting,
@@ -57,6 +61,20 @@ export function OrderReview({
           placeholder="e.g. WELCOME10"
           value={couponCode}
           onChange={(e) => onCouponChange(e.target.value)}
+          disabled={isSubmitting}
+        />
+      </div>
+
+      <div className="order-review__phone">
+        <label htmlFor="order-phone">
+          Phone for loyalty points (optional)
+        </label>
+        <input
+          id="order-phone"
+          type="tel"
+          placeholder="e.g. 01012345678"
+          value={phone}
+          onChange={(e) => onPhoneChange(e.target.value)}
           disabled={isSubmitting}
         />
       </div>

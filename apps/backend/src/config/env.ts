@@ -51,4 +51,10 @@ export const env = {
     process.env.SWAGGER_ENABLED === "true" ||
     (process.env.SWAGGER_ENABLED === undefined &&
       process.env.NODE_ENV !== "production"),
+  loyalty: {
+    amountPerPoint: Number(process.env.LOYALTY_AMOUNT_PER_POINT ?? 10),
+    expiryMonths: Number(process.env.LOYALTY_POINT_EXPIRY_MONTHS ?? 12),
+    silverThreshold: Number(process.env.LOYALTY_SILVER_THRESHOLD ?? 500),
+    goldThreshold: Number(process.env.LOYALTY_GOLD_THRESHOLD ?? 2000),
+  },
 };

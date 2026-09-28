@@ -20,6 +20,7 @@ export interface CreateOrderWithItemsInput {
   subtotal: Prisma.Decimal;
   items: CreateOrderItemInput[];
   couponCode?: string;
+  customerPhone?: string;
 }
 
 const orderInclude = {
@@ -191,6 +192,7 @@ export class OrderRepository {
           totalAmount: input.subtotal.sub(discountAmount),
           couponCode,
           discountAmount,
+          customerPhone: input.customerPhone ?? null,
           items: {
             create: input.items.map((item) => ({
               productId: item.productId,

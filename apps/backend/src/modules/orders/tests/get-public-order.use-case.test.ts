@@ -55,6 +55,7 @@ describe("GetPublicOrderUseCase", () => {
       totalAmount: 330,
       couponCode: null,
       discountAmount: 0,
+      customerPhone: null,
       cancelledAt: null,
       cancelledReason: null,
       createdAt: order.createdAt,

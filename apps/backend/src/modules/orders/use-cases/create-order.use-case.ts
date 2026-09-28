@@ -61,6 +61,7 @@ export interface CreateOrderResultDTO {
   totalAmount: number;
   couponCode: string | null;
   discountAmount: number;
+  customerPhone: string | null;
   createdAt: Date;
   updatedAt: Date;
   items: CreateOrderItemDTO[];
@@ -137,6 +138,7 @@ export class CreateOrderUseCase {
       subtotal,
       items,
       couponCode: data.couponCode,
+      customerPhone: data.customerPhone,
     });
 
     await createNotificationForRoles("ORDER_CREATED", {
@@ -154,6 +156,7 @@ export class CreateOrderUseCase {
       totalAmount: Number(order.totalAmount),
       couponCode: order.couponCode,
       discountAmount: Number(order.discountAmount),
+      customerPhone: order.customerPhone,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: order.items.map((item) => ({

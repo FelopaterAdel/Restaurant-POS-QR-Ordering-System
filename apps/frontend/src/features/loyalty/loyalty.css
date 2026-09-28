@@ -1,0 +1,53 @@
+.loyalty-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.loyalty-page__title {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+}
+
+.loyalty-page__subtitle {
+  color: var(--color-muted);
+}
+
+.loyalty-page__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.loyalty-page__error {
+  color: var(--color-danger);
+}
+
+.loyalty-page__result {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.loyalty-page__tier {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+}
+
+.loyalty-page__points {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+}
+
+.loyalty-page__lifetime,
+.loyalty-page__note {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}

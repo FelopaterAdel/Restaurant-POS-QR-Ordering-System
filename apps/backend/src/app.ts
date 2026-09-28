@@ -18,6 +18,10 @@ import paymentRouter from "./modules/payments/routes/payment.routes.js";
 import paymentHistoryRouter from "./modules/payments/routes/payment-history.routes.js";
 import productRouter from "./modules/products/routes/product.routes.js";
 import { couponRouter } from "./modules/coupons/index.js";
+import {
+  loyaltyRouter,
+  publicLoyaltyRouter,
+} from "./modules/loyalty/index.js";
 import { ingredientRouter, productRecipeRouter } from "./modules/ingredients/index.js";
 import { notificationRoutes } from "./modules/notifications/index.js";
 import staffOrderRouter from "./modules/orders/routes/staff-order.routes.js";
@@ -49,6 +53,8 @@ app.use("/api/v1/restaurant", restaurantRouter);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/products", productRouter);
 app.use("/api/v1/coupons", couponRouter);
+app.use("/api/v1/loyalty", loyaltyRouter);
+app.use("/api/v1/public/loyalty", publicLoyaltyRouter);
 app.use("/api/v1/products", productRecipeRouter);
 app.use("/api/v1/ingredients", ingredientRouter);
 app.use("/api/v1/notifications", notificationRoutes);

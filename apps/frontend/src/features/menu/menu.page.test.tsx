@@ -794,6 +794,38 @@ describe("MenuPage", () => {
     });
   });
 
+  it("sends the loyalty phone number with the create order request", async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post("*/api/v1/public/orders", async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true, data: mockOrderResult });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const phoneInput = container.querySelector(
+      "#order-phone",
+    ) as HTMLInputElement;
+    await user.type(phoneInput, "01012345678");
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(requestBody).toEqual({
+      tableId: "tbl_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      customerPhone: "01012345678",
+    });
+  });
+
   it("shows a friendly error for an unknown coupon code", async () => {
     server.use(
       http.post("*/api/v1/public/orders", () => {

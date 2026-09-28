@@ -79,6 +79,7 @@ export interface CreatePublicOrderInput {
   tableId: string;
   items: Array<{ productId: string; quantity: number }>;
   couponCode?: string;
+  customerPhone?: string;
 }
 
 export interface CreatePublicOrderResult {

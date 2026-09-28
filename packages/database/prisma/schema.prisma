@@ -194,6 +194,7 @@ model Order {
   paymentStatus   PaymentStatus @default(PENDING)
   couponCode      String?
   discountAmount  Decimal       @default(0)
+  customerPhone   String?
   cancelledAt     DateTime?
   cancelledReason String?
 
@@ -259,6 +260,32 @@ model Coupon {
   updatedAt DateTime @updatedAt
 
   @@index([isActive])
+}
+
+model LoyaltyAccount {
+  id    String @id @default(cuid())
+  phone String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  entries LoyaltyPointEntry[]
+}
+
+model LoyaltyPointEntry {
+  id        String   @id @default(cuid())
+  accountId String
+  points    Int
+  orderId   String?  @unique
+  earnedAt  DateTime @default(now())
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  account LoyaltyAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([expiresAt])
 }
 
 model Notification {

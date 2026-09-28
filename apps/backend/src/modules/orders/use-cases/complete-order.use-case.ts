@@ -5,6 +5,7 @@ import {
 } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
+import { AwardLoyaltyPointsUseCase } from "../../loyalty/use-cases/award-loyalty-points.use-case.js";
 import {
   OrderNotFoundError,
   toOrderDTO,
@@ -38,9 +39,17 @@ export interface CompleteOrderParams {
 
 export class CompleteOrderUseCase {
   private readonly orderRepository: OrderRepository;
+  private readonly awardLoyalty: Pick<AwardLoyaltyPointsUseCase, "execute">;
 
-  constructor(orderRepository: OrderRepository = new OrderRepository()) {
+  constructor(
+    orderRepository: OrderRepository = new OrderRepository(),
+    awardLoyalty: Pick<
+      AwardLoyaltyPointsUseCase,
+      "execute"
+    > = new AwardLoyaltyPointsUseCase(),
+  ) {
     this.orderRepository = orderRepository;
+    this.awardLoyalty = awardLoyalty;
   }
 
   async execute(params: CompleteOrderParams): Promise<OrderDTO> {
@@ -65,6 +74,19 @@ export class CompleteOrderUseCase {
       orderId: order.id,
       tableId: order.tableId,
     });
+
+    // Best-effort: completion is already committed, so a loyalty failure
+    // must never fail the cashier flow.
+    if (completed.customerPhone) {
+      try {
+        await this.awardLoyalty.execute({ orderId: completed.id });
+      } catch (error) {
+        console.error(
+          `Failed to award loyalty points for order ${completed.id}`,
+          error,
+        );
+      }
+    }
 
     return toOrderDTO(completed);
   }

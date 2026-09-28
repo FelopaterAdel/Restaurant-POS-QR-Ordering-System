@@ -66,7 +66,10 @@ export function OrderSuccess({
 
       <p className="order-success__note">
         Please wait for your order to be served. You can call a staff member if
-        you need assistance.
+        you need assistance.{" "}
+        <a href="/public/loyalty" className="order-success__loyalty-link">
+          Check your loyalty points
+        </a>
       </p>
 
       <div className="order-success__actions">

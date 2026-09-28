@@ -12,6 +12,7 @@ import KitchenPage from "@/features/kitchen/kitchen.page";
 import WaiterPage from "@/features/waiter/waiter.page";
 import ProductsPage from "@/features/products/products.page";
 import { MenuPage } from "@/features/menu";
+import LoyaltyPage from "@/features/loyalty/loyalty.page";
 import OrderTrackingPage from "@/features/menu/order-tracking.page";
 import MenuPreviewPage from "@/features/menu/MenuPreviewPage";
 import TablesPage from "@/features/tables/tables.page";
@@ -48,6 +49,10 @@ export const appRoutes: RouteObject[] = [
   {
     path: "/public/menu/:qrCode/orders/:orderId",
     element: <OrderTrackingPage />,
+  },
+  {
+    path: "/public/loyalty",
+    element: <LoyaltyPage />,
   },
   {
     element: <ProtectedRoute />,

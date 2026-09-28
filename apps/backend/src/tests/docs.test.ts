@@ -11,6 +11,7 @@ const publicPaths = new Set([
   "/api/v1/auth/logout",
   "/api/v1/public/tables/{qrCode}/menu",
   "/api/v1/public/orders",
+  "/api/v1/public/loyalty",
 ]);
 
 const expectedOperations: Record<string, string[]> = {
@@ -34,6 +35,8 @@ const expectedOperations: Record<string, string[]> = {
   "/api/v1/coupons": ["get", "post"],
   "/api/v1/coupons/validate": ["get"],
   "/api/v1/coupons/{id}": ["get", "patch", "delete"],
+  "/api/v1/loyalty": ["get"],
+  "/api/v1/public/loyalty": ["get"],
   "/api/v1/notifications": ["get"],
   "/api/v1/notifications/{id}/read": ["patch"],
   "/api/v1/notifications/read-all": ["patch"],

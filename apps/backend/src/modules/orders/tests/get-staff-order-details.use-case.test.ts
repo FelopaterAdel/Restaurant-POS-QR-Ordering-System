@@ -24,6 +24,7 @@ function buildStaffOrder(
     totalAmount: new Prisma.Decimal(450),
     couponCode: null,
     discountAmount: new Prisma.Decimal(0),
+    customerPhone: null,
     cancelledAt: null,
     cancelledReason: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),

@@ -13,6 +13,8 @@ export type {
   Category,
   Coupon,
   Ingredient,
+  LoyaltyAccount,
+  LoyaltyPointEntry,
   Order,
   OrderItem,
   Payment,

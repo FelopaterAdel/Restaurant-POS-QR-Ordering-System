@@ -56,6 +56,7 @@ export default function MenuPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
+  const [phone, setPhone] = useState("");
 
   const cartMeta = useMemo(
     () =>
@@ -106,6 +107,7 @@ export default function MenuPage() {
     setSubmitError(null);
     try {
       const trimmedCoupon = couponCode.trim();
+      const trimmedPhone = phone.trim();
       const result = await createPublicOrder({
         tableId: menu.table.id,
         items: cart.items.map((i) => ({
@@ -113,6 +115,7 @@ export default function MenuPage() {
           quantity: i.quantity,
         })),
         ...(trimmedCoupon ? { couponCode: trimmedCoupon } : {}),
+        ...(trimmedPhone ? { customerPhone: trimmedPhone } : {}),
       });
       setOrderResult(result);
       cart.clear();
@@ -213,6 +216,8 @@ export default function MenuPage() {
             tableNumber={menu.table.number}
             couponCode={couponCode}
             onCouponChange={setCouponCode}
+            phone={phone}
+            onPhoneChange={setPhone}
             onConfirm={handlePlaceOrder}
             onBack={handleBackToMenu}
             isSubmitting={isSubmitting}

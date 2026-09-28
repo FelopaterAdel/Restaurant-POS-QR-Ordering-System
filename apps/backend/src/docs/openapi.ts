@@ -106,6 +106,7 @@ export const openapiSpec = {
     { name: "Products", description: "Menu products" },
     { name: "Inventory", description: "Ingredients and product recipes" },
     { name: "Coupons", description: "Discount coupons" },
+    { name: "Loyalty", description: "Customer loyalty points" },
     { name: "Notifications", description: "Staff notifications" },
     { name: "Tables", description: "Restaurant tables and QR codes" },
     { name: "Dashboard", description: "Daily business summary" },
@@ -754,6 +755,39 @@ export const openapiSpec = {
           200: successResponse("Coupon", "Disabled coupon"),
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/loyalty": {
+      get: {
+        tags: ["Loyalty"],
+        summary: "Look up loyalty balance",
+        description:
+          "Returns a customer's loyalty balance, lifetime points and tier by phone number (?phone=...). Accessible to all staff roles.",
+        operationId: "getLoyaltyBalance",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("LoyaltyBalance"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/public/loyalty": {
+      get: {
+        tags: ["Loyalty"],
+        summary: "Check my loyalty balance",
+        description:
+          "Public endpoint for customers to check their loyalty balance by phone number (?phone=...).",
+        operationId: "getPublicLoyaltyBalance",
+        responses: {
+          200: successResponse("LoyaltyBalance"),
+          400: { $ref: "#/components/responses/ValidationError" },
           404: { $ref: "#/components/responses/NotFound" },
           500: { $ref: "#/components/responses/InternalServerError" },
         },
@@ -1583,6 +1617,16 @@ export const openapiSpec = {
         type: "array",
         items: { $ref: "#/components/schemas/Coupon" },
       },
+      LoyaltyBalance: {
+        type: "object",
+        properties: {
+          phone: { type: "string" },
+          balance: { type: "integer" },
+          lifetimePoints: { type: "integer" },
+          tier: { type: "string", enum: ["Bronze", "Silver", "Gold"] },
+        },
+        required: ["phone", "balance", "lifetimePoints", "tier"],
+      },
       Notification: {
         type: "object",
         properties: {
@@ -1668,6 +1712,7 @@ export const openapiSpec = {
           totalAmount: { type: "number" },
           couponCode: { type: "string", nullable: true },
           discountAmount: { type: "number" },
+          customerPhone: { type: "string", nullable: true },
           cancelledAt: { type: "string", format: "date-time", nullable: true },
           cancelledReason: { type: "string", nullable: true },
           createdAt: { type: "string", format: "date-time" },
@@ -1702,6 +1747,7 @@ export const openapiSpec = {
           totalAmount: { type: "number" },
           couponCode: { type: "string", nullable: true },
           discountAmount: { type: "number" },
+          customerPhone: { type: "string", nullable: true },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
           items: {
@@ -2213,6 +2259,7 @@ export const openapiSpec = {
             items: { $ref: "#/components/schemas/CreateOrderItemRequest" },
           },
           couponCode: { type: "string", minLength: 1, maxLength: 32 },
+          customerPhone: { type: "string", minLength: 7, maxLength: 20 },
         },
         required: ["tableId", "items"],
       },
