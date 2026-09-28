@@ -53,6 +53,8 @@ describe("GetPublicOrderUseCase", () => {
       status: OrderStatus.PREPARING,
       paymentStatus: PaymentStatus.PENDING,
       totalAmount: 330,
+      couponCode: null,
+      discountAmount: 0,
       cancelledAt: null,
       cancelledReason: null,
       createdAt: order.createdAt,

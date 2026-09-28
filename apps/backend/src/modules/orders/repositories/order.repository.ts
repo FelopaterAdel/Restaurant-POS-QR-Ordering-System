@@ -1,5 +1,12 @@
 import { OrderStatus, prisma, TableStatus } from "@restaurant/database";
-import type { Prisma, PrismaClient } from "@restaurant/database";
+import { Prisma } from "@restaurant/database";
+import type { PrismaClient } from "@restaurant/database";
+import {
+  assertCouponUsable,
+  calculateCouponDiscount,
+  CouponNotFoundError,
+} from "../../coupons/use-cases/validate-coupon.use-case.js";
+import { normalizeCouponCode } from "../../coupons/repositories/coupon.repository.js";
 
 export interface CreateOrderItemInput {
   productId: string;
@@ -10,8 +17,9 @@ export interface CreateOrderItemInput {
 
 export interface CreateOrderWithItemsInput {
   tableId: string;
-  totalAmount: Prisma.Decimal;
+  subtotal: Prisma.Decimal;
   items: CreateOrderItemInput[];
+  couponCode?: string;
 }
 
 const orderInclude = {
@@ -157,10 +165,32 @@ export class OrderRepository {
 
   async createWithItems(input: CreateOrderWithItemsInput) {
     return this.client.$transaction(async (tx) => {
+      // Authoritative coupon check inside the transaction so concurrent
+      // orders cannot redeem past maxUses.
+      let couponCode: string | null = null;
+      let discountAmount = new Prisma.Decimal(0);
+      if (input.couponCode) {
+        const coupon = await tx.coupon.findUnique({
+          where: { code: normalizeCouponCode(input.couponCode) },
+        });
+        if (!coupon) {
+          throw new CouponNotFoundError();
+        }
+        assertCouponUsable(coupon);
+        discountAmount = calculateCouponDiscount(input.subtotal, coupon);
+        couponCode = coupon.code;
+        await tx.coupon.update({
+          where: { id: coupon.id },
+          data: { usedCount: { increment: 1 } },
+        });
+      }
+
       const order = await tx.order.create({
         data: {
           tableId: input.tableId,
-          totalAmount: input.totalAmount,
+          totalAmount: input.subtotal.sub(discountAmount),
+          couponCode,
+          discountAmount,
           items: {
             create: input.items.map((item) => ({
               productId: item.productId,

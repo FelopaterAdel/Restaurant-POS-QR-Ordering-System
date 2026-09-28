@@ -27,6 +27,7 @@ export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
   { label: "Tables", path: "/tables", permission: "tables" },
   { label: "Products", path: "/products", permission: "products" },
   { label: "Inventory", path: "/inventory", permission: "products" },
+  { label: "Coupons", path: "/coupons", permission: "products" },
   { label: "Categories", path: "/categories", permission: "categories" },
   { label: "Users", path: "/users", permission: "users" },
   { label: "Settings", path: "/settings", permission: "settings" },

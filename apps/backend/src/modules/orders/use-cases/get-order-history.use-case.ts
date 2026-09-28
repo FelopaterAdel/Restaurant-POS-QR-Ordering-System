@@ -21,6 +21,8 @@ export interface OrderHistoryItemDTO {
   };
   status: OrderStatus;
   totalAmount: number;
+  couponCode: string | null;
+  discountAmount: number;
   createdAt: Date;
   payment: OrderHistoryPaymentDTO;
 }
@@ -66,6 +68,8 @@ function toOrderHistoryItemDTO(
     },
     status: order.status,
     totalAmount: Number(order.totalAmount),
+    couponCode: order.couponCode,
+    discountAmount: Number(order.discountAmount),
     createdAt: order.createdAt,
     payment: {
       status: order.paymentStatus,

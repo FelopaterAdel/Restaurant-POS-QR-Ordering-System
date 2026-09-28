@@ -69,6 +69,8 @@ describe("GetOrderHistoryUseCase", () => {
       table: { number: 5 },
       status: OrderStatus.COMPLETED,
       totalAmount: 450,
+      couponCode: null,
+      discountAmount: 0,
       createdAt: new Date("2026-08-09T10:00:00.000Z"),
       payment: {
         status: PaymentStatus.PAID,

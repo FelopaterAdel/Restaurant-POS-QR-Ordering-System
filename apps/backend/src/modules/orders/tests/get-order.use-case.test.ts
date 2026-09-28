@@ -46,6 +46,8 @@ describe("GetOrderUseCase", () => {
       status: OrderStatus.CONFIRMED,
       paymentStatus: PaymentStatus.PENDING,
       totalAmount: 330,
+      couponCode: null,
+      discountAmount: 0,
       cancelledAt: null,
       cancelledReason: null,
       createdAt: order.createdAt,

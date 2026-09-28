@@ -1,0 +1,22 @@
+.coupons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.coupons__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.coupons__title {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+}
+
+.coupons__row-actions {
+  display: flex;
+  gap: var(--space-2);
+}

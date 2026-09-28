@@ -34,6 +34,16 @@ export function OrderSuccess({
           <span className="order-success__detail-label">Table</span>
           <span className="order-success__detail-value">{tableNumber}</span>
         </div>
+        {order.discountAmount > 0 && (
+          <div className="order-success__detail">
+            <span className="order-success__detail-label">
+              Discount{order.couponCode ? ` (${order.couponCode})` : ""}
+            </span>
+            <span className="order-success__detail-value">
+              −{formatPrice(order.discountAmount)}
+            </span>
+          </div>
+        )}
         <div className="order-success__detail">
           <span className="order-success__detail-label">Total</span>
           <span className="order-success__detail-value">

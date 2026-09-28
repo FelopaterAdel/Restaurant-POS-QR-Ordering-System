@@ -30,6 +30,16 @@ function getOrderSubmitErrorMessage(err: unknown): string {
     ) {
       return "Some items are no longer available. Please go back and update your order.";
     }
+    if (err.code === "COUPON_NOT_FOUND") {
+      return "That coupon code doesn't exist. Check it and try again.";
+    }
+    if (
+      err.code === "COUPON_INACTIVE" ||
+      err.code === "COUPON_EXPIRED" ||
+      err.code === "COUPON_MAX_USES_REACHED"
+    ) {
+      return "This coupon can no longer be used. Remove it to place your order.";
+    }
   }
   return getApiErrorMessage(err);
 }
@@ -45,6 +55,7 @@ export default function MenuPage() {
   const [orderResult, setOrderResult] = useState<CreatePublicOrderResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState("");
 
   const cartMeta = useMemo(
     () =>
@@ -94,22 +105,25 @@ export default function MenuPage() {
     setIsSubmitting(true);
     setSubmitError(null);
     try {
+      const trimmedCoupon = couponCode.trim();
       const result = await createPublicOrder({
         tableId: menu.table.id,
         items: cart.items.map((i) => ({
           productId: i.productId,
           quantity: i.quantity,
         })),
+        ...(trimmedCoupon ? { couponCode: trimmedCoupon } : {}),
       });
       setOrderResult(result);
       cart.clear();
+      setCouponCode("");
       setView("success");
     } catch (err) {
       setSubmitError(getOrderSubmitErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
-  }, [menu, cart]);
+  }, [menu, cart, couponCode]);
 
   const handleNewOrder = useCallback(() => {
     setView("menu");
@@ -197,6 +211,8 @@ export default function MenuPage() {
             items={cart.items}
             totalAmount={cart.totalAmount}
             tableNumber={menu.table.number}
+            couponCode={couponCode}
+            onCouponChange={setCouponCode}
             onConfirm={handlePlaceOrder}
             onBack={handleBackToMenu}
             isSubmitting={isSubmitting}

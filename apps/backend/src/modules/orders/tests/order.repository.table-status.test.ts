@@ -76,7 +76,7 @@ describe.skipIf(!dbAvailable)(
     async function createOrder(tableId: string) {
       const order = await repository.createWithItems({
         tableId,
-        totalAmount: new Prisma.Decimal(100),
+        subtotal: new Prisma.Decimal(100),
         items: [
           {
             productId,
@@ -107,7 +107,7 @@ describe.skipIf(!dbAvailable)(
       await expect(
         repository.createWithItems({
           tableId: table.id,
-          totalAmount: new Prisma.Decimal(10),
+          subtotal: new Prisma.Decimal(10),
           items: [
             {
               productId: "missing_product",

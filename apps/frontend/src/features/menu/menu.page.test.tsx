@@ -762,6 +762,70 @@ describe("MenuPage", () => {
     });
   });
 
+  it("sends the coupon code with the create order request", async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post("*/api/v1/public/orders", async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({ success: true, data: mockOrderResult });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const couponInput = container.querySelector(
+      "#order-coupon-code",
+    ) as HTMLInputElement;
+    await user.type(couponInput, "welcome10");
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(requestBody).toEqual({
+      tableId: "tbl_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      couponCode: "welcome10",
+    });
+  });
+
+  it("shows a friendly error for an unknown coupon code", async () => {
+    server.use(
+      http.post("*/api/v1/public/orders", () => {
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: "COUPON_NOT_FOUND",
+              message: "Coupon not found",
+            },
+          },
+          { status: 404 },
+        );
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-review__error")).toBeInTheDocument();
+    });
+
+    expect(
+      container.querySelector(".order-review__error")?.textContent,
+    ).toBe("That coupon code doesn't exist. Check it and try again.");
+  });
+
   it("disables confirm button and prevents double submit while creating the order", async () => {
     let callCount = 0;
     let releaseOrder: (() => void) | undefined;

@@ -6,6 +6,7 @@ import {
 } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
+import { ValidateCouponUseCase } from "../../coupons/use-cases/validate-coupon.use-case.js";
 import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 import {
   createOrderSchema,
@@ -58,6 +59,8 @@ export interface CreateOrderResultDTO {
   tableId: string;
   status: OrderStatus;
   totalAmount: number;
+  couponCode: string | null;
+  discountAmount: number;
   createdAt: Date;
   updatedAt: Date;
   items: CreateOrderItemDTO[];
@@ -65,9 +68,17 @@ export interface CreateOrderResultDTO {
 
 export class CreateOrderUseCase {
   private readonly orderRepository: OrderRepository;
+  private readonly validateCoupon: Pick<ValidateCouponUseCase, "execute">;
 
-  constructor(orderRepository: OrderRepository = new OrderRepository()) {
+  constructor(
+    orderRepository: OrderRepository = new OrderRepository(),
+    validateCoupon: Pick<
+      ValidateCouponUseCase,
+      "execute"
+    > = new ValidateCouponUseCase(),
+  ) {
     this.orderRepository = orderRepository;
+    this.validateCoupon = validateCoupon;
   }
 
   async execute(input: CreateOrderDTO): Promise<CreateOrderResultDTO> {
@@ -110,15 +121,22 @@ export class CreateOrderUseCase {
       };
     });
 
-    const totalAmount = items.reduce(
+    const subtotal = items.reduce(
       (sum, item) => sum.add(item.totalPrice),
       new Prisma.Decimal(0),
     );
 
+    // Early validation for clean customer-facing errors; the repository
+    // re-validates authoritatively inside the creation transaction.
+    if (data.couponCode) {
+      await this.validateCoupon.execute(data.couponCode);
+    }
+
     const order = await this.orderRepository.createWithItems({
       tableId: data.tableId,
-      totalAmount,
+      subtotal,
       items,
+      couponCode: data.couponCode,
     });
 
     await createNotificationForRoles("ORDER_CREATED", {
@@ -134,6 +152,8 @@ export class CreateOrderUseCase {
       tableId: order.tableId,
       status: order.status,
       totalAmount: Number(order.totalAmount),
+      couponCode: order.couponCode,
+      discountAmount: Number(order.discountAmount),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: order.items.map((item) => ({

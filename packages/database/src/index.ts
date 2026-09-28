@@ -1,6 +1,7 @@
 export { prisma } from "./client.js";
 export { Prisma } from "./generated/prisma/client.js";
 export {
+  CouponDiscountType,
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
@@ -10,6 +11,7 @@ export {
 } from "./generated/prisma/client.js";
 export type {
   Category,
+  Coupon,
   Ingredient,
   Order,
   OrderItem,

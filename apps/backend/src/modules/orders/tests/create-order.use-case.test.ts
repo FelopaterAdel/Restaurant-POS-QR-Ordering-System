@@ -9,6 +9,7 @@ import {
   TableDisabledError,
   TableNotFoundError,
 } from "../use-cases/create-order.use-case.js";
+import type { ValidateCouponUseCase } from "../../coupons/use-cases/validate-coupon.use-case.js";
 import {
   buildOrder,
   buildOrderItem,
@@ -73,7 +74,7 @@ describe("CreateOrderUseCase", () => {
 
     const createCall = vi.mocked(repository.createWithItems).mock.calls[0][0];
     expect(createCall.tableId).toBe("table_1");
-    expect(createCall.totalAmount.toNumber()).toBe(330);
+    expect(createCall.subtotal.toNumber()).toBe(330);
     expect(createCall.items).toHaveLength(2);
     expect(createCall.items[0]).toEqual({
       productId: "prod_1",
@@ -129,7 +130,7 @@ describe("CreateOrderUseCase", () => {
     const createCall = vi.mocked(repository.createWithItems).mock.calls[0][0];
     expect(createCall.items[0].unitPrice.toNumber()).toBe(150);
     expect(createCall.items[0].totalPrice.toNumber()).toBe(300);
-    expect(createCall.totalAmount.toNumber()).toBe(300);
+    expect(createCall.subtotal.toNumber()).toBe(300);
   });
 
   it("ignores a client-provided orderNumber and lets the server generate it", async () => {
@@ -231,6 +232,66 @@ describe("CreateOrderUseCase", () => {
     await expect(
       useCase.execute({ tableId: "table_1", items: [] }),
     ).rejects.toThrow();
+    expect(repository.createWithItems).not.toHaveBeenCalled();
+  });
+
+  it("passes the coupon code through when one is supplied", async () => {
+    const repository = createMockRepository();
+    const validateCoupon = {
+      execute: vi.fn(async () => ({ code: "WELCOME10" })),
+    } as unknown as Pick<ValidateCouponUseCase, "execute">;
+    const useCase = new CreateOrderUseCase(repository, validateCoupon);
+    const pizza = buildProduct({
+      id: "prod_1",
+      price: new Prisma.Decimal(150),
+    });
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([pizza]);
+    vi.mocked(repository.createWithItems).mockResolvedValueOnce(
+      buildOrder({
+        totalAmount: new Prisma.Decimal(270),
+        couponCode: "WELCOME10",
+        discountAmount: new Prisma.Decimal(30),
+      }),
+    );
+
+    const result = await useCase.execute({
+      tableId: "table_1",
+      items: [{ productId: "prod_1", quantity: 2 }],
+      couponCode: "welcome10",
+    });
+
+    expect(validateCoupon.execute).toHaveBeenCalledWith("welcome10");
+    const createCall = vi.mocked(repository.createWithItems).mock.calls[0][0];
+    expect(createCall.subtotal.toNumber()).toBe(300);
+    expect(createCall.couponCode).toBe("welcome10");
+    expect(result.totalAmount).toBe(270);
+    expect(result.couponCode).toBe("WELCOME10");
+    expect(result.discountAmount).toBe(30);
+  });
+
+  it("rejects an invalid coupon before creating the order", async () => {
+    const repository = createMockRepository();
+    const validateCoupon = {
+      execute: vi.fn(async () => {
+        throw new Error("bad coupon");
+      }),
+    };
+    const useCase = new CreateOrderUseCase(repository, validateCoupon);
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([
+      buildProduct({ id: "prod_1", price: new Prisma.Decimal(150) }),
+    ]);
+
+    await expect(
+      useCase.execute({
+        tableId: "table_1",
+        items: [{ productId: "prod_1", quantity: 1 }],
+        couponCode: "BAD",
+      }),
+    ).rejects.toThrow("bad coupon");
     expect(repository.createWithItems).not.toHaveBeenCalled();
   });
 

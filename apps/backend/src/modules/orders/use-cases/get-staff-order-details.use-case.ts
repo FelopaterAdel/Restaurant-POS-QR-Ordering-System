@@ -32,6 +32,8 @@ export interface StaffOrderDetailsDTO {
     orderNumber: number;
     status: OrderStatus;
     totalAmount: number;
+    couponCode: string | null;
+    discountAmount: number;
   };
   table: {
     id: string;
@@ -52,6 +54,8 @@ export function toStaffOrderDetailsDTO(
       orderNumber: order.orderNumber,
       status: order.status,
       totalAmount: Number(order.totalAmount),
+      couponCode: order.couponCode,
+      discountAmount: Number(order.discountAmount),
     },
     table: {
       id: order.table.id,

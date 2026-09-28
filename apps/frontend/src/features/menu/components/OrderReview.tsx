@@ -6,6 +6,8 @@ interface OrderReviewProps {
   items: CartItemType[];
   totalAmount: number;
   tableNumber: number;
+  couponCode: string;
+  onCouponChange: (code: string) => void;
   onConfirm: () => void;
   onBack: () => void;
   isSubmitting: boolean;
@@ -16,6 +18,8 @@ export function OrderReview({
   items,
   totalAmount,
   tableNumber,
+  couponCode,
+  onCouponChange,
   onConfirm,
   onBack,
   isSubmitting,
@@ -43,6 +47,18 @@ export function OrderReview({
             </span>
           </div>
         ))}
+      </div>
+
+      <div className="order-review__coupon">
+        <label htmlFor="order-coupon-code">Coupon code (optional)</label>
+        <input
+          id="order-coupon-code"
+          type="text"
+          placeholder="e.g. WELCOME10"
+          value={couponCode}
+          onChange={(e) => onCouponChange(e.target.value)}
+          disabled={isSubmitting}
+        />
       </div>
 
       <div className="order-review__total">

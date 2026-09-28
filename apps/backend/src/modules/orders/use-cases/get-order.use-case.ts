@@ -30,6 +30,8 @@ export interface OrderDTO {
   status: OrderStatus;
   paymentStatus: PaymentStatus;
   totalAmount: number;
+  couponCode: string | null;
+  discountAmount: number;
   cancelledAt: Date | null;
   cancelledReason: string | null;
   createdAt: Date;
@@ -46,6 +48,8 @@ export function toOrderDTO(order: OrderWithRelations): OrderDTO {
     status: order.status,
     paymentStatus: order.paymentStatus,
     totalAmount: Number(order.totalAmount),
+    couponCode: order.couponCode,
+    discountAmount: Number(order.discountAmount),
     cancelledAt: order.cancelledAt,
     cancelledReason: order.cancelledReason,
     createdAt: order.createdAt,

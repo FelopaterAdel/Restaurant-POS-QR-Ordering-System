@@ -78,6 +78,7 @@ export interface PublicOrder {
 export interface CreatePublicOrderInput {
   tableId: string;
   items: Array<{ productId: string; quantity: number }>;
+  couponCode?: string;
 }
 
 export interface CreatePublicOrderResult {
@@ -86,6 +87,8 @@ export interface CreatePublicOrderResult {
   tableId: string;
   status: string;
   totalAmount: number;
+  couponCode: string | null;
+  discountAmount: number;
   createdAt: string;
   updatedAt: string;
   items: Array<{

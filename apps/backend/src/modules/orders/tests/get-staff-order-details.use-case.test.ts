@@ -22,6 +22,8 @@ function buildStaffOrder(
     status: OrderStatus.SERVED,
     paymentStatus: PaymentStatus.PENDING,
     totalAmount: new Prisma.Decimal(450),
+    couponCode: null,
+    discountAmount: new Prisma.Decimal(0),
     cancelledAt: null,
     cancelledReason: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -88,6 +90,8 @@ describe("GetStaffOrderDetailsUseCase", () => {
       orderNumber: 1042,
       status: OrderStatus.SERVED,
       totalAmount: 450,
+      couponCode: null,
+      discountAmount: 0,
     });
     expect(result.table).toEqual({ id: "table_1", number: 5 });
     expect(result.items).toEqual([

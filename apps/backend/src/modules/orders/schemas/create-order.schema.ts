@@ -11,6 +11,12 @@ const createOrderItemSchema = z.object({
 export const createOrderSchema = z.object({
   tableId: z.string().trim().min(1, "Table id is required"),
   items: z.array(createOrderItemSchema).min(1, "At least one item is required"),
+  couponCode: z
+    .string()
+    .trim()
+    .min(1, "Coupon code must not be empty")
+    .max(32, "Coupon code must be at most 32 characters")
+    .optional(),
 });
 
 export type CreateOrderDTO = z.infer<typeof createOrderSchema>;
