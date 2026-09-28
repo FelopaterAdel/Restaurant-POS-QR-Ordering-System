@@ -213,14 +213,16 @@ model Order {
 }
 
 model Payment {
-  id        String         @id @default(cuid())
-  orderId   String
-  amount    Decimal
-  method    PaymentMethod
-  status    PaymentStatus  @default(PENDING)
-  paidAt    DateTime?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  orderId     String
+  amount      Decimal
+  method      PaymentMethod
+  status      PaymentStatus  @default(PENDING)
+  provider    String?
+  providerRef String?        @unique
+  paidAt      DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
 

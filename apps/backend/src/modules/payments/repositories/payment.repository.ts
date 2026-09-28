@@ -12,6 +12,13 @@ export interface CreatePaidPaymentInput {
   paidAt: Date;
 }
 
+export interface CreatePendingOnlinePaymentInput {
+  orderId: string;
+  amount: Prisma.Decimal;
+  provider: string;
+  providerRef: string;
+}
+
 export interface PaidPaymentWithOrder {
   id: string;
   orderId: string;
@@ -50,6 +57,41 @@ export interface PaidPaymentsSummary {
 
 export class PaymentRepository {
   constructor(private readonly client: PrismaClient = prisma) {}
+
+  async createPendingOnlinePayment(input: CreatePendingOnlinePaymentInput) {
+    return this.client.payment.create({
+      data: {
+        orderId: input.orderId,
+        amount: input.amount,
+        method: "CARD",
+        status: PaymentStatus.PENDING,
+        provider: input.provider,
+        providerRef: input.providerRef,
+      },
+    });
+  }
+
+  async findByProviderRef(providerRef: string) {
+    return this.client.payment.findUnique({
+      where: { providerRef },
+    });
+  }
+
+  async confirmOnlinePayment(paymentId: string, orderId: string) {
+    return this.client.$transaction(async (tx) => {
+      const payment = await tx.payment.update({
+        where: { id: paymentId },
+        data: { status: PaymentStatus.PAID, paidAt: new Date() },
+      });
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: { paymentStatus: PaymentStatus.PAID },
+      });
+
+      return payment;
+    });
+  }
 
   async createPaidPaymentAndUpdateOrder(input: CreatePaidPaymentInput) {
     return this.client.$transaction(async (tx) => {

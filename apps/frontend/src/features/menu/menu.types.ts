@@ -80,6 +80,7 @@ export interface CreatePublicOrderInput {
   items: Array<{ productId: string; quantity: number }>;
   couponCode?: string;
   customerPhone?: string;
+  payOnline?: boolean;
 }
 
 export interface CreatePublicOrderResult {
@@ -90,6 +91,9 @@ export interface CreatePublicOrderResult {
   totalAmount: number;
   couponCode: string | null;
   discountAmount: number;
+  stripeClientSecret: string | null;
+  onlineProvider: string | null;
+  paymentRedirectUrl: string | null;
   createdAt: string;
   updatedAt: string;
   items: Array<{

@@ -98,6 +98,15 @@ const handlers = [
   http.post("*/api/v1/public/orders", () => {
     return HttpResponse.json({ success: true, data: mockOrderResult });
   }),
+  http.get("*/api/v1/public/payment-providers", () => {
+    return HttpResponse.json({
+      success: true,
+      data: [
+        { id: "stripe", label: "Card (Stripe)" },
+        { id: "paymob", label: "Card / Wallet (Paymob)" },
+      ],
+    });
+  }),
 ];
 
 const server = setupServer(...handlers);
@@ -824,6 +833,115 @@ describe("MenuPage", () => {
       items: [{ productId: "prod_1", quantity: 1 }],
       customerPhone: "01012345678",
     });
+  });
+
+  it("sends the payOnline flag when card payment is selected", async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post("*/api/v1/public/orders", async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({
+          success: true,
+          data: {
+            ...mockOrderResult,
+            stripeClientSecret: "pi_test_secret_abc",
+          },
+        });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const onlineRadio = container.querySelector(
+      'input[name="payment-method"][value="stripe"]',
+    ) as HTMLInputElement;
+    await user.click(onlineRadio);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(requestBody).toEqual({
+        tableId: "tbl_1",
+        items: [{ productId: "prod_1", quantity: 1 }],
+        payOnline: true,
+        onlineProvider: "stripe",
+      });
+    });
+  });
+
+  it("shows a pay-now link when Paymob returns a redirect URL", async () => {
+    server.use(
+      http.post("*/api/v1/public/orders", async () => {
+        return HttpResponse.json({
+          success: true,
+          data: {
+            ...mockOrderResult,
+            onlineProvider: "paymob",
+            paymentRedirectUrl:
+              "https://accept.paymob.com/api/acceptance/iframes/1?payment_token=tok",
+          },
+        });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const paymobRadio = container.querySelector(
+      'input[name="payment-method"][value="paymob"]',
+    ) as HTMLInputElement;
+    await user.click(paymobRadio);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    const payNow = container.querySelector(
+      ".order-success__actions a",
+    ) as HTMLAnchorElement;
+    expect(payNow?.textContent).toBe("Pay now");
+    expect(payNow?.href).toContain("paymob.com");
+  });
+
+  it("shows a friendly error when online payment is not configured", async () => {
+    server.use(
+      http.post("*/api/v1/public/orders", () => {
+        return HttpResponse.json(
+          {
+            success: false,
+            error: {
+              code: "PAYMENT_PROVIDER_NOT_CONFIGURED",
+              message: "Online payment is not configured",
+            },
+          },
+          { status: 400 },
+        );
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-review__error")).toBeInTheDocument();
+    });
+
+    expect(
+      container.querySelector(".order-review__error")?.textContent,
+    ).toBe(
+      "Online payment isn't available right now. Please pay at the counter.",
+    );
   });
 
   it("shows a friendly error for an unknown coupon code", async () => {

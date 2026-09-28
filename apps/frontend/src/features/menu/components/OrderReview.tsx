@@ -10,6 +10,9 @@ interface OrderReviewProps {
   onCouponChange: (code: string) => void;
   phone: string;
   onPhoneChange: (phone: string) => void;
+  onlineProvider: string | null;
+  onOnlineProviderChange: (provider: string | null) => void;
+  availableProviders: Array<{ id: string; label: string }>;
   onConfirm: () => void;
   onBack: () => void;
   isSubmitting: boolean;
@@ -24,6 +27,9 @@ export function OrderReview({
   onCouponChange,
   phone,
   onPhoneChange,
+  onlineProvider,
+  onOnlineProviderChange,
+  availableProviders,
   onConfirm,
   onBack,
   isSubmitting,
@@ -78,6 +84,34 @@ export function OrderReview({
           disabled={isSubmitting}
         />
       </div>
+
+      <fieldset className="order-review__payment">
+        <legend>Payment method</legend>
+        <label>
+          <input
+            type="radio"
+            name="payment-method"
+            value="counter"
+            checked={onlineProvider === null}
+            onChange={() => onOnlineProviderChange(null)}
+            disabled={isSubmitting}
+          />
+          Pay at the counter
+        </label>
+        {availableProviders.map((provider) => (
+          <label key={provider.id}>
+            <input
+              type="radio"
+              name="payment-method"
+              value={provider.id}
+              checked={onlineProvider === provider.id}
+              onChange={() => onOnlineProviderChange(provider.id)}
+              disabled={isSubmitting}
+            />
+            {provider.label}
+          </label>
+        ))}
+      </fieldset>
 
       <div className="order-review__total">
         <span>Total</span>

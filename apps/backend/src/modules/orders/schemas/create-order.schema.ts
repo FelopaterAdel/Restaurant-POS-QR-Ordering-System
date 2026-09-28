@@ -28,6 +28,8 @@ export const createOrderSchema = z.object({
     .max(32, "Coupon code must be at most 32 characters")
     .optional(),
   customerPhone: customerPhoneSchema.optional(),
+  payOnline: z.boolean().optional(),
+  onlineProvider: z.enum(["stripe", "paymob"]).optional(),
 });
 
 export type CreateOrderDTO = z.infer<typeof createOrderSchema>;

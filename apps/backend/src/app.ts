@@ -24,13 +24,26 @@ import {
 } from "./modules/loyalty/index.js";
 import { ingredientRouter, productRecipeRouter } from "./modules/ingredients/index.js";
 import { notificationRoutes } from "./modules/notifications/index.js";
+import paymobWebhookRouter from "./modules/payments/routes/webhook.routes.js";
+import publicPaymentRouter from "./modules/payments/routes/public-payment.routes.js";
+import { stripeWebhook } from "./modules/payments/controllers/webhook.controller.js";
+import type { RequestHandler } from "express";
 import staffOrderRouter from "./modules/orders/routes/staff-order.routes.js";
 import tableRouter from "./modules/tables/routes/table.routes.js";
 import userRouter from "./modules/users/routes/user.routes.js";
 
 const app = express();
 app.use(helmet());
+// Stripe webhooks need the raw body for signature verification,
+// so this exact route is mounted before the JSON parser. The Paymob
+// callback (nested path) uses parsed JSON and is mounted below.
+app.post(
+  "/api/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  stripeWebhook as RequestHandler,
+);
 app.use(express.json());
+app.use("/api/v1/payments/webhook/paymob", paymobWebhookRouter);
 app.use(cors({ origin: resolveCorsOrigins(env.corsOrigin) }));
 
 function resolveCorsOrigins(value: string): string | string[] | boolean {
@@ -62,6 +75,7 @@ app.use("/api/v1/tables", tableRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/public/tables", publicMenuRouter);
 app.use("/api/v1/public/orders", publicOrderRouter);
+app.use("/api/v1/public/payment-providers", publicPaymentRouter);
 app.use("/api/v1/orders/queue", orderQueueRouter);
 app.use("/api/v1/orders/history", orderHistoryRouter);
 app.use("/api/v1/orders", orderRouter);

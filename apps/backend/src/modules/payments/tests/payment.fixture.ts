@@ -8,6 +8,8 @@ export function buildPayment(overrides: Partial<Payment> = {}): Payment {
     amount: new Prisma.Decimal(300),
     method: PaymentMethod.CASH,
     status: PaymentStatus.PAID,
+    provider: null,
+    providerRef: null,
     paidAt: new Date("2026-01-01T00:00:00.000Z"),
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
     updatedAt: new Date("2026-01-01T00:00:00.000Z"),

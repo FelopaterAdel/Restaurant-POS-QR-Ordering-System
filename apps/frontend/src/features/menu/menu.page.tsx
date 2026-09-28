@@ -10,11 +10,13 @@ import { CategoryTabs } from "./components/CategoryTabs";
 import { ProductGrid } from "./components/ProductGrid";
 import { Cart } from "./components/Cart";
 import { OrderReview } from "./components/OrderReview";
+import { OnlinePaymentPending } from "./components/OnlinePaymentPending";
 import { OrderSuccess } from "./components/OrderSuccess";
+import { usePublicPaymentProvidersQuery } from "@/features/payments/providers.queries";
 import type { PublicProduct, CreatePublicOrderResult } from "./menu.types";
 import "./menu.css";
 
-type View = "menu" | "review" | "success";
+type View = "menu" | "review" | "success" | "online-pending";
 
 function getOrderSubmitErrorMessage(err: unknown): string {
   if (err instanceof ApiError) {
@@ -29,6 +31,9 @@ function getOrderSubmitErrorMessage(err: unknown): string {
       err.code === "PRODUCT_UNAVAILABLE"
     ) {
       return "Some items are no longer available. Please go back and update your order.";
+    }
+    if (err.code === "PAYMENT_PROVIDER_NOT_CONFIGURED") {
+      return "Online payment isn't available right now. Please pay at the counter.";
     }
     if (err.code === "COUPON_NOT_FOUND") {
       return "That coupon code doesn't exist. Check it and try again.";
@@ -57,6 +62,17 @@ export default function MenuPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState("");
   const [phone, setPhone] = useState("");
+  const [onlineProvider, setOnlineProvider] = useState<string | null>(null);
+
+  // Shown until the backend reports the configured providers; the backend
+  // still rejects unconfigured choices with a friendly error.
+  const { data: configuredProviders } = usePublicPaymentProvidersQuery(
+    view === "review",
+  );
+  const availableProviders = configuredProviders ?? [
+    { id: "stripe", label: "Card (Stripe)" },
+    { id: "paymob", label: "Card / Wallet (Paymob)" },
+  ];
 
   const cartMeta = useMemo(
     () =>
@@ -116,17 +132,24 @@ export default function MenuPage() {
         })),
         ...(trimmedCoupon ? { couponCode: trimmedCoupon } : {}),
         ...(trimmedPhone ? { customerPhone: trimmedPhone } : {}),
+        ...(onlineProvider
+          ? { payOnline: true, onlineProvider: onlineProvider as "stripe" | "paymob" }
+          : {}),
       });
       setOrderResult(result);
       cart.clear();
       setCouponCode("");
-      setView("success");
+      setView(
+        result.stripeClientSecret || result.paymentRedirectUrl
+          ? "online-pending"
+          : "success",
+      );
     } catch (err) {
       setSubmitError(getOrderSubmitErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
-  }, [menu, cart, couponCode]);
+  }, [menu, cart, couponCode, onlineProvider]);
 
   const handleNewOrder = useCallback(() => {
     setView("menu");
@@ -206,6 +229,21 @@ export default function MenuPage() {
     );
   }
 
+  if (view === "online-pending" && orderResult) {
+    return (
+      <main className="menu-page">
+        <div className="menu-page__content">
+          <OnlinePaymentPending
+            order={orderResult}
+            tableNumber={menu.table.number}
+            onTrackOrder={handleTrackOrder}
+            onNewOrder={handleNewOrder}
+          />
+        </div>
+      </main>
+    );
+  }
+
   if (view === "review") {
     return (
       <main className="menu-page">
@@ -218,6 +256,9 @@ export default function MenuPage() {
             onCouponChange={setCouponCode}
             phone={phone}
             onPhoneChange={setPhone}
+            onlineProvider={onlineProvider}
+            onOnlineProviderChange={setOnlineProvider}
+            availableProviders={availableProviders}
             onConfirm={handlePlaceOrder}
             onBack={handleBackToMenu}
             isSubmitting={isSubmitting}

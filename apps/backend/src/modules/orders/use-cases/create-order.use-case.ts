@@ -7,6 +7,13 @@ import {
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import { ValidateCouponUseCase } from "../../coupons/use-cases/validate-coupon.use-case.js";
+import { PaymentProviderNotConfiguredError } from "../../../infra/stripe/stripe.service.js";
+import {
+  defaultOnlineProviders,
+  resolveOnlineProvider,
+  type OnlineProviderMap,
+} from "../../../infra/online-providers.js";
+import { PaymentRepository } from "../../payments/repositories/payment.repository.js";
 import { createNotificationForRoles } from "../../notifications/services/notification.service.js";
 import {
   createOrderSchema,
@@ -62,6 +69,9 @@ export interface CreateOrderResultDTO {
   couponCode: string | null;
   discountAmount: number;
   customerPhone: string | null;
+  stripeClientSecret: string | null;
+  onlineProvider: string | null;
+  paymentRedirectUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
   items: CreateOrderItemDTO[];
@@ -70,6 +80,8 @@ export interface CreateOrderResultDTO {
 export class CreateOrderUseCase {
   private readonly orderRepository: OrderRepository;
   private readonly validateCoupon: Pick<ValidateCouponUseCase, "execute">;
+  private readonly onlineProviders: OnlineProviderMap;
+  private readonly paymentRepository: PaymentRepository;
 
   constructor(
     orderRepository: OrderRepository = new OrderRepository(),
@@ -77,13 +89,26 @@ export class CreateOrderUseCase {
       ValidateCouponUseCase,
       "execute"
     > = new ValidateCouponUseCase(),
+    onlineProviders: OnlineProviderMap = defaultOnlineProviders(),
+    paymentRepository: PaymentRepository = new PaymentRepository(),
   ) {
     this.orderRepository = orderRepository;
     this.validateCoupon = validateCoupon;
+    this.onlineProviders = onlineProviders;
+    this.paymentRepository = paymentRepository;
   }
 
   async execute(input: CreateOrderDTO): Promise<CreateOrderResultDTO> {
     const data = createOrderSchema.parse(input);
+
+    // Fail fast before creating anything when online payment is requested
+    // but no (matching) provider is configured.
+    const onlineProvider = data.payOnline
+      ? resolveOnlineProvider(data.onlineProvider, this.onlineProviders)
+      : null;
+    if (data.payOnline && !onlineProvider) {
+      throw new PaymentProviderNotConfiguredError();
+    }
 
     const table = await this.orderRepository.findTableById(data.tableId);
     if (!table) {
@@ -148,6 +173,27 @@ export class CreateOrderUseCase {
       entityId: order.id,
     });
 
+    let stripeClientSecret: string | null = null;
+    let paymentRedirectUrl: string | null = null;
+    if (data.payOnline && onlineProvider) {
+      const intent = await onlineProvider.createPaymentIntent({
+        amountMinor: Math.round(Number(order.totalAmount) * 100),
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerPhone: order.customerPhone,
+      });
+      await this.paymentRepository.createPendingOnlinePayment({
+        orderId: order.id,
+        amount: order.totalAmount,
+        provider: onlineProvider.name,
+        providerRef: intent.id,
+      });
+      if (onlineProvider.name === "stripe") {
+        stripeClientSecret = intent.clientSecret;
+      }
+      paymentRedirectUrl = intent.redirectUrl ?? null;
+    }
+
     return {
       id: order.id,
       orderNumber: order.orderNumber,
@@ -157,6 +203,9 @@ export class CreateOrderUseCase {
       couponCode: order.couponCode,
       discountAmount: Number(order.discountAmount),
       customerPhone: order.customerPhone,
+      stripeClientSecret,
+      onlineProvider: onlineProvider?.name ?? null,
+      paymentRedirectUrl,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       items: order.items.map((item) => ({

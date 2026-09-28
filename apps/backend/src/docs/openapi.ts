@@ -793,6 +793,95 @@ export const openapiSpec = {
         },
       },
     },
+    "/api/v1/payments/webhook": {
+      post: {
+        tags: ["Payments"],
+        summary: "Stripe webhook",
+        description:
+          "Receives Stripe payment events with signature verification. On payment_intent.succeeded the matching order is marked PAID. No authentication; verified via the Stripe-Signature header.",
+        operationId: "stripeWebhook",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                description: "Raw Stripe event payload",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Event received",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    received: { type: "boolean", example: true },
+                  },
+                  required: ["received"],
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/payments/webhook/paymob": {
+      post: {
+        tags: ["Payments"],
+        summary: "Paymob transaction callback",
+        description:
+          "Receives Paymob processed-transaction callbacks verified with HMAC_SHA512 (?hmac=...). On success the matching order is marked PAID. No authentication.",
+        operationId: "paymobCallback",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                description: "Paymob callback body with an obj node",
+              },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Callback received",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    received: { type: "boolean", example: true },
+                  },
+                  required: ["received"],
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/ValidationError" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/public/payment-providers": {
+      get: {
+        tags: ["Payments"],
+        summary: "List online payment providers",
+        description:
+          "Lists the online payment providers currently configured (e.g. stripe, paymob) for the checkout selector.",
+        operationId: "listPaymentProviders",
+        responses: {
+          200: successResponse("PaymentProviderList"),
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
     "/api/v1/tables": {
       get: {
         tags: ["Tables"],
@@ -1617,6 +1706,18 @@ export const openapiSpec = {
         type: "array",
         items: { $ref: "#/components/schemas/Coupon" },
       },
+      PaymentProvider: {
+        type: "object",
+        properties: {
+          id: { type: "string", enum: ["stripe", "paymob"] },
+          label: { type: "string" },
+        },
+        required: ["id", "label"],
+      },
+      PaymentProviderList: {
+        type: "array",
+        items: { $ref: "#/components/schemas/PaymentProvider" },
+      },
       LoyaltyBalance: {
         type: "object",
         properties: {
@@ -1748,6 +1849,9 @@ export const openapiSpec = {
           couponCode: { type: "string", nullable: true },
           discountAmount: { type: "number" },
           customerPhone: { type: "string", nullable: true },
+          stripeClientSecret: { type: "string", nullable: true },
+          onlineProvider: { type: "string", nullable: true },
+          paymentRedirectUrl: { type: "string", nullable: true },
           createdAt: { type: "string", format: "date-time" },
           updatedAt: { type: "string", format: "date-time" },
           items: {
@@ -1774,6 +1878,8 @@ export const openapiSpec = {
           amount: { type: "number" },
           method: { $ref: "#/components/schemas/PaymentMethod" },
           status: { $ref: "#/components/schemas/PaymentStatus" },
+          provider: { type: "string", nullable: true },
+          providerRef: { type: "string", nullable: true },
           paidAt: { type: "string", format: "date-time", nullable: true },
           createdAt: { type: "string", format: "date-time" },
         },
@@ -2260,6 +2366,8 @@ export const openapiSpec = {
           },
           couponCode: { type: "string", minLength: 1, maxLength: 32 },
           customerPhone: { type: "string", minLength: 7, maxLength: 20 },
+          payOnline: { type: "boolean" },
+          onlineProvider: { type: "string", enum: ["stripe", "paymob"] },
         },
         required: ["tableId", "items"],
       },

@@ -295,6 +295,142 @@ describe("CreateOrderUseCase", () => {
     expect(repository.createWithItems).not.toHaveBeenCalled();
   });
 
+  it("creates an online intent and pending payment when payOnline is set", async () => {
+    const repository = createMockRepository();
+    const stripeProvider = {
+      name: "stripe",
+      isConfigured: () => true,
+      createPaymentIntent: vi.fn(async () => ({
+        id: "pi_test_123",
+        clientSecret: "pi_test_123_secret_abc",
+      })),
+    };
+    const paymentRepository = {
+      createPendingOnlinePayment: vi.fn(async () => ({ id: "pay_1" })),
+    };
+    const useCase = new CreateOrderUseCase(
+      repository,
+      { execute: vi.fn(async () => ({ code: "WELCOME10" })) } as never,
+      {
+        stripe: stripeProvider,
+        paymob: { name: "paymob", isConfigured: () => false },
+      } as never,
+      paymentRepository as never,
+    );
+    const pizza = buildProduct({
+      id: "prod_1",
+      price: new Prisma.Decimal(150),
+    });
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([pizza]);
+    vi.mocked(repository.createWithItems).mockResolvedValueOnce(
+      buildOrder({ totalAmount: new Prisma.Decimal(300) }),
+    );
+
+    const result = await useCase.execute({
+      tableId: "table_1",
+      items: [{ productId: "prod_1", quantity: 2 }],
+      payOnline: true,
+    });
+
+    expect(stripeProvider.createPaymentIntent).toHaveBeenCalledWith({
+      amountMinor: 30000,
+      orderId: "order_1",
+      orderNumber: 1001,
+      customerPhone: null,
+    });
+    expect(
+      paymentRepository.createPendingOnlinePayment,
+    ).toHaveBeenCalledWith({
+      orderId: "order_1",
+      amount: expect.any(Prisma.Decimal),
+      provider: "stripe",
+      providerRef: "pi_test_123",
+    });
+    expect(result.stripeClientSecret).toBe("pi_test_123_secret_abc");
+  });
+
+  it("rejects payOnline before creating anything when unconfigured", async () => {
+    const repository = createMockRepository();
+    const stripeProvider = {
+      name: "stripe",
+      isConfigured: () => false,
+      createPaymentIntent: vi.fn(),
+    };
+    const useCase = new CreateOrderUseCase(
+      repository,
+      { execute: vi.fn() } as never,
+      {
+        stripe: stripeProvider,
+        paymob: { name: "paymob", isConfigured: () => false },
+      } as never,
+      {} as never,
+    );
+
+    await expect(
+      useCase.execute({
+        tableId: "table_1",
+        items: [{ productId: "prod_1", quantity: 1 }],
+        payOnline: true,
+      }),
+    ).rejects.toThrowError(/not configured/);
+    expect(repository.createWithItems).not.toHaveBeenCalled();
+    expect(stripeProvider.createPaymentIntent).not.toHaveBeenCalled();
+  });
+
+  it("routes payOnline to the explicitly chosen provider", async () => {
+    const repository = createMockRepository();
+    const paymobProvider = {
+      name: "paymob",
+      isConfigured: () => true,
+      createPaymentIntent: vi.fn(async () => ({
+        id: "987654",
+        clientSecret: "paymob_token_abc",
+        redirectUrl: "https://accept.paymob.com/api/acceptance/iframes/1?payment_token=paymob_token_abc",
+      })),
+    };
+    const paymentRepository = {
+      createPendingOnlinePayment: vi.fn(async () => ({ id: "pay_1" })),
+    };
+    const useCase = new CreateOrderUseCase(
+      repository,
+      { execute: vi.fn() } as never,
+      {
+        stripe: { name: "stripe", isConfigured: () => true },
+        paymob: paymobProvider,
+      } as never,
+      paymentRepository as never,
+    );
+    const pizza = buildProduct({
+      id: "prod_1",
+      price: new Prisma.Decimal(150),
+    });
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([pizza]);
+    vi.mocked(repository.createWithItems).mockResolvedValueOnce(
+      buildOrder({ totalAmount: new Prisma.Decimal(150) }),
+    );
+
+    const result = await useCase.execute({
+      tableId: "table_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      payOnline: true,
+      onlineProvider: "paymob",
+    });
+
+    expect(paymobProvider.createPaymentIntent).toHaveBeenCalledTimes(1);
+    expect(
+      paymentRepository.createPendingOnlinePayment,
+    ).toHaveBeenCalledWith(
+      expect.objectContaining({ provider: "paymob", providerRef: "987654" }),
+    );
+    expect(result.onlineProvider).toBe("paymob");
+    expect(result.stripeClientSecret).toBeNull();
+    expect(result.paymentRedirectUrl).toContain("paymob_token_abc");
+  });
+
   it("rejects a non-positive quantity", async () => {
     const repository = createMockRepository();
     const useCase = new CreateOrderUseCase(repository);

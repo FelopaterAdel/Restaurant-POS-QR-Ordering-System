@@ -57,4 +57,16 @@ export const env = {
     silverThreshold: Number(process.env.LOYALTY_SILVER_THRESHOLD ?? 500),
     goldThreshold: Number(process.env.LOYALTY_GOLD_THRESHOLD ?? 2000),
   },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY ?? "",
+    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+    currency: process.env.STRIPE_CURRENCY ?? "egp",
+  },
+  paymob: {
+    apiKey: process.env.PAYMOB_API_KEY ?? "",
+    integrationId: process.env.PAYMOB_INTEGRATION_ID ?? "",
+    iframeId: process.env.PAYMOB_IFRAME_ID ?? "",
+    hmacSecret: process.env.PAYMOB_HMAC_SECRET ?? "",
+    currency: process.env.PAYMOB_CURRENCY ?? "EGP",
+  },
 };
