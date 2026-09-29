@@ -23,6 +23,7 @@ import PaymentHistoryPage from "@/features/payments/history.page";
 import InventoryPage from "@/features/inventory/inventory.page";
 import CouponsPage from "@/features/coupons/coupons.page";
 import AnalyticsPage from "@/features/analytics/analytics.page";
+import ReportsPage from "@/features/reports/reports.page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -71,6 +72,10 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/analytics",
                 element: <AnalyticsPage />,
+              },
+              {
+                path: "/reports",
+                element: <ReportsPage />,
               },
             ],
           },

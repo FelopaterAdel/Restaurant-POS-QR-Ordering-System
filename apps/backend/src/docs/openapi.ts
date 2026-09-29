@@ -111,6 +111,7 @@ export const openapiSpec = {
     { name: "Tables", description: "Restaurant tables and QR codes" },
     { name: "Dashboard", description: "Daily business summary" },
     { name: "Analytics", description: "Sales analytics and stock overview" },
+    { name: "Reports", description: "AI-generated sales reports" },
     { name: "Orders", description: "Order lifecycle management" },
     { name: "Order Queue", description: "Active kitchen queue" },
     { name: "Order History", description: "Completed order search" },
@@ -929,6 +930,58 @@ export const openapiSpec = {
           200: successResponse("StockSummary"),
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/reports": {
+      get: {
+        tags: ["Reports"],
+        summary: "List reports",
+        description:
+          "Lists generated sales reports, newest first. Owner and manager roles only.",
+        operationId: "listReports",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("ReportList"),
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/reports/latest": {
+      get: {
+        tags: ["Reports"],
+        summary: "Get latest report",
+        description:
+          "Returns the most recent sales report. Owner and manager roles only.",
+        operationId: "getLatestReport",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("Report"),
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/reports/generate": {
+      post: {
+        tags: ["Reports"],
+        summary: "Generate report",
+        description:
+          "Generates (or regenerates) the AI sales report for a date, defaulting to yesterday. Owner and manager roles only.",
+        operationId: "generateReport",
+        security: [{ bearerAuth: [] }],
+        requestBody: jsonBody("GenerateReportRequest"),
+        responses: {
+          201: successResponse("Report", "Report generated"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          409: { $ref: "#/components/responses/Conflict" },
           500: { $ref: "#/components/responses/InternalServerError" },
         },
       },
@@ -1796,6 +1849,34 @@ export const openapiSpec = {
         type: "array",
         items: { $ref: "#/components/schemas/RevenuePoint" },
       },
+      Report: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          date: { type: "string" },
+          provider: { type: "string" },
+          model: { type: "string" },
+          summary: { type: "string" },
+          recommendations: {
+            type: "array",
+            items: { type: "string" },
+          },
+          createdAt: { type: "string", format: "date-time" },
+        },
+        required: [
+          "id",
+          "date",
+          "provider",
+          "model",
+          "summary",
+          "recommendations",
+          "createdAt",
+        ],
+      },
+      ReportList: {
+        type: "array",
+        items: { $ref: "#/components/schemas/Report" },
+      },
       StockSummary: {
         type: "object",
         properties: {
@@ -2422,6 +2503,12 @@ export const openapiSpec = {
           },
         },
         required: ["items"],
+      },
+      GenerateReportRequest: {
+        type: "object",
+        properties: {
+          date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+        },
       },
       CreateTableRequest: {
         type: "object",

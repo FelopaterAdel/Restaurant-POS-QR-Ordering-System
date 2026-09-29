@@ -62,6 +62,13 @@ export const env = {
     webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
     currency: process.env.STRIPE_CURRENCY ?? "egp",
   },
+  ai: {
+    apiKey: process.env.ANTHROPIC_API_KEY ?? "",
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5",
+  },
+  reports: {
+    cron: process.env.REPORT_CRON ?? "0 6 * * *",
+  },
   paymob: {
     apiKey: process.env.PAYMOB_API_KEY ?? "",
     integrationId: process.env.PAYMOB_INTEGRATION_ID ?? "",

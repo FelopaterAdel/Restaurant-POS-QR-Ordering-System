@@ -15,6 +15,7 @@ export type {
   Ingredient,
   LoyaltyAccount,
   LoyaltyPointEntry,
+  Report,
   Order,
   OrderItem,
   Payment,
