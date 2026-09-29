@@ -10,6 +10,7 @@ export interface NavigationItem {
 
 export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
   { label: "Dashboard", path: "/dashboard", permission: "dashboard" },
+  { label: "Analytics", path: "/analytics", permission: "dashboard" },
   { label: "Orders", path: "/orders", permission: "orders" },
   {
     label: "Kitchen",

@@ -42,6 +42,15 @@ export class ProductRepository {
     });
   }
 
+  async findProductsByIds(ids: string[]) {
+    if (ids.length === 0) {
+      return [];
+    }
+    return this.client.product.findMany({
+      where: { id: { in: ids } },
+    });
+  }
+
   async create(data: CreateProductInput) {
     return this.client.product.create({
       data: {

@@ -110,6 +110,7 @@ export const openapiSpec = {
     { name: "Notifications", description: "Staff notifications" },
     { name: "Tables", description: "Restaurant tables and QR codes" },
     { name: "Dashboard", description: "Daily business summary" },
+    { name: "Analytics", description: "Sales analytics and stock overview" },
     { name: "Orders", description: "Order lifecycle management" },
     { name: "Order Queue", description: "Active kitchen queue" },
     { name: "Order History", description: "Completed order search" },
@@ -878,6 +879,56 @@ export const openapiSpec = {
         operationId: "listPaymentProviders",
         responses: {
           200: successResponse("PaymentProviderList"),
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/dashboard/top-products": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Top-selling products",
+        description:
+          "Top products by quantity sold with revenue, excluding cancelled orders. Owner and manager roles only.",
+        operationId: "getTopProducts",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("TopProductList"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/dashboard/revenue": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Revenue trend",
+        description:
+          "Revenue buckets by day, week or month with paid order counts. Owner and manager roles only.",
+        operationId: "getRevenueTrend",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("RevenuePointList"),
+          400: { $ref: "#/components/responses/ValidationError" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          500: { $ref: "#/components/responses/InternalServerError" },
+        },
+      },
+    },
+    "/api/v1/dashboard/stock": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Stock overview",
+        description:
+          "Active ingredient counts with low-stock and out-of-stock details. Owner and manager roles only.",
+        operationId: "getStockSummary",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: successResponse("StockSummary"),
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
           500: { $ref: "#/components/responses/InternalServerError" },
         },
       },
@@ -1717,6 +1768,46 @@ export const openapiSpec = {
       PaymentProviderList: {
         type: "array",
         items: { $ref: "#/components/schemas/PaymentProvider" },
+      },
+      TopProduct: {
+        type: "object",
+        properties: {
+          productId: { type: "string" },
+          productName: { type: "string" },
+          quantity: { type: "integer" },
+          revenue: { type: "number" },
+        },
+        required: ["productId", "productName", "quantity", "revenue"],
+      },
+      TopProductList: {
+        type: "array",
+        items: { $ref: "#/components/schemas/TopProduct" },
+      },
+      RevenuePoint: {
+        type: "object",
+        properties: {
+          key: { type: "string" },
+          amount: { type: "number" },
+          orders: { type: "integer" },
+        },
+        required: ["key", "amount", "orders"],
+      },
+      RevenuePointList: {
+        type: "array",
+        items: { $ref: "#/components/schemas/RevenuePoint" },
+      },
+      StockSummary: {
+        type: "object",
+        properties: {
+          totalActive: { type: "integer" },
+          lowCount: { type: "integer" },
+          outOfStockCount: { type: "integer" },
+          lowStock: {
+            type: "array",
+            items: { $ref: "#/components/schemas/Ingredient" },
+          },
+        },
+        required: ["totalActive", "lowCount", "outOfStockCount", "lowStock"],
       },
       LoyaltyBalance: {
         type: "object",
