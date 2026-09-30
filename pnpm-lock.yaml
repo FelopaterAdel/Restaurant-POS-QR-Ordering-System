@@ -182,6 +182,9 @@ importers:
       '@types/pg':
         specifier: ^8.15.4
         version: 8.20.4
+      bcryptjs:
+        specifier: ^3.0.3
+        version: 3.0.3
       prisma:
         specifier: ^7.9.1
         version: 7.9.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(typescript@7.0.2)

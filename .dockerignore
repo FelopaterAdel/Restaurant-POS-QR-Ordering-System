@@ -1,0 +1,13 @@
+node_modules
+dist
+.turbo
+.git
+.gitignore
+.vscode
+*.log
+.env
+.env.*
+!.env.example
+apps/*/dist
+apps/*/.turbo
+packages/*/.turbo
