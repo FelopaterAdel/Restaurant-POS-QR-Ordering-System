@@ -12,6 +12,8 @@ export const ADMIN_NAVIGATION: readonly NavigationItem[] = [
   { label: "Dashboard", path: "/dashboard", permission: "dashboard" },
   { label: "Analytics", path: "/analytics", permission: "dashboard" },
   { label: "Reports", path: "/reports", permission: "dashboard" },
+  { label: "Reservations", path: "/reservations", permission: "reservations" },
+  { label: "Audit Log", path: "/audit-log", permission: "audit" },
   { label: "Orders", path: "/orders", permission: "orders" },
   {
     label: "Kitchen",

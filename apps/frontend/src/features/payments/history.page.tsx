@@ -1,13 +1,22 @@
 import { useCallback, useMemo, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Card, CardBody } from "@/components/ui";
+import { Button, Card, CardBody } from "@/components/ui";
 import { formatCurrency, formatNumber } from "@/lib/format";
 import { hasRole } from "@/features/auth/permissions";
 import { useAuth } from "@/features/auth/use-auth";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   usePaymentHistoryQuery,
   usePaymentSummaryQuery,
+  paymentKeys,
 } from "./history.queries";
+import {
+  useApproveRefundMutation,
+  useRejectRefundMutation,
+  useRequestRefundMutation,
+  useRefundsQuery,
+} from "@/features/refunds/refunds.queries";
+import { RefundRequestModal } from "@/features/refunds/components/RefundRequestModal";
 import type {
   PaymentDatePreset,
   PaymentHistoryItem,
@@ -113,6 +122,18 @@ function PaymentHistoryContent() {
   const [page, setPage] = useState(1);
   const [selectedPayment, setSelectedPayment] =
     useState<PaymentHistoryItem | null>(null);
+  const [refundOpen, setRefundOpen] = useState(false);
+  const [refundError, setRefundError] = useState<string | null>(null);
+
+  const queryClient = useQueryClient();
+  const pendingRefunds = useRefundsQuery("PENDING");
+  const requestRefund = useRequestRefundMutation();
+  const approveRefund = useApproveRefundMutation();
+  const rejectRefund = useRejectRefundMutation();
+
+  function refreshPayments() {
+    void queryClient.invalidateQueries({ queryKey: paymentKeys.all });
+  }
 
   const range = useMemo(
     () => getDateRangeForPreset(preset, customFrom, customTo),
@@ -214,11 +235,90 @@ function PaymentHistoryContent() {
         onPageChange={handlePageChange}
       />
 
+      {(pendingRefunds.data ?? []).length > 0 && (
+        <Card>
+          <CardBody>
+            <h2>Pending refunds</h2>
+            <ul>
+              {(pendingRefunds.data ?? []).map((refund) => (
+                <li key={refund.id}>
+                  <span>
+                    Order #{refund.order?.orderNumber ?? "?"} —{" "}
+                    {formatCurrency(Number(refund.amount))}
+                    {refund.reason ? ` (${refund.reason})` : ""}
+                  </span>
+                  <Button
+                    variant="outline"
+                    disabled={approveRefund.isPending}
+                    onClick={() =>
+                      approveRefund.mutate(
+                        { id: refund.id },
+                        { onSuccess: refreshPayments },
+                      )
+                    }
+                  >
+                    Approve
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={rejectRefund.isPending}
+                    onClick={() =>
+                      rejectRefund.mutate(
+                        { id: refund.id },
+                        { onSuccess: refreshPayments },
+                      )
+                    }
+                  >
+                    Reject
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </CardBody>
+        </Card>
+      )}
+
       <PaymentDetailsModal
         open={selectedPayment !== null}
         payment={selectedPayment}
         onClose={handleCloseDetails}
+        canRequestRefund
+        onRequestRefund={() => {
+          setRefundError(null);
+          setRefundOpen(true);
+        }}
       />
+
+      <RefundRequestModal
+        open={refundOpen && selectedPayment !== null}
+        maxAmount={selectedPayment?.amount ?? 0}
+        isPending={requestRefund.isPending}
+        onClose={() => setRefundOpen(false)}
+        onSubmit={(values) => {
+          if (!selectedPayment) return;
+          requestRefund.mutate(
+            {
+              paymentId: selectedPayment.id,
+              amount: values.amount,
+              reason: values.reason,
+            },
+            {
+              onSuccess: () => {
+                setRefundOpen(false);
+                refreshPayments();
+              },
+              onError: (error) => {
+                setRefundError(error.message);
+              },
+            },
+          );
+        }}
+      />
+      {refundError && (
+        <p role="alert" className="payments-page__error">
+          {refundError}
+        </p>
+      )}
     </div>
   );
 }

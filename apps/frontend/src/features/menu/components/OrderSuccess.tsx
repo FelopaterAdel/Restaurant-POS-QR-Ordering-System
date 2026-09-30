@@ -44,6 +44,14 @@ export function OrderSuccess({
             </span>
           </div>
         )}
+        {order.tipAmount > 0 && (
+          <div className="order-success__detail">
+            <span className="order-success__detail-label">Tip</span>
+            <span className="order-success__detail-value">
+              {formatPrice(order.tipAmount)}
+            </span>
+          </div>
+        )}
         <div className="order-success__detail">
           <span className="order-success__detail-label">Total</span>
           <span className="order-success__detail-value">

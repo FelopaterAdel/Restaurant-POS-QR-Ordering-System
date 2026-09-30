@@ -1,7 +1,10 @@
 export { prisma } from "./client.js";
 export { Prisma } from "./generated/prisma/client.js";
 export {
+  AuditAction,
   CouponDiscountType,
+  RefundStatus,
+  ReservationStatus,
   OrderStatus,
   PaymentMethod,
   PaymentStatus,
@@ -10,12 +13,15 @@ export {
   UserStatus,
 } from "./generated/prisma/client.js";
 export type {
+  AuditLog,
   Category,
   Coupon,
   Ingredient,
   LoyaltyAccount,
   LoyaltyPointEntry,
+  Refund,
   Report,
+  Reservation,
   Order,
   OrderItem,
   Payment,

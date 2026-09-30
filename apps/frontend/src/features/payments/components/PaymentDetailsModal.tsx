@@ -6,12 +6,16 @@ export interface PaymentDetailsModalProps {
   open: boolean;
   payment: PaymentHistoryItem | null;
   onClose: () => void;
+  canRequestRefund?: boolean;
+  onRequestRefund?: () => void;
 }
 
 export function PaymentDetailsModal({
   open,
   payment,
   onClose,
+  canRequestRefund,
+  onRequestRefund,
 }: PaymentDetailsModalProps) {
   return (
     <Modal
@@ -19,9 +23,18 @@ export function PaymentDetailsModal({
       title="Payment Details"
       onClose={onClose}
       footer={
-        <Button variant="outline" onClick={onClose}>
-          Close
-        </Button>
+        <div>
+          {canRequestRefund &&
+            onRequestRefund &&
+            payment?.status === "PAID" && (
+              <Button variant="outline" onClick={onRequestRefund}>
+                Request refund
+              </Button>
+            )}
+          <Button variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        </div>
       }
     >
       {payment && (

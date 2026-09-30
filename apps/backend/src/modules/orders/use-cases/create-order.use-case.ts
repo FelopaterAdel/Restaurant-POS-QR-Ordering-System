@@ -1,4 +1,9 @@
-import { OrderStatus, Prisma, TableStatus } from "@restaurant/database";
+import {
+  AuditAction,
+  OrderStatus,
+  Prisma,
+  TableStatus,
+} from "@restaurant/database";
 import {
   BadRequestError,
   ConflictError,
@@ -6,7 +11,11 @@ import {
 } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
-import { ValidateCouponUseCase } from "../../coupons/use-cases/validate-coupon.use-case.js";
+import { AuditService } from "../../audit/services/audit.service.js";
+import {
+  calculateCouponDiscount,
+  ValidateCouponUseCase,
+} from "../../coupons/use-cases/validate-coupon.use-case.js";
 import { PaymentProviderNotConfiguredError } from "../../../infra/stripe/stripe.service.js";
 import {
   defaultOnlineProviders,
@@ -69,6 +78,7 @@ export interface CreateOrderResultDTO {
   couponCode: string | null;
   discountAmount: number;
   customerPhone: string | null;
+  tipAmount: number;
   stripeClientSecret: string | null;
   onlineProvider: string | null;
   paymentRedirectUrl: string | null;
@@ -77,11 +87,16 @@ export interface CreateOrderResultDTO {
   items: CreateOrderItemDTO[];
 }
 
+export interface CreateOrderContext {
+  actorId?: string;
+}
+
 export class CreateOrderUseCase {
   private readonly orderRepository: OrderRepository;
   private readonly validateCoupon: Pick<ValidateCouponUseCase, "execute">;
   private readonly onlineProviders: OnlineProviderMap;
   private readonly paymentRepository: PaymentRepository;
+  private readonly auditService: AuditService;
 
   constructor(
     orderRepository: OrderRepository = new OrderRepository(),
@@ -91,14 +106,19 @@ export class CreateOrderUseCase {
     > = new ValidateCouponUseCase(),
     onlineProviders: OnlineProviderMap = defaultOnlineProviders(),
     paymentRepository: PaymentRepository = new PaymentRepository(),
+    auditService: AuditService = new AuditService(),
   ) {
     this.orderRepository = orderRepository;
     this.validateCoupon = validateCoupon;
     this.onlineProviders = onlineProviders;
     this.paymentRepository = paymentRepository;
+    this.auditService = auditService;
   }
 
-  async execute(input: CreateOrderDTO): Promise<CreateOrderResultDTO> {
+  async execute(
+    input: CreateOrderDTO,
+    context: CreateOrderContext = {},
+  ): Promise<CreateOrderResultDTO> {
     const data = createOrderSchema.parse(input);
 
     // Fail fast before creating anything when online payment is requested
@@ -154,9 +174,24 @@ export class CreateOrderUseCase {
 
     // Early validation for clean customer-facing errors; the repository
     // re-validates authoritatively inside the creation transaction.
+    // The validated coupon is reused to price the checkout tip.
+    let coupon: Awaited<
+      ReturnType<Pick<ValidateCouponUseCase, "execute">["execute"]>
+    > | null = null;
     if (data.couponCode) {
-      await this.validateCoupon.execute(data.couponCode);
+      coupon = await this.validateCoupon.execute(data.couponCode);
     }
+
+    const discountedTotal = coupon
+      ? subtotal.sub(calculateCouponDiscount(subtotal, coupon))
+      : subtotal;
+    const tipAmount =
+      data.tipPercent !== undefined
+        ? discountedTotal
+            .mul(data.tipPercent)
+            .div(100)
+            .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
+        : new Prisma.Decimal(data.tipAmount ?? 0);
 
     const order = await this.orderRepository.createWithItems({
       tableId: data.tableId,
@@ -164,6 +199,7 @@ export class CreateOrderUseCase {
       items,
       couponCode: data.couponCode,
       customerPhone: data.customerPhone,
+      tipAmount,
     });
 
     await createNotificationForRoles("ORDER_CREATED", {
@@ -173,18 +209,32 @@ export class CreateOrderUseCase {
       entityId: order.id,
     });
 
+    if (order.couponCode) {
+      await this.auditService.record({
+        userId: context.actorId ?? null,
+        action: AuditAction.DISCOUNT_APPLIED,
+        entityType: "ORDER",
+        entityId: order.id,
+        details: {
+          couponCode: order.couponCode,
+          discountAmount: Number(order.discountAmount),
+        },
+      });
+    }
+
     let stripeClientSecret: string | null = null;
     let paymentRedirectUrl: string | null = null;
     if (data.payOnline && onlineProvider) {
+      const chargeTotal = Number(order.totalAmount) + Number(order.tipAmount);
       const intent = await onlineProvider.createPaymentIntent({
-        amountMinor: Math.round(Number(order.totalAmount) * 100),
+        amountMinor: Math.round(chargeTotal * 100),
         orderId: order.id,
         orderNumber: order.orderNumber,
         customerPhone: order.customerPhone,
       });
       await this.paymentRepository.createPendingOnlinePayment({
         orderId: order.id,
-        amount: order.totalAmount,
+        amount: new Prisma.Decimal(chargeTotal),
         provider: onlineProvider.name,
         providerRef: intent.id,
       });
@@ -203,6 +253,7 @@ export class CreateOrderUseCase {
       couponCode: order.couponCode,
       discountAmount: Number(order.discountAmount),
       customerPhone: order.customerPhone,
+      tipAmount: Number(order.tipAmount),
       stripeClientSecret,
       onlineProvider: onlineProvider?.name ?? null,
       paymentRedirectUrl,

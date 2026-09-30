@@ -13,6 +13,7 @@ export async function cancelOrder(
   const order = await cancelOrderUseCase.execute({
     orderId: req.params.id,
     input: req.body,
+    actorId: req.user.id,
   });
   sendSuccess(res, order);
 }

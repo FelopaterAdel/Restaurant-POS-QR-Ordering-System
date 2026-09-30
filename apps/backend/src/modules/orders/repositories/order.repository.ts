@@ -21,6 +21,7 @@ export interface CreateOrderWithItemsInput {
   items: CreateOrderItemInput[];
   couponCode?: string;
   customerPhone?: string;
+  tipAmount?: Prisma.Decimal;
 }
 
 const orderInclude = {
@@ -193,6 +194,7 @@ export class OrderRepository {
           couponCode,
           discountAmount,
           customerPhone: input.customerPhone ?? null,
+          tipAmount: input.tipAmount ?? new Prisma.Decimal(0),
           items: {
             create: input.items.map((item) => ({
               productId: item.productId,

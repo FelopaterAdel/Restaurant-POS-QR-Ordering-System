@@ -55,6 +55,7 @@ export async function updateIngredient(
   const ingredient = await updateIngredientUseCase.execute(
     req.params.id,
     req.body,
+    req.user.id,
   );
   sendSuccess(res, ingredient);
 }

@@ -944,6 +944,41 @@ describe("MenuPage", () => {
     );
   });
 
+  it("sends the checkout tip percent with the order", async () => {
+    let requestBody: unknown;
+    server.use(
+      http.post("*/api/v1/public/orders", async ({ request }) => {
+        requestBody = await request.json();
+        return HttpResponse.json({
+          success: true,
+          data: { ...mockOrderResult, tipAmount: 15 },
+        });
+      }),
+    );
+
+    const { container } = renderMenuPage();
+    const user = await goToReview(container);
+
+    const tipRadio = container.querySelector(
+      '.order-review__tip input[value="10"]',
+    ) as HTMLInputElement;
+    await user.click(tipRadio);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(requestBody).toEqual({
+      tableId: "tbl_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      tipPercent: 10,
+    });
+  });
+
   it("shows a friendly error for an unknown coupon code", async () => {
     server.use(
       http.post("*/api/v1/public/orders", () => {

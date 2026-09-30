@@ -24,6 +24,8 @@ import InventoryPage from "@/features/inventory/inventory.page";
 import CouponsPage from "@/features/coupons/coupons.page";
 import AnalyticsPage from "@/features/analytics/analytics.page";
 import ReportsPage from "@/features/reports/reports.page";
+import ReservationsPage from "@/features/reservations/reservations.page";
+import AuditPage from "@/features/audit/audit.page";
 import { GuestRoute } from "./guest-route";
 import { ProtectedRoute } from "./protected-route";
 import { RoleRoute } from "./role-route";
@@ -76,6 +78,24 @@ export const appRoutes: RouteObject[] = [
               {
                 path: "/reports",
                 element: <ReportsPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute permission="reservations" />,
+            children: [
+              {
+                path: "/reservations",
+                element: <ReservationsPage />,
+              },
+            ],
+          },
+          {
+            element: <RoleRoute permission="audit" />,
+            children: [
+              {
+                path: "/audit-log",
+                element: <AuditPage />,
               },
             ],
           },

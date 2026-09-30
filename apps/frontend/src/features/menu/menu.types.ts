@@ -75,12 +75,19 @@ export interface PublicOrder {
   items: PublicOrderItem[];
 }
 
+export type CheckoutTip =
+  | { kind: "none" }
+  | { kind: "percent"; value: number }
+  | { kind: "fixed"; value: number };
+
 export interface CreatePublicOrderInput {
   tableId: string;
   items: Array<{ productId: string; quantity: number }>;
   couponCode?: string;
   customerPhone?: string;
   payOnline?: boolean;
+  tipPercent?: number;
+  tipAmount?: number;
 }
 
 export interface CreatePublicOrderResult {
@@ -91,6 +98,7 @@ export interface CreatePublicOrderResult {
   totalAmount: number;
   couponCode: string | null;
   discountAmount: number;
+  tipAmount: number;
   stripeClientSecret: string | null;
   onlineProvider: string | null;
   paymentRedirectUrl: string | null;

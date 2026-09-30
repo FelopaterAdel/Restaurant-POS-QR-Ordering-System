@@ -1,0 +1,23 @@
+.audit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.audit__title {
+  font-size: var(--font-size-h1);
+  font-weight: var(--font-weight-bold);
+}
+
+.audit__filters {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: end;
+}
+
+.audit__pagination {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}

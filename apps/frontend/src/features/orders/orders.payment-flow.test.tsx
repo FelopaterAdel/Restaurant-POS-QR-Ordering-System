@@ -137,10 +137,13 @@ const server = setupServer(
         id: "pay_1",
         orderId,
         amount: 200,
+        tipAmount: 0,
         method: body?.method ?? "CASH",
         status: "PAID",
         paidAt: "2025-01-15T13:00:00Z",
         createdAt: "2025-01-15T13:00:00Z",
+        remainingAmount: 0,
+        orderPaid: true,
       },
     });
   }),
@@ -296,7 +299,7 @@ describe("OrdersPage staff payment workflow", () => {
     });
     expect(state.paymentCalls[0]).toEqual({
       orderId: "ord_1",
-      body: { method: "CASH" },
+      body: { method: "CASH", amount: 200 },
     });
 
     await waitFor(() => {

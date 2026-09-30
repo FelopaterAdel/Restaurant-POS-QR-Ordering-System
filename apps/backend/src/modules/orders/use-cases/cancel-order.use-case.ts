@@ -1,7 +1,8 @@
-import { OrderStatus, PaymentStatus } from "@restaurant/database";
+import { AuditAction, OrderStatus, PaymentStatus } from "@restaurant/database";
 import { ConflictError } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../repositories/order.repository.js";
+import { AuditService } from "../../audit/services/audit.service.js";
 import {
   cancelOrderSchema,
   type CancelOrderDTO,
@@ -44,13 +45,19 @@ export class PaidOrderCannotBeCancelledError extends ConflictError {
 export interface CancelOrderParams {
   orderId: string;
   input: CancelOrderDTO;
+  actorId?: string;
 }
 
 export class CancelOrderUseCase {
   private readonly orderRepository: OrderRepository;
+  private readonly auditService: AuditService;
 
-  constructor(orderRepository: OrderRepository = new OrderRepository()) {
+  constructor(
+    orderRepository: OrderRepository = new OrderRepository(),
+    auditService: AuditService = new AuditService(),
+  ) {
     this.orderRepository = orderRepository;
+    this.auditService = auditService;
   }
 
   async execute(params: CancelOrderParams): Promise<OrderDTO> {
@@ -84,6 +91,17 @@ export class CancelOrderUseCase {
       message: `Order #${cancelled.orderNumber}`,
       entityType: "ORDER",
       entityId: cancelled.id,
+    });
+
+    await this.auditService.record({
+      userId: params.actorId ?? null,
+      action: AuditAction.ORDER_CANCELLED,
+      entityType: "ORDER",
+      entityId: cancelled.id,
+      details: {
+        orderNumber: cancelled.orderNumber,
+        reason: cancelled.cancelledReason,
+      },
     });
 
     return toOrderDTO(cancelled);

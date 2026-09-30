@@ -2,6 +2,8 @@ import { ApiError, getApiErrorMessage } from "@/lib/api";
 
 const PAYMENT_ERROR_MESSAGES: Record<string, string> = {
   PAYMENT_ALREADY_EXISTS: "This order has already been paid.",
+  PAYMENT_EXCEEDS_REMAINING:
+    "That amount is more than the remaining balance. Lower it and try again.",
   PAYMENT_NOT_ALLOWED: "This order can't be paid in its current status.",
   ORDER_NOT_FOUND: "This order no longer exists.",
   FORBIDDEN: "You don't have permission to record payments.",

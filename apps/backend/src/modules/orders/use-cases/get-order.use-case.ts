@@ -33,6 +33,7 @@ export interface OrderDTO {
   couponCode: string | null;
   discountAmount: number;
   customerPhone: string | null;
+  tipAmount: number;
   cancelledAt: Date | null;
   cancelledReason: string | null;
   createdAt: Date;
@@ -52,6 +53,7 @@ export function toOrderDTO(order: OrderWithRelations): OrderDTO {
     couponCode: order.couponCode,
     discountAmount: Number(order.discountAmount),
     customerPhone: order.customerPhone,
+    tipAmount: Number(order.tipAmount),
     cancelledAt: order.cancelledAt,
     cancelledReason: order.cancelledReason,
     createdAt: order.createdAt,

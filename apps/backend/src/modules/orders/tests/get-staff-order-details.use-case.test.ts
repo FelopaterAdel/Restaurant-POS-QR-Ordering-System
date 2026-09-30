@@ -25,6 +25,7 @@ function buildStaffOrder(
     couponCode: null,
     discountAmount: new Prisma.Decimal(0),
     customerPhone: null,
+    tipAmount: new Prisma.Decimal(0),
     cancelledAt: null,
     cancelledReason: null,
     createdAt: new Date("2026-01-01T00:00:00.000Z"),
@@ -93,6 +94,7 @@ describe("GetStaffOrderDetailsUseCase", () => {
       totalAmount: 450,
       couponCode: null,
       discountAmount: 0,
+      tipAmount: 0,
     });
     expect(result.table).toEqual({ id: "table_1", number: 5 });
     expect(result.items).toEqual([

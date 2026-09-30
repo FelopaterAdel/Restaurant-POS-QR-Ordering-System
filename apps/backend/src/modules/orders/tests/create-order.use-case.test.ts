@@ -238,7 +238,11 @@ describe("CreateOrderUseCase", () => {
   it("passes the coupon code through when one is supplied", async () => {
     const repository = createMockRepository();
     const validateCoupon = {
-      execute: vi.fn(async () => ({ code: "WELCOME10" })),
+      execute: vi.fn(async () => ({
+        code: "WELCOME10",
+        discountType: "PERCENT",
+        value: new Prisma.Decimal(10),
+      })),
     } as unknown as Pick<ValidateCouponUseCase, "execute">;
     const useCase = new CreateOrderUseCase(repository, validateCoupon);
     const pizza = buildProduct({
@@ -429,6 +433,35 @@ describe("CreateOrderUseCase", () => {
     expect(result.onlineProvider).toBe("paymob");
     expect(result.stripeClientSecret).toBeNull();
     expect(result.paymentRedirectUrl).toContain("paymob_token_abc");
+  });
+
+  it("stores a checkout tip computed from a percent", async () => {
+    const repository = createMockRepository();
+    const useCase = new CreateOrderUseCase(repository);
+    const pizza = buildProduct({
+      id: "prod_1",
+      price: new Prisma.Decimal(200),
+    });
+
+    vi.mocked(repository.findTableById).mockResolvedValueOnce(buildTable());
+    vi.mocked(repository.findProductsByIds).mockResolvedValueOnce([pizza]);
+    vi.mocked(repository.createWithItems).mockResolvedValueOnce(
+      buildOrder({
+        totalAmount: new Prisma.Decimal(200),
+        tipAmount: new Prisma.Decimal(20),
+      }),
+    );
+
+    const result = await useCase.execute({
+      tableId: "table_1",
+      items: [{ productId: "prod_1", quantity: 1 }],
+      tipPercent: 10,
+    });
+
+    const createCall = vi.mocked(repository.createWithItems).mock.calls[0][0];
+    expect(createCall.tipAmount?.toNumber()).toBe(20);
+    expect(result.tipAmount).toBe(20);
+    expect(result.totalAmount).toBe(200);
   });
 
   it("rejects a non-positive quantity", async () => {

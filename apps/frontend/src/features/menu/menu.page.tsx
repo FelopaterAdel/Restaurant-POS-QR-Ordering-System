@@ -13,7 +13,11 @@ import { OrderReview } from "./components/OrderReview";
 import { OnlinePaymentPending } from "./components/OnlinePaymentPending";
 import { OrderSuccess } from "./components/OrderSuccess";
 import { usePublicPaymentProvidersQuery } from "@/features/payments/providers.queries";
-import type { PublicProduct, CreatePublicOrderResult } from "./menu.types";
+import type {
+  PublicProduct,
+  CreatePublicOrderResult,
+  CheckoutTip,
+} from "./menu.types";
 import "./menu.css";
 
 type View = "menu" | "review" | "success" | "online-pending";
@@ -63,6 +67,7 @@ export default function MenuPage() {
   const [couponCode, setCouponCode] = useState("");
   const [phone, setPhone] = useState("");
   const [onlineProvider, setOnlineProvider] = useState<string | null>(null);
+  const [tip, setTip] = useState<CheckoutTip>({ kind: "none" });
 
   // Shown until the backend reports the configured providers; the backend
   // still rejects unconfigured choices with a friendly error.
@@ -135,6 +140,8 @@ export default function MenuPage() {
         ...(onlineProvider
           ? { payOnline: true, onlineProvider: onlineProvider as "stripe" | "paymob" }
           : {}),
+        ...(tip.kind === "percent" ? { tipPercent: tip.value } : {}),
+        ...(tip.kind === "fixed" ? { tipAmount: tip.value } : {}),
       });
       setOrderResult(result);
       cart.clear();
@@ -259,6 +266,8 @@ export default function MenuPage() {
             onlineProvider={onlineProvider}
             onOnlineProviderChange={setOnlineProvider}
             availableProviders={availableProviders}
+            tip={tip}
+            onTipChange={setTip}
             onConfirm={handlePlaceOrder}
             onBack={handleBackToMenu}
             isSubmitting={isSubmitting}

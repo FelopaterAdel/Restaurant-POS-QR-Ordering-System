@@ -8,6 +8,8 @@ export const PAGE_PERMISSIONS = [
   "tables",
   "orders",
   "payments",
+  "reservations",
+  "audit",
   "settings",
 ] as const;
 
@@ -22,6 +24,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly PagePermission[]> = {
     "tables",
     "orders",
     "payments",
+    "reservations",
+    "audit",
     "settings",
   ],
   MANAGER: [
@@ -31,10 +35,12 @@ export const ROLE_PERMISSIONS: Record<UserRole, readonly PagePermission[]> = {
     "tables",
     "orders",
     "payments",
+    "reservations",
+    "audit",
     "settings",
   ],
-  CASHIER: ["orders", "payments"],
-  WAITER: ["orders"],
+  CASHIER: ["orders", "payments", "reservations"],
+  WAITER: ["orders", "reservations"],
   KITCHEN: ["orders"],
 };
 

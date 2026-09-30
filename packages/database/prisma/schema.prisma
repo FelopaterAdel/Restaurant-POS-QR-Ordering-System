@@ -58,6 +58,30 @@ enum CouponDiscountType {
   FIXED
 }
 
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  SEATED
+  CANCELLED
+  COMPLETED
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AuditAction {
+  REFUND_REQUESTED
+  REFUND_APPROVED
+  REFUND_REJECTED
+  PAYMENT_VOIDED
+  DISCOUNT_APPLIED
+  STOCK_ADJUSTED
+  ORDER_CANCELLED
+}
+
 
 model Restaurant {
   id             String   @id @default(cuid())
@@ -85,6 +109,9 @@ model User {
 
   refreshTokens RefreshToken[]
   notifications   Notification[]
+  requestedRefunds Refund[] @relation("RefundRequester")
+  reviewedRefunds  Refund[] @relation("RefundReviewer")
+  auditLogs        AuditLog[]
 }
 
 model RefreshToken {
@@ -180,7 +207,8 @@ model RestaurantTable {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders Order[]
+  orders       Order[]
+  reservations Reservation[]
 
   @@index([status])
 }
@@ -195,6 +223,7 @@ model Order {
   couponCode      String?
   discountAmount  Decimal       @default(0)
   customerPhone   String?
+  tipAmount       Decimal       @default(0)
   cancelledAt     DateTime?
   cancelledReason String?
 
@@ -204,6 +233,7 @@ model Order {
   table    RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
   items    OrderItem[]
   payments Payment[]
+  refunds  Refund[]
 
   @@index([tableId])
   @@index([status])
@@ -218,6 +248,7 @@ model Payment {
   amount      Decimal
   method      PaymentMethod
   status      PaymentStatus  @default(PENDING)
+  tipAmount   Decimal        @default(0)
   provider    String?
   providerRef String?        @unique
   paidAt      DateTime?
@@ -225,6 +256,8 @@ model Payment {
   updatedAt   DateTime       @updatedAt
 
   order Order @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  refunds Refund[]
 
   @@index([orderId])
   @@index([status, paidAt])
@@ -302,6 +335,69 @@ model Report {
 
   @@unique([date, provider])
   @@index([createdAt])
+}
+
+model Reservation {
+  id           String            @id @default(cuid())
+  customerName String
+  phone        String
+  partySize    Int
+  tableId      String
+  reservedFor  DateTime
+  status       ReservationStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  table RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Restrict)
+
+  @@index([tableId])
+  @@index([status])
+  @@index([reservedFor])
+  @@index([status, reservedFor])
+}
+
+model Refund {
+  id          String       @id @default(cuid())
+  paymentId   String
+  orderId     String
+  amount      Decimal
+  reason      String?
+  status      RefundStatus @default(PENDING)
+  requestedBy String
+  reviewedBy  String?
+  reviewedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  requester User    @relation("RefundRequester", fields: [requestedBy], references: [id], onDelete: Restrict)
+  reviewer  User?   @relation("RefundReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([paymentId])
+  @@index([orderId])
+  @@index([status])
+  @@index([requestedBy])
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  userId     String?
+  action     AuditAction
+  entityType String?
+  entityId   String?
+  details    Json?
+
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([action, createdAt])
 }
 
 model Notification {

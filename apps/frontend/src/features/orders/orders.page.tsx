@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
 import { Button, EmptyState, Input, Spinner } from "@/components/ui";
-import type { PaymentMethod } from "@/components/ui";
 import { useAuth } from "@/features/auth/use-auth";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { getApiErrorMessage } from "@/lib/api";
@@ -32,6 +31,7 @@ import {
 import { OrdersResults } from "./components/OrdersResults";
 import { OrderDetailsModal } from "./components/OrderDetailsModal";
 import { PaymentConfirmationModal } from "./components/PaymentConfirmationModal";
+import type { PaymentConfirmInput } from "./components/PaymentConfirmationModal";
 import { CompleteConfirmationModal } from "./components/CompleteConfirmationModal";
 import { StatusToast } from "./components/StatusToast";
 import type {
@@ -99,6 +99,7 @@ export default function OrdersPage() {
     needsDetail: boolean;
   } | null>(null);
   const [payingOrder, setPayingOrder] = useState<Order | null>(null);
+  const [payRemaining, setPayRemaining] = useState<number | null>(null);
   const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
   const [toast, setToast] = useState<{
     message: string;
@@ -265,17 +266,28 @@ export default function OrdersPage() {
 
   const handleClosePayment = useCallback(() => {
     setPayingOrder(null);
+    setPayRemaining(null);
     payOrderMutation.reset();
   }, [payOrderMutation]);
 
   const handleConfirmPayment = useCallback(
-    (method: PaymentMethod) => {
+    (input: PaymentConfirmInput) => {
       payOrderMutation.mutate(
-        { method },
+        input,
         {
-          onSuccess: () => {
-            setPayingOrder(null);
-            setToast({ message: "Payment recorded", type: "success" });
+          onSuccess: (payment) => {
+            if (payment.orderPaid) {
+              setPayingOrder(null);
+              setPayRemaining(null);
+              setToast({ message: "Payment recorded", type: "success" });
+            } else {
+              setPayRemaining(payment.remainingAmount);
+              payOrderMutation.reset();
+              setToast({
+                message: `Partial payment recorded, ${payment.remainingAmount} EGP remaining.`,
+                type: "success",
+              });
+            }
           },
           onError: (mutationError) => {
             if (isStalePaymentError(mutationError)) {
@@ -418,6 +430,7 @@ export default function OrdersPage() {
         open={payingOrder !== null}
         orderNumber={payingOrder?.orderNumber ?? 0}
         totalAmount={payingOrder?.totalAmount ?? 0}
+        remainingAmount={payRemaining ?? payingOrder?.totalAmount}
         onClose={handleClosePayment}
         onConfirm={handleConfirmPayment}
         isProcessing={payOrderMutation.isPending}

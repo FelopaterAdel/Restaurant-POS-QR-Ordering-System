@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Button, EmptyState, ErrorState, Skeleton } from "@/components/ui";
-import type { PaymentMethod } from "@/components/ui";
+import type { PaymentConfirmInput } from "@/features/orders/components/PaymentConfirmationModal";
 import { hasRole } from "@/features/auth/permissions";
 import { useAuth } from "@/features/auth/use-auth";
 import { PaymentConfirmationModal } from "@/features/orders/components/PaymentConfirmationModal";
@@ -47,6 +47,7 @@ export default function PaymentsPage() {
   const [flowOrder, setFlowOrder] = useState<PayableOrder | null>(null);
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [paidOrder, setPaidOrder] = useState<PayableOrder | null>(null);
+  const [payRemaining, setPayRemaining] = useState<number | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
 
   const queueQuery = usePayableOrdersQuery();
@@ -83,17 +84,29 @@ export default function PaymentsPage() {
   const handleClosePayment = useCallback(() => {
     setIsConfirmingPayment(false);
     setFlowOrder(null);
+    setPayRemaining(null);
     payOrderMutation.reset();
   }, [payOrderMutation]);
 
   const handleConfirmPayment = useCallback(
-    (method: PaymentMethod) => {
+    (input: PaymentConfirmInput) => {
       payOrderMutation.mutate(
-        { method },
+        input,
         {
-          onSuccess: (_payment) => {
-            setIsConfirmingPayment(false);
-            setPaidOrder(flowOrder);
+          onSuccess: (payment) => {
+            if (payment.orderPaid) {
+              setIsConfirmingPayment(false);
+              setPaidOrder(flowOrder);
+              setPayRemaining(null);
+            } else {
+              // Split bill: keep the dialog open on the new remainder.
+              setPayRemaining(payment.remainingAmount);
+              payOrderMutation.reset();
+              setToast({
+                message: `Partial payment recorded, ${payment.remainingAmount} EGP remaining.`,
+                type: "success",
+              });
+            }
           },
           onError: (error) => {
             if (isStalePaymentError(error)) {
@@ -268,6 +281,7 @@ export default function PaymentsPage() {
         open={flowOrder !== null && isConfirmingPayment}
         orderNumber={flowOrder?.orderNumber ?? 0}
         totalAmount={flowOrder?.totalAmount ?? 0}
+        remainingAmount={payRemaining ?? flowOrder?.totalAmount}
         onClose={handleClosePayment}
         onConfirm={handleConfirmPayment}
         isProcessing={payOrderMutation.isPending}

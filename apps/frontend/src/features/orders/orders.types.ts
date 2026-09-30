@@ -119,16 +119,22 @@ export interface CancelOrderInput {
 
 export interface CreatePaymentInput {
   method: PaymentMethod;
+  amount?: number;
+  tipAmount?: number;
+  tipPercent?: number;
 }
 
 export interface Payment {
   id: string;
   orderId: string;
   amount: number;
+  tipAmount: number;
   method: PaymentMethod;
   status: PaymentStatus;
   paidAt: string | null;
   createdAt: string;
+  remainingAmount: number;
+  orderPaid: boolean;
 }
 
 export interface ListOrdersParams {

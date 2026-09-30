@@ -3,10 +3,7 @@ import { ConflictError } from "../../../errors/app-error.js";
 import { AppErrorCode } from "../../../errors/codes.js";
 import { OrderRepository } from "../../orders/repositories/order.repository.js";
 import { OrderNotFoundError } from "../../orders/use-cases/get-order.use-case.js";
-import {
-  PaymentRepository,
-  type CreatePaidPaymentInput,
-} from "../repositories/payment.repository.js";
+import { PaymentRepository } from "../repositories/payment.repository.js";
 import {
   createPaymentSchema,
   type CreatePaymentDTO,
@@ -35,14 +32,27 @@ export class PaymentAlreadyExistsError extends ConflictError {
   }
 }
 
+export class PaymentExceedsRemainingError extends ConflictError {
+  constructor(remaining: number) {
+    super(
+      AppErrorCode.PAYMENT_EXCEEDS_REMAINING,
+      `Amount exceeds the remaining balance of ${remaining}`,
+    );
+    this.name = "PaymentExceedsRemainingError";
+  }
+}
+
 export interface PaymentDTO {
   id: string;
   orderId: string;
   amount: number;
+  tipAmount: number;
   method: CreatePaymentDTO["method"];
   status: PaymentStatus;
   paidAt: Date | null;
   createdAt: Date;
+  remainingAmount: number;
+  orderPaid: boolean;
 }
 
 export interface PayOrderParams {
@@ -78,25 +88,39 @@ export class PayOrderUseCase {
       throw new OrderNotPayableError(order.status);
     }
 
-    const input: CreatePaidPaymentInput = {
+    const itemsAmount =
+      data.amount !== undefined
+        ? new Prisma.Decimal(data.amount)
+        : new Prisma.Decimal(order.totalAmount);
+    const tipAmount =
+      data.tipAmount !== undefined
+        ? new Prisma.Decimal(data.tipAmount)
+        : data.tipPercent !== undefined
+          ? itemsAmount
+              .mul(data.tipPercent)
+              .div(100)
+              .toDecimalPlaces(2, Prisma.Decimal.ROUND_HALF_UP)
+          : new Prisma.Decimal(0);
+
+    const result = await this.paymentRepository.collectPayment({
       orderId: order.id,
-      amount: order.totalAmount,
+      itemsAmount,
+      tipAmount,
       method: data.method,
       paidAt: new Date(),
-    };
+    });
 
-    let payment;
-    try {
-      payment = await this.paymentRepository.createPaidPaymentAndUpdateOrder(input);
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
+    if (!result.ok) {
+      if (result.reason === "already-paid") {
         throw new PaymentAlreadyExistsError();
       }
-      throw error;
+      if (result.reason === "order-missing") {
+        throw new OrderNotFoundError();
+      }
+      throw new PaymentExceedsRemainingError(Number(result.remaining));
     }
+
+    const { payment, remaining, orderPaid } = result.collected;
 
     const paidOrder = await this.orderRepository.findById(payment.orderId);
     await createNotificationForRoles("PAYMENT_RECEIVED", {
@@ -110,10 +134,13 @@ export class PayOrderUseCase {
       id: payment.id,
       orderId: payment.orderId,
       amount: Number(payment.amount),
+      tipAmount: Number(payment.tipAmount),
       method: payment.method,
       status: payment.status,
       paidAt: payment.paidAt,
       createdAt: payment.createdAt,
+      remainingAmount: Number(remaining),
+      orderPaid,
     };
   }
 }

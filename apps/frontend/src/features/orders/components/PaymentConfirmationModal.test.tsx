@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
-import { render, within, act, fireEvent } from "@testing-library/react";
+import { cleanup, render, within, act, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { PaymentConfirmationModal } from "./PaymentConfirmationModal";
+
+afterEach(() => {
+  cleanup();
+});
 function renderModal(
   overrides?: Partial<React.ComponentProps<typeof PaymentConfirmationModal>>,
 ) {
@@ -40,7 +44,7 @@ describe("PaymentConfirmationModal", () => {
     const { dialog } = renderModal();
 
     expect(within(dialog).getByText("#1024")).toBeInTheDocument();
-    expect(within(dialog).getByText("390 EGP")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("390 EGP")).toHaveLength(3);
   });
 
   it("renders modal title", () => {
@@ -81,7 +85,10 @@ describe("PaymentConfirmationModal", () => {
 
     await user.click(getConfirmButton(dialog));
 
-    expect(onConfirm).toHaveBeenCalledWith("CARD");
+    expect(onConfirm).toHaveBeenCalledWith({
+      method: "CARD",
+      amount: 390,
+    });
   });
 
   it("defaults to CASH when confirming without changing", async () => {
@@ -90,7 +97,55 @@ describe("PaymentConfirmationModal", () => {
 
     await user.click(getConfirmButton(dialog));
 
-    expect(onConfirm).toHaveBeenCalledWith("CASH");
+    expect(onConfirm).toHaveBeenCalledWith({
+      method: "CASH",
+      amount: 390,
+    });
+  });
+
+  it("sends a custom partial amount for split bills", async () => {
+    const { dialog, onConfirm } = renderModal();
+    const user = userEvent.setup();
+
+    const amountInput = within(dialog).getByLabelText(
+      "Amount (items)",
+    ) as HTMLInputElement;
+    await user.clear(amountInput);
+    await user.type(amountInput, "195");
+    await user.click(getConfirmButton(dialog));
+
+    expect(onConfirm).toHaveBeenCalledWith({
+      method: "CASH",
+      amount: 195,
+    });
+  });
+
+  it("splits evenly across N parts", async () => {
+    const { dialog, onConfirm } = renderModal();
+    const user = userEvent.setup();
+
+    await user.type(within(dialog).getByLabelText(/Split evenly/), "3");
+    await user.click(within(dialog).getByRole("button", { name: "Split" }));
+    await user.click(getConfirmButton(dialog));
+
+    expect(onConfirm).toHaveBeenCalledWith({
+      method: "CASH",
+      amount: 130,
+    });
+  });
+
+  it("sends a tip percent with the payment", async () => {
+    const { dialog, onConfirm } = renderModal();
+    const user = userEvent.setup();
+
+    await user.click(within(dialog).getByDisplayValue("10"));
+    await user.click(getConfirmButton(dialog));
+
+    expect(onConfirm).toHaveBeenCalledWith({
+      method: "CASH",
+      amount: 390,
+      tipPercent: 10,
+    });
   });
 
   it("calls onClose when Cancel is clicked", async () => {

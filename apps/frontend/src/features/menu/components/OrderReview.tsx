@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui";
-import type { CartItem as CartItemType } from "../menu.types";
+import type { CartItem as CartItemType, CheckoutTip } from "../menu.types";
 import { formatPrice } from "../format-price";
 
 interface OrderReviewProps {
@@ -13,11 +13,15 @@ interface OrderReviewProps {
   onlineProvider: string | null;
   onOnlineProviderChange: (provider: string | null) => void;
   availableProviders: Array<{ id: string; label: string }>;
+  tip: CheckoutTip;
+  onTipChange: (tip: CheckoutTip) => void;
   onConfirm: () => void;
   onBack: () => void;
   isSubmitting: boolean;
   error: string | null;
 }
+
+const TIP_PRESETS = [5, 10, 15];
 
 export function OrderReview({
   items,
@@ -30,6 +34,8 @@ export function OrderReview({
   onlineProvider,
   onOnlineProviderChange,
   availableProviders,
+  tip,
+  onTipChange,
   onConfirm,
   onBack,
   isSubmitting,
@@ -111,6 +117,52 @@ export function OrderReview({
             {provider.label}
           </label>
         ))}
+      </fieldset>
+
+      <fieldset className="order-review__tip">
+        <legend>Add a tip (optional)</legend>
+        <label>
+          <input
+            type="radio"
+            name="tip"
+            value="none"
+            checked={tip.kind === "none"}
+            onChange={() => onTipChange({ kind: "none" })}
+            disabled={isSubmitting}
+          />
+          No tip
+        </label>
+        {TIP_PRESETS.map((preset) => (
+          <label key={preset}>
+            <input
+              type="radio"
+              name="tip"
+              value={String(preset)}
+              checked={tip.kind === "percent" && tip.value === preset}
+              onChange={() => onTipChange({ kind: "percent", value: preset })}
+              disabled={isSubmitting}
+            />
+            {preset}%
+          </label>
+        ))}
+        <label htmlFor="order-tip-fixed">Or fixed amount</label>
+        <input
+          id="order-tip-fixed"
+          type="number"
+          min={0}
+          step="any"
+          placeholder="0"
+          value={tip.kind === "fixed" ? String(tip.value) : ""}
+          onChange={(e) => {
+            const parsed = Number(e.target.value);
+            onTipChange(
+              e.target.value === "" || Number.isNaN(parsed)
+                ? { kind: "none" }
+                : { kind: "fixed", value: parsed },
+            );
+          }}
+          disabled={isSubmitting}
+        />
       </fieldset>
 
       <div className="order-review__total">

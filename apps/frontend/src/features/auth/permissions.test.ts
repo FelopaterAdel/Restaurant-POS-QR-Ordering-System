@@ -27,6 +27,8 @@ describe("permissions", () => {
     expect(canAccess(userOf("MANAGER"), "tables")).toBe(true);
     expect(canAccess(userOf("MANAGER"), "orders")).toBe(true);
     expect(canAccess(userOf("MANAGER"), "payments")).toBe(true);
+    expect(canAccess(userOf("MANAGER"), "reservations")).toBe(true);
+    expect(canAccess(userOf("MANAGER"), "audit")).toBe(true);
     expect(canAccess(userOf("MANAGER"), "settings")).toBe(true);
     expect(canAccess(userOf("MANAGER"), "users")).toBe(false);
   });
@@ -34,6 +36,7 @@ describe("permissions", () => {
   it("matches the matrix for CASHIER", () => {
     expect(canAccess(userOf("CASHIER"), "orders")).toBe(true);
     expect(canAccess(userOf("CASHIER"), "payments")).toBe(true);
+    expect(canAccess(userOf("CASHIER"), "reservations")).toBe(true);
     expect(canAccess(userOf("CASHIER"), "settings")).toBe(false);
     for (const denied of ["dashboard", "users", "products", "categories", "tables"] as const) {
       expect(canAccess(userOf("CASHIER"), denied)).toBe(false);
@@ -42,6 +45,8 @@ describe("permissions", () => {
 
   it("matches the matrix for WAITER", () => {
     expect(canAccess(userOf("WAITER"), "orders")).toBe(true);
+    expect(canAccess(userOf("WAITER"), "reservations")).toBe(true);
+    expect(canAccess(userOf("WAITER"), "audit")).toBe(false);
     expect(canAccess(userOf("WAITER"), "payments")).toBe(false);
     expect(canAccess(userOf("WAITER"), "dashboard")).toBe(false);
     expect(canAccess(userOf("WAITER"), "users")).toBe(false);

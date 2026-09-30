@@ -8,7 +8,12 @@ import {
   CancelOrderUseCase,
 } from "../use-cases/cancel-order.use-case.js";
 import { OrderNotFoundError } from "../use-cases/get-order.use-case.js";
+import type { AuditService } from "../../audit/services/audit.service.js";
 import { buildOrder } from "./order.fixture.js";
+
+const stubAudit = {
+  record: vi.fn(async () => undefined),
+} as unknown as AuditService;
 
 function createMockRepository(
   overrides: Partial<OrderRepository> = {},
@@ -30,7 +35,7 @@ function createMockRepository(
 describe("CancelOrderUseCase", () => {
   it("cancels a pending order and stores the reason", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({ status: OrderStatus.PENDING });
 
     vi.mocked(repository.findById).mockResolvedValueOnce(order);
@@ -58,11 +63,14 @@ describe("CancelOrderUseCase", () => {
     expect(result.status).toBe(OrderStatus.CANCELLED);
     expect(result.cancelledReason).toBe("Customer requested cancellation");
     expect(result.cancelledAt).toEqual(new Date("2026-01-02T00:00:00.000Z"));
+    expect(stubAudit.record).toHaveBeenCalledWith(
+      expect.objectContaining({ action: "ORDER_CANCELLED" }),
+    );
   });
 
   it("cancels a confirmed order", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({ status: OrderStatus.CONFIRMED });
 
     vi.mocked(repository.findById).mockResolvedValueOnce(order);
@@ -88,7 +96,7 @@ describe("CancelOrderUseCase", () => {
 
   it("cancels a preparing order consistently with the status transition map", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({ status: OrderStatus.PREPARING });
 
     vi.mocked(repository.findById).mockResolvedValueOnce(order);
@@ -114,7 +122,7 @@ describe("CancelOrderUseCase", () => {
 
   it("throws PaidOrderCannotBeCancelledError for a paid order", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({
       status: OrderStatus.READY,
       paymentStatus: PaymentStatus.PAID,
@@ -132,7 +140,7 @@ describe("CancelOrderUseCase", () => {
 
   it("throws OrderAlreadyCancelledError for an already cancelled order", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({
       status: OrderStatus.CANCELLED,
       cancelledAt: new Date("2026-01-02T00:00:00.000Z"),
@@ -154,7 +162,7 @@ describe("CancelOrderUseCase", () => {
     [OrderStatus.COMPLETED],
   ])("throws OrderCannotBeCancelledError for a %s order", async (status) => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
     const order = buildOrder({ status });
 
     vi.mocked(repository.findById).mockResolvedValueOnce(order);
@@ -169,7 +177,7 @@ describe("CancelOrderUseCase", () => {
 
   it("throws OrderNotFoundError when the order does not exist", async () => {
     const repository = createMockRepository();
-    const useCase = new CancelOrderUseCase(repository);
+    const useCase = new CancelOrderUseCase(repository, stubAudit);
 
     vi.mocked(repository.findById).mockResolvedValueOnce(null);
 

@@ -1,16 +1,38 @@
-import { prisma, PaymentStatus } from "@restaurant/database";
-import type {
-  PaymentMethod,
-  Prisma,
-  PrismaClient,
-} from "@restaurant/database";
+import { prisma, PaymentStatus, Prisma } from "@restaurant/database";
+import type { PaymentMethod, PrismaClient } from "@restaurant/database";
 
-export interface CreatePaidPaymentInput {
+export interface CollectPaymentInput {
   orderId: string;
-  amount: Prisma.Decimal;
+  /** Portion of the items total covered by this payment. */
+  itemsAmount: Prisma.Decimal;
+  tipAmount: Prisma.Decimal;
   method: PaymentMethod;
   paidAt: Date;
 }
+
+export interface CollectedPayment {
+  payment: {
+    id: string;
+    orderId: string;
+    amount: Prisma.Decimal;
+    tipAmount: Prisma.Decimal;
+    method: PaymentMethod;
+    status: PaymentStatus;
+    paidAt: Date | null;
+    createdAt: Date;
+  };
+  /** Items total still unpaid after this payment. */
+  remaining: Prisma.Decimal;
+  orderPaid: boolean;
+}
+
+export type CollectPaymentResult =
+  | { ok: true; collected: CollectedPayment }
+  | {
+      ok: false;
+      reason: "already-paid" | "exceeds-remaining" | "order-missing";
+      remaining: Prisma.Decimal;
+    };
 
 export interface CreatePendingOnlinePaymentInput {
   orderId: string;
@@ -71,6 +93,12 @@ export class PaymentRepository {
     });
   }
 
+  async findById(id: string) {
+    return this.client.payment.findUnique({
+      where: { id },
+    });
+  }
+
   async findByProviderRef(providerRef: string) {
     return this.client.payment.findUnique({
       where: { providerRef },
@@ -93,24 +121,79 @@ export class PaymentRepository {
     });
   }
 
-  async createPaidPaymentAndUpdateOrder(input: CreatePaidPaymentInput) {
+  /**
+   * Records one (possibly partial) PAID payment with an optional tip.
+   * The order row is locked first so concurrent payments serialize and the
+   * items balance can never be over-collected.
+   */
+  async collectPayment(input: CollectPaymentInput): Promise<CollectPaymentResult> {
     return this.client.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Order" WHERE id = ${input.orderId} FOR UPDATE`;
+
+      const order = await tx.order.findUnique({
+        where: { id: input.orderId },
+      });
+      if (!order) {
+        return {
+          ok: false as const,
+          reason: "order-missing" as const,
+          remaining: new Prisma.Decimal(0),
+        };
+      }
+
+      const paid = await tx.payment.findMany({
+        where: { orderId: input.orderId, status: PaymentStatus.PAID },
+        select: { amount: true, tipAmount: true },
+      });
+      const paidItems = paid.reduce(
+        (sum, row) => sum.add(row.amount.sub(row.tipAmount)),
+        new Prisma.Decimal(0),
+      );
+      const remaining = new Prisma.Decimal(order.totalAmount).sub(paidItems);
+
+      if (remaining.lte(0)) {
+        return {
+          ok: false as const,
+          reason: "already-paid" as const,
+          remaining: new Prisma.Decimal(0),
+        };
+      }
+      if (input.itemsAmount.gt(remaining)) {
+        return {
+          ok: false as const,
+          reason: "exceeds-remaining" as const,
+          remaining,
+        };
+      }
+
       const payment = await tx.payment.create({
         data: {
           orderId: input.orderId,
-          amount: input.amount,
+          amount: input.itemsAmount.add(input.tipAmount),
+          tipAmount: input.tipAmount,
           method: input.method,
           status: PaymentStatus.PAID,
           paidAt: input.paidAt,
         },
       });
 
+      const covered = input.itemsAmount.gte(remaining);
       await tx.order.update({
         where: { id: input.orderId },
-        data: { paymentStatus: PaymentStatus.PAID },
+        data: {
+          tipAmount: { increment: input.tipAmount },
+          paymentStatus: covered ? PaymentStatus.PAID : PaymentStatus.PENDING,
+        },
       });
 
-      return payment;
+      return {
+        ok: true as const,
+        collected: {
+          payment,
+          remaining: remaining.sub(input.itemsAmount),
+          orderPaid: covered,
+        },
+      };
     });
   }
 
