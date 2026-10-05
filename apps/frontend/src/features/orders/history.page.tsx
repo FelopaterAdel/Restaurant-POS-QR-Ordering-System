@@ -46,7 +46,7 @@ export default function OrderHistoryPage() {
   const { data: selectedOrder, isLoading: isLoadingDetail } =
     useOrderDetailQuery(selectedOrderId);
 
-  const updateStatusMutation = useUpdateOrderStatusMutation(selectedOrderId);
+  const updateStatusMutation = useUpdateOrderStatusMutation();
 
   const handleStatusChange = useCallback((newStatus: OrderStatus | "") => {
     setStatus(newStatus);
@@ -84,9 +84,9 @@ export default function OrderHistoryPage() {
   }, [updateStatusMutation]);
 
   const handleStatusUpdate = useCallback(
-    (_orderId: string, newStatus: OrderStatus) => {
+    (orderId: string, newStatus: OrderStatus) => {
       updateStatusMutation.mutate(
-        { status: newStatus },
+        { orderId, status: newStatus },
         {
           onSuccess: () => {
             setSelectedHistoryOrder(null);

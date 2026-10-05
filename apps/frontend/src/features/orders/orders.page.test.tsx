@@ -313,6 +313,43 @@ describe("OrdersPage", () => {
     expect(markReady).toBeDefined();
   });
 
+  it("sends the card order id when using an inline action without opening details", async () => {
+    const requests: Array<{ url: string; body: unknown }> = [];
+    server.use(
+      http.patch("*/api/v1/orders/:orderId/status", async ({ request }) => {
+        requests.push({
+          url: new URL(request.url).pathname,
+          body: await request.json(),
+        });
+        return HttpResponse.json({
+          success: true,
+          data: { ...mockOrders[0], status: "READY" },
+        });
+      }),
+    );
+
+    const { container } = renderPage();
+
+    await waitFor(() => {
+      expect(container.querySelector(".order-card__number")).toBeInTheDocument();
+    });
+
+    const user = userEvent.setup();
+    const readyBtns = Array.from(
+      container.querySelectorAll(".order-card__action-btn"),
+    );
+    const markReady = readyBtns.find((btn) =>
+      btn.textContent?.includes("Mark Ready"),
+    ) as HTMLElement;
+    await user.click(markReady);
+
+    await waitFor(() => {
+      expect(requests).toHaveLength(1);
+    });
+    expect(requests[0].url).toBe("/api/v1/orders/ord_1/status");
+    expect(requests[0].body).toEqual({ status: "READY" });
+  });
+
   it("does not show inline actions on READY orders for KITCHEN", async () => {
     const { container } = renderPage();
 

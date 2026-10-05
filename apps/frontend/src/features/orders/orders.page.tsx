@@ -148,9 +148,7 @@ export default function OrdersPage() {
   const pagination: Pagination | undefined =
     historyMode ? historyQuery.data?.pagination : queueQuery.data?.pagination;
 
-  const updateStatusMutation = useUpdateOrderStatusMutation(
-    selected?.order.id ?? "",
-  );
+  const updateStatusMutation = useUpdateOrderStatusMutation();
 
   const payOrderMutation = usePayOrderMutation(payingOrder?.id ?? "");
 
@@ -196,9 +194,9 @@ export default function OrdersPage() {
   }, [updateStatusMutation]);
 
   const handleStatusUpdate = useCallback(
-    (_orderId: string, nextStatus: OrderStatus) => {
+    (orderId: string, nextStatus: OrderStatus) => {
       updateStatusMutation.mutate(
-        { status: nextStatus },
+        { orderId, status: nextStatus },
         {
           onSuccess: () => {
             setSelected(null);
@@ -224,7 +222,7 @@ export default function OrdersPage() {
   const handleCardAction = useCallback(
     (order: Order, action: StatusAction) => {
       updateStatusMutation.mutate(
-        { status: action.nextStatus },
+        { orderId: order.id, status: action.nextStatus },
         {
           onSuccess: () => {
             setToast({

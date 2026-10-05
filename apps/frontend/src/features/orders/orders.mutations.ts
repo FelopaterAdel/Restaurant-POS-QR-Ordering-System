@@ -26,11 +26,14 @@ export function useCreateOrderMutation() {
   });
 }
 
-export function useUpdateOrderStatusMutation(orderId: string) {
+export function useUpdateOrderStatusMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (input: UpdateOrderStatusInput) =>
+    mutationFn: ({
+      orderId,
+      ...input
+    }: UpdateOrderStatusInput & { orderId: string }) =>
       updateOrderStatus(orderId, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: orderKeys.all });
