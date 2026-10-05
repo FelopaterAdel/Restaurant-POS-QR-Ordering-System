@@ -25,10 +25,10 @@ export default function OrderTrackingPage() {
             />
           )}
           <div className="menu-page__brand-text">
-            <h1 className="menu-page__title">
+            <h1 className="menu-page__title">Track Order</h1>
+            <span className="menu-page__subtitle">
               {restaurant ? restaurant.name : "Your Order"}
-            </h1>
-            <span className="menu-page__subtitle">Your Order</span>
+            </span>
           </div>
         </div>
       </header>

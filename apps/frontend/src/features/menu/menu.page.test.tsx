@@ -13,7 +13,7 @@ import {
   expect,
   it,
 } from "vitest";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useParams } from "react-router-dom";
 import MenuPage from "./menu.page";
 import type { PublicMenu } from "./menu.types";
 
@@ -979,6 +979,54 @@ describe("MenuPage", () => {
     });
   });
 
+  it("shows a Track My Order button that navigates to tracking", async () => {
+    const { container } = render(
+      <StrictMode>
+        <MemoryRouter initialEntries={["/public/menu/tbl_test123"]}>
+          <Routes>
+            <Route path="/public/menu/:qrCode" element={<MenuPage />} />
+            <Route
+              path="/public/menu/:qrCode/orders/:orderId"
+              element={<div data-testid="tracking-page" />}
+            />
+          </Routes>
+        </MemoryRouter>
+      </StrictMode>,
+      { wrapper: createQueryWrapper() },
+    );
+    const user = await goToReview(container);
+
+    await user.click(
+      container.querySelector(".order-review__confirm-btn") as HTMLElement,
+    );
+    await waitFor(() => {
+      expect(container.querySelector(".order-success")).toBeInTheDocument();
+    });
+
+    expect(
+      window.sessionStorage.getItem("restaurant-pos:track:tbl_test123"),
+    ).toBe("ord_1");
+
+    await user.click(
+      container.querySelector(".order-success__new-btn") as HTMLElement,
+    );
+    await waitFor(() => {
+      expect(
+        container.querySelector(".menu-page__products"),
+      ).toBeInTheDocument();
+    });
+
+    const trackBtn = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent === "Track My Order",
+    ) as HTMLElement;
+    expect(trackBtn).toBeDefined();
+    await user.click(trackBtn);
+
+    await waitFor(() => {
+      expect(container.querySelector("[data-testid='tracking-page']")).toBeInTheDocument();
+    });
+  });
+
   it("shows a friendly error for an unknown coupon code", async () => {
     server.use(
       http.post("*/api/v1/public/orders", () => {
@@ -1077,7 +1125,12 @@ describe("MenuPage", () => {
     ).toBeNull();
   });
 
-  it("navigates to the tracking page when clicking View Order", async () => {
+  it("navigates to the tracking page with the real order id", async () => {
+    function TrackingStub() {
+      const { orderId } = useParams();
+      return <div data-testid="tracking-stub">{orderId}</div>;
+    }
+
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false, gcTime: 0 } },
     });
@@ -1090,7 +1143,7 @@ describe("MenuPage", () => {
               <Route path="/public/menu/:qrCode" element={<MenuPage />} />
               <Route
                 path="/public/menu/:qrCode/orders/:orderId"
-                element={<div data-testid="tracking-stub" />}
+                element={<TrackingStub />}
               />
             </Routes>
           </QueryClientProvider>
@@ -1116,8 +1169,8 @@ describe("MenuPage", () => {
 
     await waitFor(() => {
       expect(
-        container.querySelector('[data-testid="tracking-stub"]'),
-      ).toBeInTheDocument();
+        container.querySelector('[data-testid="tracking-stub"]')?.textContent,
+      ).toBe("ord_1");
     });
   });
 

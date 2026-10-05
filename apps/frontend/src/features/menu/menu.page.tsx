@@ -68,6 +68,9 @@ export default function MenuPage() {
   const [phone, setPhone] = useState("");
   const [onlineProvider, setOnlineProvider] = useState<string | null>(null);
   const [tip, setTip] = useState<CheckoutTip>({ kind: "none" });
+  const [trackedOrderId, setTrackedOrderId] = useState<string | null>(() =>
+    window.sessionStorage.getItem(`restaurant-pos:track:${qrCode}`),
+  );
 
   // Shown until the backend reports the configured providers; the backend
   // still rejects unconfigured choices with a friendly error.
@@ -146,6 +149,11 @@ export default function MenuPage() {
       setOrderResult(result);
       cart.clear();
       setCouponCode("");
+      setTrackedOrderId(result.id);
+      window.sessionStorage.setItem(
+        `restaurant-pos:track:${qrCode}`,
+        result.id,
+      );
       setView(
         result.stripeClientSecret || result.paymentRedirectUrl
           ? "online-pending"
@@ -165,12 +173,15 @@ export default function MenuPage() {
   }, []);
 
   const handleTrackOrder = useCallback(() => {
-    if (!orderResult) return;
+    // No arguments on purpose: passing this directly to onClick would
+    // otherwise receive the click event as the order id.
+    const target = orderResult?.id ?? trackedOrderId;
+    if (!target) return;
     navigate(
-      `/public/menu/${encodeURIComponent(qrCode)}/orders/${encodeURIComponent(orderResult.id)}`,
+      `/public/menu/${encodeURIComponent(qrCode)}/orders/${encodeURIComponent(target)}`,
       { replace: true },
     );
-  }, [navigate, orderResult, qrCode]);
+  }, [navigate, orderResult, trackedOrderId, qrCode]);
 
   if (error) {
     const isDisabled =
@@ -301,6 +312,15 @@ export default function MenuPage() {
           </div>
         </div>
         <span className="menu-page__table">Table {menu.table.number}</span>
+        {trackedOrderId && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleTrackOrder()}
+          >
+            Track My Order
+          </Button>
+        )}
       </header>
 
       {menu.categories.length === 0 ? (

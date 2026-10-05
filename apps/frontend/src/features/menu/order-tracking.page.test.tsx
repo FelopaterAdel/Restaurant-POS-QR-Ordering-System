@@ -151,6 +151,9 @@ describe("OrderTrackingPage", () => {
     });
 
     expect(container.querySelector(".menu-page__title")?.textContent).toBe(
+      "Track Order",
+    );
+    expect(container.querySelector(".menu-page__subtitle")?.textContent).toBe(
       "Test Restaurant",
     );
     expect(container.querySelector(".order-tracking__title")?.textContent).toBe(
