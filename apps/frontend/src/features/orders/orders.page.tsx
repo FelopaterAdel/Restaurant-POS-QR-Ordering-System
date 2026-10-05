@@ -348,7 +348,7 @@ export default function OrdersPage() {
   const emptyMessage = buildEmptyMessage(filter, searchOrderNumber !== undefined);
 
   return (
-    <div>
+    <div className="page orders-page">
       {toast && (
         <StatusToast
           message={toast.message}
@@ -357,19 +357,28 @@ export default function OrdersPage() {
         />
       )}
 
-      <div className="orders-header">
-        <h1 className="orders-header__title">Orders</h1>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isLoading}
-        >
-          {isLoading ? <Spinner /> : "Refresh"}
-        </Button>
+      <div className="page-header">
+        <div className="page-header__text">
+          <h1 className="page-header__title">Orders</h1>
+          <p className="page-header__subtitle">
+            {pagination
+              ? `${pagination.total} order${pagination.total === 1 ? "" : "s"} in view`
+              : "Live service queue — new orders appear automatically"}
+          </p>
+        </div>
+        <div className="page-header__actions">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            {isLoading ? <Spinner /> : "Refresh"}
+          </Button>
+        </div>
       </div>
 
-      <div className="orders-toolbar">
+      <div className="toolbar toolbar--split orders-toolbar">
         <OrderFilters
           active={filter}
           onChange={handleFilterChange}
@@ -377,12 +386,18 @@ export default function OrdersPage() {
         />
 
         {roleConfig?.canSearch && (
-          <div className="orders-search">
+          <div className="search-field orders-search">
+            <span className="search-field__icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                <circle cx="7" cy="7" r="4.5" />
+                <path d="M10.8 10.8L14 14" />
+              </svg>
+            </span>
             <Input
-              label="Search"
+              label=""
               type="text"
               inputMode="numeric"
-              placeholder="Order #"
+              placeholder="Search order #"
               value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
               aria-label="Search orders by number"

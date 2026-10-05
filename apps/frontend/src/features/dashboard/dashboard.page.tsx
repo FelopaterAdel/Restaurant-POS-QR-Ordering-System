@@ -82,6 +82,10 @@ function DashboardOverview({ summary }: { summary: DashboardSummary }) {
     summary.orders.preparing +
     summary.orders.ready;
   const kitchenOrders = summary.orders.confirmed + summary.orders.preparing;
+  const avgOrder =
+    summary.payments.paidOrders > 0
+      ? summary.payments.totalSales / summary.payments.paidOrders
+      : 0;
 
   return (
     <>
@@ -89,37 +93,69 @@ function DashboardOverview({ summary }: { summary: DashboardSummary }) {
         <StatCard
           title="Total Sales"
           value={formatCurrency(summary.payments.totalSales)}
+          hint={
+            summary.payments.paidOrders > 0
+              ? `Avg ${formatCurrency(avgOrder)} · ${formatNumber(summary.payments.paidOrders)} paid`
+              : "No paid orders yet"
+          }
           icon={<BanknoteIcon />}
           tone="primary"
         />
         <StatCard
           title="Total Orders"
           value={formatNumber(summary.orders.total)}
+          hint={`${formatNumber(summary.orders.completed)} completed · ${formatNumber(summary.orders.cancelled)} cancelled`}
           icon={<ReceiptIcon />}
           tone="info"
         />
         <StatCard
           title="Paid Orders"
           value={formatNumber(summary.payments.paidOrders)}
+          hint={
+            summary.orders.total > 0
+              ? `${Math.round((summary.payments.paidOrders / summary.orders.total) * 100)}% of all orders`
+              : undefined
+          }
           icon={<CheckCircleIcon />}
           tone="success"
         />
         <StatCard
-          title="Active Orders"
+          title="Needs Attention"
           value={formatNumber(activeOrders)}
+          hint={
+            activeOrders > 0
+              ? `${formatNumber(summary.orders.pending)} pending · ${formatNumber(summary.orders.ready)} ready`
+              : "All clear — nothing waiting"
+          }
           icon={<ClockIcon />}
           tone="warning"
         />
       </div>
-      <div className="dashboard-details">
-        <OrderStatusCard orders={summary.orders} />
-        <SalesChart sales={summary.sales} />
-      </div>
-      <QuickLinks
-        activeOrders={activeOrders}
-        kitchenOrders={kitchenOrders}
-        readyOrders={summary.orders.ready}
-      />
+      <section className="dashboard-section" aria-label="Sales and order status">
+        <div className="dashboard-section__head">
+          <h2 className="dashboard-section__title">Live operations</h2>
+          <p className="dashboard-section__sub">
+            Where every order stands right now
+          </p>
+        </div>
+        <div className="dashboard-details">
+          <OrderStatusCard orders={summary.orders} />
+          <SalesChart sales={summary.sales} />
+        </div>
+      </section>
+      <section className="dashboard-section" aria-label="Shortcuts">
+        <div className="dashboard-section__head">
+          <h2 className="dashboard-section__title">Jump to work</h2>
+          <p className="dashboard-section__sub">
+            The four places staff use most during service
+          </p>
+        </div>
+        <QuickLinks
+          activeOrders={activeOrders}
+          kitchenOrders={kitchenOrders}
+          readyOrders={summary.orders.ready}
+        />
+      </section>
     </>
   );
 }

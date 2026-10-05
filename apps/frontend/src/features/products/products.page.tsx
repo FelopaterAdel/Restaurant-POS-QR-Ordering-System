@@ -116,15 +116,20 @@ export default function ProductsPage() {
   }
 
   return (
-    <div>
-      <div className="products-header">
-        <h1 className="products-header__title">Products</h1>
-        <div className="products-header__actions">
+    <div className="page">
+      <div className="page-header products-header">
+        <div className="page-header__text">
+          <h1 className="page-header__title">Products</h1>
+          <p className="page-header__subtitle">
+            {data ? `${data.length} item${data.length === 1 ? "" : "s"} on the menu` : "Dishes, drinks and prices"}
+          </p>
+        </div>
+        <div className="page-header__actions products-header__actions">
           <Button variant="outline" onClick={() => navigate("/menu/preview")}>
             Preview Customer Menu
           </Button>
           {canManage && (
-            <Button onClick={() => setAddModalOpen(true)}>+ Add</Button>
+            <Button onClick={() => setAddModalOpen(true)}>Add Product</Button>
           )}
         </div>
       </div>

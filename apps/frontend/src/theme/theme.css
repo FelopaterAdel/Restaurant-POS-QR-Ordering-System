@@ -7,18 +7,25 @@
 :root {
   color-scheme: light;
 
-  /* Colors */
-  --color-background: #f8fafc;
+  /* Colors — warm neutral canvas, restrained emerald primary */
+  --color-background: #f4f5f4;
+  --color-background-subtle: #eceeec;
   --color-surface: #ffffff;
-  --color-surface-hover: #f1f5f9;
-  --color-text: #0f172a;
-  --color-muted: #64748b;
-  --color-border: #e2e8f0;
+  --color-surface-hover: #f1f4f1;
+  --color-surface-pressed: #e7ebe7;
+  --color-text: #131a16;
+  --color-text-strong: #0b0f0c;
+  --color-muted: #5f6b62;
+  --color-faint: #8a948d;
+  --color-border: #e3e7e3;
+  --color-border-strong: #cbd2cb;
 
-  --color-primary: #059669;
-  --color-primary-hover: #047857;
+  --color-primary: #0e7a55;
+  --color-primary-hover: #0b6547;
+  --color-primary-active: #095239;
   --color-primary-foreground: #ffffff;
-  --color-primary-subtle: #ecfdf5;
+  --color-primary-subtle: #e6f4ec;
+  --color-primary-border: #bfe3cf;
 
   --color-secondary: #f1f5f9;
   --color-secondary-hover: #e2e8f0;
@@ -47,13 +54,16 @@
   --color-overlay: rgb(15 23 42 / 0.5);
   --color-focus-ring: rgb(5 150 105 / 0.35);
 
-  /* Typography */
+  /* Typography — tight restaurant-console scale */
   --font-family:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-family-numeric:
     "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-size-h1: 28px;
-  --font-size-h2: 22px;
+  --font-size-h1: 30px;
+  --font-size-h2: 24px;
   --font-size-h3: 18px;
-  --font-size-body: 14px;
+  --font-size-lg: 16px;
+  --font-size-body: 14.5px;
   --font-size-sm: 13px;
   --font-size-xs: 12px;
   --font-weight-normal: 400;
@@ -74,112 +84,82 @@
   --space-10: 40px;
   --space-12: 48px;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  /* Radius — consistent 8pt system */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 20px;
   --radius-full: 9999px;
 
-  /* Elevation */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 12px rgb(0 0 0 / 0.08);
-  --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.12);
+  /* Elevation — subtle, practical */
+  --shadow-xs: 0 1px 2px rgb(19 26 22 / 0.06);
+  --shadow-sm: 0 1px 3px rgb(19 26 22 / 0.08), 0 1px 2px rgb(19 26 22 / 0.06);
+  --shadow-md: 0 4px 12px rgb(19 26 22 / 0.1), 0 2px 4px rgb(19 26 22 / 0.06);
+  --shadow-lg: 0 12px 32px rgb(19 26 22 / 0.14), 0 4px 8px rgb(19 26 22 / 0.08);
+
+  /* Layout */
+  --layout-max-width: 1320px;
+  --sidebar-width: 264px;
+  --header-height: 64px;
+  --touch-min: 44px;
 }
 
 /* Dark theme: ready for explicit switching via <html data-theme="dark">. */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-background: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-hover: #334155;
-  --color-text: #e2e8f0;
-  --color-muted: #94a3b8;
-  --color-border: #334155;
+  --color-background: #101413;
+  --color-background-subtle: #171c1a;
+  --color-surface: #1b211e;
+  --color-surface-hover: #242c28;
+  --color-surface-pressed: #2e3833;
+  --color-text: #e7ede8;
+  --color-text-strong: #ffffff;
+  --color-muted: #9aa8a0;
+  --color-faint: #6b7770;
+  --color-border: #2a332e;
+  --color-border-strong: #3a463f;
 
-  --color-primary: #34d399;
-  --color-primary-hover: #6ee7b7;
+  --color-primary: #3ecf8e;
+  --color-primary-hover: #6fe3a8;
+  --color-primary-active: #3ecf8e;
   --color-primary-foreground: #052e16;
-  --color-primary-subtle: #064e3b;
+  --color-primary-subtle: #0d2b1f;
+  --color-primary-border: #1d4d33;
 
-  --color-secondary: #334155;
-  --color-secondary-hover: #475569;
-  --color-secondary-foreground: #e2e8f0;
+  --color-secondary: #242c28;
+  --color-secondary-hover: #2e3833;
+  --color-secondary-foreground: #e7ede8;
 
   --color-success: #4ade80;
   --color-success-hover: #86efac;
   --color-success-foreground: #052e16;
-  --color-success-subtle: #052e16;
+  --color-success-subtle: #0d2b1f;
 
   --color-warning: #fbbf24;
   --color-warning-hover: #fcd34d;
   --color-warning-foreground: #451a03;
-  --color-warning-subtle: #451a03;
+  --color-warning-subtle: #33210a;
 
   --color-danger: #f87171;
   --color-danger-hover: #fca5a5;
   --color-danger-foreground: #450a0a;
-  --color-danger-subtle: #450a0a;
+  --color-danger-subtle: #341111;
 
   --color-info: #60a5fa;
   --color-info-hover: #93c5fd;
   --color-info-foreground: #172554;
-  --color-info-subtle: #1e3a8a;
+  --color-info-subtle: #16294d;
 
-  --color-overlay: rgb(2 6 23 / 0.7);
-  --color-focus-ring: rgb(52 211 153 / 0.4);
+  --color-overlay: rgb(5 10 8 / 0.7);
+  --color-focus-ring: rgb(62 207 142 / 0.45);
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);
   --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
 }
 
-/* Default to dark when the OS prefers it and no explicit choice was made. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-
-    --color-background: #0f172a;
-    --color-surface: #1e293b;
-    --color-surface-hover: #334155;
-    --color-text: #e2e8f0;
-    --color-muted: #94a3b8;
-    --color-border: #334155;
-
-    --color-primary: #34d399;
-    --color-primary-hover: #6ee7b7;
-    --color-primary-foreground: #052e16;
-    --color-primary-subtle: #064e3b;
-
-    --color-secondary: #334155;
-    --color-secondary-hover: #475569;
-    --color-secondary-foreground: #e2e8f0;
-
-    --color-success: #4ade80;
-    --color-success-hover: #86efac;
-    --color-success-foreground: #052e16;
-    --color-success-subtle: #052e16;
-
-    --color-warning: #fbbf24;
-    --color-warning-hover: #fcd34d;
-    --color-warning-foreground: #451a03;
-    --color-warning-subtle: #451a03;
-
-    --color-danger: #f87171;
-    --color-danger-hover: #fca5a5;
-    --color-danger-foreground: #450a0a;
-    --color-danger-subtle: #450a0a;
-
-    --color-info: #60a5fa;
-    --color-info-hover: #93c5fd;
-    --color-info-foreground: #172554;
-    --color-info-subtle: #1e3a8a;
-
-    --color-overlay: rgb(2 6 23 / 0.7);
-    --color-focus-ring: rgb(52 211 153 / 0.4);
-
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 4px 12px rgb(0 0 0 / 0.5);
-    --shadow-lg: 0 12px 32px rgb(0 0 0 / 0.6);
-  }
-}
+/* Explicit light stays light even if OS prefers dark. Auto-dark disabled
+   by default for a POS console (long sessions, bright kitchens). Staff can
+   still opt in with <html data-theme="dark">. */

@@ -51,7 +51,14 @@ describe("theme tokens", () => {
   });
 
   it("defines the radius scale", () => {
-    expect(Object.keys(theme.radius)).toEqual(["sm", "md", "lg", "full"]);
+    expect(Object.keys(theme.radius)).toEqual([
+      "xs",
+      "sm",
+      "md",
+      "lg",
+      "xl",
+      "full",
+    ]);
   });
 
   it("defines a typography hierarchy", () => {

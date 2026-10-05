@@ -34,12 +34,16 @@ export function Cart({
         className="cart__toggle"
         onClick={onToggle}
         aria-expanded={isOpen}
+        aria-label={isOpen ? "Hide order" : `Show order, ${totalItems} items, ${formatPrice(totalAmount)}`}
       >
         <span className="cart__toggle-info">
           <span className="cart__toggle-count">{totalItems} item(s)</span>
+          <span className="cart__toggle-hint">
+            {isOpen ? "Tap to hide" : "Tap to review"}
+          </span>
           <span className="cart__toggle-total">{formatPrice(totalAmount)}</span>
         </span>
-        <span className="cart__toggle-icon">{isOpen ? "▼" : "▲"}</span>
+        <span className="cart__toggle-icon" aria-hidden="true">{isOpen ? "▼" : "▲"}</span>
       </button>
 
       {isOpen && (
@@ -58,7 +62,7 @@ export function Cart({
 
           <div className="cart__footer">
             <div className="cart__total">
-              <span>Subtotal</span>
+              <span className="cart__total-label">Subtotal</span>
               <span className="cart__total-amount">
                 {formatPrice(totalAmount)}
               </span>

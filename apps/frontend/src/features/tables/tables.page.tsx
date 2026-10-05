@@ -127,12 +127,20 @@ export default function TablesPage() {
   }
 
   return (
-    <div>
-      <div className="tables-header">
-        <h1 className="tables-header__title">Tables</h1>
-        {canManage && (
-          <Button onClick={() => setAddModalOpen(true)}>Add Table</Button>
-        )}
+    <div className="page">
+      <div className="page-header tables-header">
+        <div className="page-header__text">
+          <h1 className="page-header__title">Tables</h1>
+          <p className="page-header__subtitle">
+            {filteredTables.length} table{filteredTables.length === 1 ? "" : "s"}
+            {filter !== "all" ? ` · ${filter.toLowerCase()}` : " · floor and QR codes"}
+          </p>
+        </div>
+        <div className="page-header__actions">
+          {canManage && (
+            <Button onClick={() => setAddModalOpen(true)}>Add Table</Button>
+          )}
+        </div>
       </div>
 
       <div className="tables-filters" role="group" aria-label="Filter tables by status">

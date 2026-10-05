@@ -35,10 +35,22 @@ export function LoginPage() {
   return (
     <main className="login">
       <form className="login__card" onSubmit={handleSubmit}>
-        <h1 className="login__title h2">Sign in</h1>
+        <div className="login__brand">
+          <span className="login__mark" aria-hidden="true">
+            R
+          </span>
+          <span>
+            <span className="login__brand-name">Restaurant POS</span>
+            <br />
+            <span className="login__brand-sub">Service console</span>
+          </span>
+        </div>
+        <h1 className="login__title h2">Welcome back</h1>
+        <p className="login__subtitle">Sign in to start your shift.</p>
         <Input
           label="Email"
           type="email"
+          placeholder="you@restaurant.com"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           autoComplete="email"
@@ -47,6 +59,7 @@ export function LoginPage() {
         <Input
           label="Password"
           type="password"
+          placeholder="Enter your password"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
@@ -57,7 +70,7 @@ export function LoginPage() {
             {error}
           </p>
         )}
-        <Button type="submit" size="lg" disabled={submitting}>
+        <Button type="submit" size="lg" loading={submitting} className="button--block">
           {submitting ? "Signing in…" : "Sign in"}
         </Button>
       </form>
