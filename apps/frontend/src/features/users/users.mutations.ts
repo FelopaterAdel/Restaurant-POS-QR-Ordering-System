@@ -1,5 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createStaff, updateStaffProfile, updateStaffStatus } from "./users.api";
+import {
+  createStaff,
+  deleteStaff,
+  updateStaffProfile,
+  updateStaffStatus,
+} from "./users.api";
 import { staffKeys } from "./users.queries";
 import type { CreateStaffInput, UpdateStaffInput, StaffStatus } from "./users.types";
 
@@ -25,6 +30,17 @@ export function useUpdateStaffProfileMutation() {
       staffId: string;
       input: UpdateStaffInput;
     }) => updateStaffProfile(staffId, input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: staffKeys.all });
+    },
+  });
+}
+
+export function useDeleteStaffMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (staffId: string) => deleteStaff(staffId),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: staffKeys.all });
     },

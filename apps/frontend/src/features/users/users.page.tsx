@@ -4,11 +4,13 @@ import { getApiErrorMessage } from "@/lib/api/errors";
 import { useStaffQuery } from "./users.queries";
 import {
   useCreateStaffMutation,
+  useDeleteStaffMutation,
   useUpdateStaffProfileMutation,
   useUpdateStaffStatusMutation,
 } from "./users.mutations";
 import type { Staff, StaffStatus } from "./users.types";
 import { StaffTable, StaffTableSkeleton } from "./components/StaffTable";
+import { DeleteStaffDialog } from "./components/DeleteStaffDialog";
 import { StaffForm } from "./components/StaffForm";
 import { StaffDetailsModal } from "./components/StaffDetailsModal";
 import { ToggleStaffStatusDialog } from "./components/ToggleStaffStatusDialog";
@@ -27,12 +29,15 @@ export default function UsersPage() {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [toggleDialogOpen, setToggleDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [showDeactivated, setShowDeactivated] = useState(false);
   const [toast, setToast] = useState<StaffToast | null>(null);
 
   const { data, isLoading, error, refetch } = useStaffQuery();
   const createMutation = useCreateStaffMutation();
   const updateProfileMutation = useUpdateStaffProfileMutation();
   const updateStatusMutation = useUpdateStaffStatusMutation();
+  const deleteMutation = useDeleteStaffMutation();
 
   const dismissToast = useCallback(() => setToast(null), []);
 
@@ -65,11 +70,22 @@ export default function UsersPage() {
     [updateStatusMutation],
   );
 
+  const handleDeleteStaff = useCallback(
+    (staff: Staff) => {
+      deleteMutation.reset();
+      setDetailsOpen(false);
+      setSelectedStaff(staff);
+      setDeleteDialogOpen(true);
+    },
+    [deleteMutation],
+  );
+
   const closeAllModals = useCallback(() => {
     setAddFormOpen(false);
     setEditFormOpen(false);
     setDetailsOpen(false);
     setToggleDialogOpen(false);
+    setDeleteDialogOpen(false);
     setSelectedStaff(null);
   }, []);
 
@@ -142,6 +158,39 @@ export default function UsersPage() {
     return getApiErrorMessage(err);
   }
 
+  function getDeleteErrorMessage(err: unknown): string {
+    if (err instanceof ApiError && err.code === "USER_CANNOT_DELETE_SELF") {
+      return "You cannot delete your own account.";
+    }
+    if (err instanceof ApiError && err.code === "USER_LAST_OWNER") {
+      return "You cannot delete the last active owner.";
+    }
+    return getApiErrorMessage(err);
+  }
+
+  const handleDeleteConfirm = useCallback(
+    (staffId: string) => {
+      deleteMutation.mutate(staffId, {
+        onSuccess: () => {
+          const name = selectedStaff?.name ?? "Staff member";
+          closeAllModals();
+          setToast({
+            type: "success",
+            message: `${name} was deleted.`,
+          });
+        },
+        onError: (mutationError) => {
+          setDeleteDialogOpen(false);
+          setToast({
+            type: "error",
+            message: getDeleteErrorMessage(mutationError),
+          });
+        },
+      });
+    },
+    [deleteMutation, selectedStaff, closeAllModals],
+  );
+
   if (isLoading) {
     return (
       <div>
@@ -164,25 +213,44 @@ export default function UsersPage() {
     );
   }
 
+  const visibleStaff = (data ?? []).filter(
+    (member) => showDeactivated || member.status !== "INACTIVE",
+  );
+
   return (
     <div>
       <div className="users-header">
         <h1 className="users-header__title">Staff</h1>
-        <Button onClick={handleOpenAddForm}>+ Add Staff</Button>
+        <div className="users-header__actions">
+          <label className="users-header__toggle">
+            <input
+              type="checkbox"
+              checked={showDeactivated}
+              onChange={(e) => setShowDeactivated(e.target.checked)}
+            />
+            Show deactivated
+          </label>
+          <Button onClick={handleOpenAddForm}>+ Add Staff</Button>
+        </div>
       </div>
 
-      {!data || data.length === 0 ? (
+      {visibleStaff.length === 0 ? (
         <EmptyState
-          title="No staff members yet."
+          title={
+            (data ?? []).length > 0
+              ? "No active staff members."
+              : "No staff members yet."
+          }
           action={
             <Button onClick={handleOpenAddForm}>Add Staff</Button>
           }
         />
       ) : (
         <StaffTable
-          staff={data}
+          staff={visibleStaff}
           onSelect={handleSelectStaff}
           onToggleStatus={handleToggleStatus}
+          onDelete={handleDeleteStaff}
         />
       )}
 
@@ -204,6 +272,7 @@ export default function UsersPage() {
         onClose={closeAllModals}
         onEdit={handleEditStaff}
         onToggleStatus={handleToggleStatus}
+        onDelete={handleDeleteStaff}
       />
 
       <EditStaffForm
@@ -225,6 +294,14 @@ export default function UsersPage() {
         onClose={closeAllModals}
         onConfirm={handleToggleConfirm}
         isPending={updateStatusMutation.isPending}
+      />
+
+      <DeleteStaffDialog
+        open={deleteDialogOpen}
+        staff={selectedStaff}
+        onClose={closeAllModals}
+        onConfirm={handleDeleteConfirm}
+        isPending={deleteMutation.isPending}
       />
 
       {toast && (

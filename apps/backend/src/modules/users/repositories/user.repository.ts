@@ -33,6 +33,12 @@ export class UserRepository {
     });
   }
 
+  async countActiveOwners() {
+    return this.client.user.count({
+      where: { role: "OWNER", status: "ACTIVE" },
+    });
+  }
+
   async findByEmail(email: string) {
     return this.client.user.findUnique({
       where: { email },

@@ -39,6 +39,7 @@ function renderModal(
   const onClose = vi.fn();
   const onEdit = vi.fn();
   const onToggleStatus = vi.fn();
+  const onDelete = vi.fn();
 
   const defaultProps = {
     open: true,
@@ -46,6 +47,7 @@ function renderModal(
     onClose,
     onEdit,
     onToggleStatus,
+    onDelete,
     ...overrides,
   };
 
@@ -55,7 +57,7 @@ function renderModal(
 
   const dialogs = document.querySelectorAll('[role="dialog"]');
   const dialog = dialogs[dialogs.length - 1] as HTMLElement;
-  return { dialog, onClose, onEdit, onToggleStatus };
+  return { dialog, onClose, onEdit, onToggleStatus, onDelete };
 }
 
 describe("StaffDetailsModal", () => {
@@ -74,6 +76,25 @@ describe("StaffDetailsModal", () => {
 
     expect(
       within(dialog).queryByRole("button", { name: "Edit Staff" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("calls onDelete when Delete is clicked", async () => {
+    mockRole = "OWNER";
+    const { dialog, onDelete } = renderModal();
+    const user = userEvent.setup();
+
+    await user.click(within(dialog).getByRole("button", { name: "Delete" }));
+
+    expect(onDelete).toHaveBeenCalledWith(mockStaff);
+  });
+
+  it("hides Delete on your own account", async () => {
+    mockRole = "OWNER";
+    const { dialog } = renderModal({ staff: { ...mockStaff, id: "u1" } });
+
+    expect(
+      within(dialog).queryByRole("button", { name: "Delete" }),
     ).not.toBeInTheDocument();
   });
 

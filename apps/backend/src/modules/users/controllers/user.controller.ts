@@ -3,15 +3,14 @@ import { sendSuccess } from "../../../http/response.js";
 import type { AuthenticatedRequest } from "../../../types/authenticated-request.js";
 import { toAdminUser } from "../../../utils/user.mapper.js";
 import { UserRepository } from "../repositories/user.repository.js";
-import {
-  CreateUserUseCase,
-  UserNotFoundError,
-} from "../use-cases/create-user.use-case.js";
+import { CreateUserUseCase } from "../use-cases/create-user.use-case.js";
+import { DeleteUserUseCase } from "../use-cases/delete-user.use-case.js";
 import { UpdateUserProfileUseCase } from "../use-cases/update-user-profile.use-case.js";
 import { UpdateUserStatusUseCase } from "../use-cases/update-user-status.use-case.js";
 
 const userRepository = new UserRepository();
 const createUserUseCase = new CreateUserUseCase();
+const deleteUserUseCase = new DeleteUserUseCase();
 const updateUserProfileUseCase = new UpdateUserProfileUseCase();
 const updateUserStatusUseCase = new UpdateUserStatusUseCase();
 
@@ -38,14 +37,10 @@ export async function deleteUser(
   res: Response,
   next: NextFunction,
 ) {
-  const { id } = req.params;
-
-  const existing = await userRepository.findById(id);
-  if (!existing) {
-    throw new UserNotFoundError();
-  }
-
-  await userRepository.delete(id);
+  await deleteUserUseCase.execute({
+    userId: req.params.id,
+    actorId: req.user.id,
+  });
 
   sendSuccess(res, null);
 }

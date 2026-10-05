@@ -50,11 +50,13 @@ function renderTable(
 ) {
   const onSelect = vi.fn();
   const onToggleStatus = vi.fn();
+  const onDelete = vi.fn();
 
   const defaultProps = {
     staff: mockStaff,
     onSelect,
     onToggleStatus,
+    onDelete,
     ...overrides,
   };
 
@@ -62,7 +64,7 @@ function renderTable(
     render(<StaffTable {...defaultProps} />);
   });
 
-  return { onSelect, onToggleStatus };
+  return { onSelect, onToggleStatus, onDelete };
 }
 
 describe("StaffTable", () => {
@@ -129,6 +131,40 @@ describe("StaffTable", () => {
     await user.click(screen.getByRole("button", { name: "Activate" }));
 
     expect(onToggleStatus).toHaveBeenCalledWith(mockStaff[1]);
+  });
+
+  it("shows Delete for other staff and calls onDelete", async () => {
+    const { onDelete } = renderTable();
+    const user = userEvent.setup();
+
+    const deleteButtons = screen.getAllByRole("button", { name: "Delete" });
+    expect(deleteButtons).toHaveLength(2);
+
+    await user.click(deleteButtons[0]);
+
+    expect(onDelete).toHaveBeenCalledWith(mockStaff[0]);
+  });
+
+  it("hides Delete on your own row", () => {
+    renderTable({
+      staff: [
+        { ...mockStaff[0], id: "u1" },
+        mockStaff[1],
+      ],
+    });
+
+    expect(
+      screen.getAllByRole("button", { name: "Delete" }),
+    ).toHaveLength(1);
+  });
+
+  it("hides Delete for non-OWNER roles", () => {
+    mockRole = "MANAGER";
+    renderTable();
+
+    expect(
+      screen.queryByRole("button", { name: "Delete" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides status actions for non-OWNER roles while keeping Details", () => {

@@ -31,9 +31,10 @@ export interface StaffTableProps {
   staff: Staff[];
   onSelect: (staff: Staff) => void;
   onToggleStatus: (staff: Staff) => void;
+  onDelete: (staff: Staff) => void;
 }
 
-export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps) {
+export function StaffTable({ staff, onSelect, onToggleStatus, onDelete }: StaffTableProps) {
   const { user } = useAuth();
   const canManage = user ? canAccess(user, "users") : false;
 
@@ -95,6 +96,15 @@ export function StaffTable({ staff, onSelect, onToggleStatus }: StaffTableProps)
                       Activate
                     </Button>
                   )}
+                {canManage && user && member.id !== user.id && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(member)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </div>
             </TableCell>
           </TableRow>

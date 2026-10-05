@@ -10,6 +10,7 @@ export interface StaffDetailsModalProps {
   onClose: () => void;
   onEdit: (staff: Staff) => void;
   onToggleStatus: (staff: Staff) => void;
+  onDelete: (staff: Staff) => void;
 }
 
 export function StaffDetailsModal({
@@ -18,9 +19,11 @@ export function StaffDetailsModal({
   onClose,
   onEdit,
   onToggleStatus,
+  onDelete,
 }: StaffDetailsModalProps) {
   const { user } = useAuth();
   const canManage = user ? canAccess(user, "users") : false;
+  const isSelf = user && staff ? user.id === staff.id : false;
 
   return (
     <Modal
@@ -41,6 +44,15 @@ export function StaffDetailsModal({
             )}
           </div>
           <div className="staff-details__actions-right">
+            {staff && canManage && !isSelf && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(staff)}
+              >
+                Delete
+              </Button>
+            )}
             {staff && canManage && staff.status === "ACTIVE" && (
               <Button
                 variant="danger"

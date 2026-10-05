@@ -22,3 +22,7 @@ export async function updateStaffStatus(
 ): Promise<Staff> {
   return api.patch<Staff>(`/users/${staffId}/status`, { status });
 }
+
+export async function deleteStaff(staffId: string): Promise<void> {
+  return api.delete<void>(`/users/${staffId}`);
+}

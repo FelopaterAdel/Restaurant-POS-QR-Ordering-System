@@ -95,7 +95,7 @@ async function main() {
     (await prisma.restaurant.findFirst()) ??
     (await prisma.restaurant.create({
       data: {
-        name: "Demo Bites",
+        name: "Track Order",
         description: "Farm-fresh burgers, pizza and more.",
         phone: "01000000000",
         address: "12 Tahrir St, Cairo",
