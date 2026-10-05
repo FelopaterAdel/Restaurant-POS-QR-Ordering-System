@@ -17,6 +17,7 @@ import {
   TableRow,
 } from "@/components/ui";
 import { useTablesQuery } from "@/features/tables/tables.queries";
+import { getApiErrorMessage } from "@/lib/api";
 import { useReservationsQuery } from "./reservations.queries";
 import {
   useCancelReservationMutation,
@@ -56,8 +57,23 @@ const NEXT_ACTIONS: Record<ReservationStatus, ReservationStatus[]> = {
   COMPLETED: [],
 };
 
-function todayString(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Local calendar day — matches what the user sees on their clock
+ *  (toISOString would be UTC and off by one in the evening). */
+function todayLocalString(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** UTC calendar day of a stored reservation — matches the backend day
+ *  bucket, so jumping the date filter to it always shows the item. */
+function utcDayOf(value: string): string {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? value.slice(0, 10)
+    : date.toISOString().slice(0, 10);
 }
 
 function formatDateTime(value: string): string {
@@ -66,9 +82,10 @@ function formatDateTime(value: string): string {
 }
 
 export default function ReservationsPage() {
-  const [date, setDate] = useState(() => todayString());
+  const [date, setDate] = useState(() => todayLocalString());
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Reservation | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const {
     data,
@@ -88,6 +105,13 @@ export default function ReservationsPage() {
   function closeModals() {
     setAddOpen(false);
     setEditing(null);
+    createMutation.reset();
+    updateMutation.reset();
+  }
+
+  function handleDateChange(value: string) {
+    setDate(value);
+    setNotice(null);
   }
 
   if (isLoading) {
@@ -115,17 +139,37 @@ export default function ReservationsPage() {
   return (
     <div className="reservations">
       <div className="reservations__header">
-        <h1 className="reservations__title">Reservations</h1>
+        <div className="reservations__title-wrap">
+          <h1 className="reservations__title">Reservations</h1>
+          <p className="reservations__subtitle">
+            {data ? `${data.length} reservation${data.length === 1 ? "" : "s"} · ` : ""}
+            {date || "Pick a day"}
+          </p>
+        </div>
         <div className="reservations__filters">
           <input
             type="date"
             aria-label="Reservation date"
             value={date}
-            onChange={(e) => setDate(e.target.value)}
+            onChange={(e) => handleDateChange(e.target.value)}
           />
           <Button onClick={() => setAddOpen(true)}>+ New reservation</Button>
         </div>
       </div>
+
+      {notice && (
+        <div className="reservations__notice" role="status">
+          <span>{notice}</span>
+          <button
+            type="button"
+            className="reservations__notice-dismiss"
+            onClick={() => setNotice(null)}
+            aria-label="Dismiss notification"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {!data || data.length === 0 ? (
         <EmptyState
@@ -240,8 +284,22 @@ export default function ReservationsPage() {
         isPending={createMutation.isPending}
         tables={activeTables}
         onClose={closeModals}
+        error={
+          createMutation.error
+            ? getApiErrorMessage(createMutation.error)
+            : null
+        }
         onSubmit={(values) =>
-          createMutation.mutate(values, { onSuccess: closeModals })
+          createMutation.mutate(values, {
+            onSuccess: (created) => {
+              const day = utcDayOf(created.reservedFor);
+              setDate(day);
+              setNotice(
+                `Reservation for ${created.customerName} saved — showing ${day}.`,
+              );
+              closeModals();
+            },
+          })
         }
       />
       <ReservationModal
@@ -252,11 +310,23 @@ export default function ReservationsPage() {
         tables={activeTables}
         initial={editing}
         onClose={closeModals}
+        error={
+          updateMutation.error
+            ? getApiErrorMessage(updateMutation.error)
+            : null
+        }
         onSubmit={(values) => {
           if (!editing) return;
           updateMutation.mutate(
             { id: editing.id, data: values },
-            { onSuccess: closeModals },
+            {
+              onSuccess: (saved) => {
+                const day = utcDayOf(saved.reservedFor);
+                setDate(day);
+                setNotice(`Reservation updated — showing ${day}.`);
+                closeModals();
+              },
+            },
           );
         }}
       />
@@ -271,6 +341,7 @@ function ReservationModal({
   isPending,
   tables,
   initial,
+  error,
   onClose,
   onSubmit,
 }: {
@@ -280,6 +351,7 @@ function ReservationModal({
   isPending: boolean;
   tables: Array<{ id: string; number: number; name: string }>;
   initial?: Reservation | null;
+  error?: string | null;
   onClose: () => void;
   onSubmit: (values: ReservationFormValues) => void;
 }) {
@@ -377,6 +449,11 @@ function ReservationModal({
           {...register("reservedFor")}
           error={errors.reservedFor?.message}
         />
+        {error && (
+          <p className="reservations__form-error" role="alert">
+            {error}
+          </p>
+        )}
       </form>
     </Modal>
   );

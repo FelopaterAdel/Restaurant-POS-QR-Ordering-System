@@ -1,8 +1,12 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 import { SalesChart } from "./components/SalesChart";
 import type { DashboardSales } from "./dashboard.types";
+
+afterEach(() => {
+  cleanup();
+});
 
 function buildSales(overrides: Partial<DashboardSales> = {}): DashboardSales {
   return {
