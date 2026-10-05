@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { env } from "../../../config/env.js";
+import { buildTableMenuUrl } from "../utils/table.mapper.js";
 import { QrCodeService } from "../../../infra/qr/qr-code.service.js";
 import { TableRepository } from "../repositories/table.repository.js";
 import { GetTableQrUseCase } from "../use-cases/get-table-qr.use-case.js";
@@ -43,7 +44,10 @@ describe("GetTableQrUseCase", () => {
 
     expect(repository.findById).toHaveBeenCalledWith("table_1");
     expect(qrCodeService.generate).toHaveBeenCalledWith(
-      `${env.publicBaseUrl}/menu/table/tbl_abc123`,
+      `${env.frontendBaseUrl}/public/menu/tbl_abc123`,
+    );
+    expect(qrCodeService.generate).toHaveBeenCalledWith(
+      buildTableMenuUrl("tbl_abc123"),
     );
     expect(result).toEqual(Buffer.from("png"));
   });

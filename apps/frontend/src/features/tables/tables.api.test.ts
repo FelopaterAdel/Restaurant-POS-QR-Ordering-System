@@ -31,7 +31,7 @@ const mockTable: Table = {
   name: "Table 5",
   qrCode: "tbl_abc123",
   status: "AVAILABLE",
-  menuUrl: "http://localhost:3000/menu/table/tbl_abc123",
+  menuUrl: "http://localhost:5173/public/menu/tbl_abc123",
   createdAt: "2025-01-15T10:00:00Z",
   updatedAt: "2025-01-15T10:00:00Z",
 };

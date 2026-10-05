@@ -1,6 +1,6 @@
-import { env } from "../../../config/env.js";
 import { QrCodeService } from "../../../infra/qr/qr-code.service.js";
 import { TableRepository } from "../repositories/table.repository.js";
+import { buildTableMenuUrl } from "../utils/table.mapper.js";
 import { TableNotFoundError } from "./get-table.use-case.js";
 
 export class GetTableQrUseCase {
@@ -22,8 +22,6 @@ export class GetTableQrUseCase {
       throw new TableNotFoundError();
     }
 
-    const menuUrl = `${env.publicBaseUrl}/menu/table/${table.qrCode}`;
-
-    return this.qrCodeService.generate(menuUrl);
+    return this.qrCodeService.generate(buildTableMenuUrl(table.qrCode));
   }
 }

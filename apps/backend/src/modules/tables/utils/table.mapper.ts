@@ -12,6 +12,10 @@ export interface TableDto {
   updatedAt: Date;
 }
 
+export function buildTableMenuUrl(qrCode: string): string {
+  return `${env.frontendBaseUrl}/public/menu/${qrCode}`;
+}
+
 export function toTableDto(table: RestaurantTable): TableDto {
   return {
     id: table.id,
@@ -19,7 +23,7 @@ export function toTableDto(table: RestaurantTable): TableDto {
     name: table.name,
     qrCode: table.qrCode,
     status: table.status,
-    menuUrl: `${env.publicBaseUrl}/menu/table/${table.qrCode}`,
+    menuUrl: buildTableMenuUrl(table.qrCode),
     createdAt: table.createdAt,
     updatedAt: table.updatedAt,
   };

@@ -41,6 +41,7 @@ export const env = {
   },
   bcryptSaltRounds: Number(process.env.BCRYPT_SALT_ROUNDS ?? 12),
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? "http://localhost:3000",
+  frontendBaseUrl: process.env.FRONTEND_BASE_URL ?? "http://localhost:5173",
   corsOrigin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
   authRateLimit: {
     windowMs: Number(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? 15 * 60 * 1000),
