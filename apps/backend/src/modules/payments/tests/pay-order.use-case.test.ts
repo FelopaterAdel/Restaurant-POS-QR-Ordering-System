@@ -6,6 +6,10 @@ import {
 } from "@restaurant/database";
 import { describe, expect, it, vi } from "vitest";
 import { OrderRepository } from "../../orders/repositories/order.repository.js";
+
+vi.mock("../../notifications/services/notification.service.js", () => ({
+  createNotificationForRoles: vi.fn(async () => undefined),
+}));
 import { buildOrder } from "../../orders/tests/order.fixture.js";
 import { OrderNotFoundError } from "../../orders/use-cases/get-order.use-case.js";
 import { PaymentRepository } from "../repositories/payment.repository.js";

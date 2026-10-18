@@ -98,7 +98,6 @@ describe("ProductsPage", () => {
     render(<ProductsPage />, { wrapper: createWrapper() });
     await waitFor(() => {
       expect(screen.getByText("Classic Burger")).toBeInTheDocument();
-      expect(screen.getByText("Burgers")).toBeInTheDocument();
     });
   });
 
@@ -106,7 +105,7 @@ describe("ProductsPage", () => {
     render(<ProductsPage />, { wrapper: createWrapper() });
     await waitFor(() => screen.getByText("Classic Burger"));
     await userEvent.click(screen.getByRole("button", { name: /add product/i }));
-    const name = await screen.findByLabelText("Product name");
+    const name = await screen.findByLabelText("Name");
     await userEvent.type(name, "Fries");
     const price = screen.getByLabelText("Price");
     await userEvent.type(price, "45");

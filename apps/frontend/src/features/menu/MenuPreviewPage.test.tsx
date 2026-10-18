@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
@@ -6,6 +7,10 @@ import { useTablesQuery } from "@/features/tables/tables.queries";
 
 vi.mock("@/features/tables/tables.queries", () => ({
   useTablesQuery: vi.fn(),
+}));
+
+vi.mock("@/features/menu/components/PublicMenuView", () => ({
+  PublicMenuView: () => <div>PREVIEW MODE</div>,
 }));
 
 describe("MenuPreviewPage", () => {

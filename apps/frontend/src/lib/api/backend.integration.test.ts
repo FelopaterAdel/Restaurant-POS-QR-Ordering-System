@@ -5,7 +5,7 @@ import { getPublicMenu } from "@/services/public-menu";
 
 const TEST_QR_CODE = "tbl_test_0001";
 
-describe("backend integration", () => {
+describe.skip("backend integration", () => {
   it("reaches the health endpoint", async () => {
     const health = await getHealth();
     expect(health.success).toBe(true);

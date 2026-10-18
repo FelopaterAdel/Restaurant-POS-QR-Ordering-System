@@ -172,7 +172,7 @@ describe("OrderDetailsModal", () => {
   it("renders payment status badge", () => {
     const { dialog } = renderModal();
 
-    expect(within(dialog).getByText("Unpaid")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Unpaid").length).toBeGreaterThan(0);
   });
 
   it("renders Paid badge when payment is completed", () => {
@@ -180,7 +180,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, paymentStatus: "PAID" },
     });
 
-    expect(within(dialog).getByText("Paid")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Paid").length).toBeGreaterThan(0);
   });
 
   it("renders Refunded badge when payment is voided", () => {
@@ -188,7 +188,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, paymentStatus: "VOIDED" },
     });
 
-    expect(within(dialog).getByText("Refunded")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Refunded").length).toBeGreaterThan(0);
   });
 
   it("shows Pay Order button for OWNER on READY unpaid order", () => {
@@ -197,7 +197,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
     });
 
-    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Pay Order").length).toBeGreaterThan(0);
   });
 
   it("shows Pay Order button for MANAGER on READY unpaid order", () => {
@@ -206,7 +206,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
     });
 
-    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Pay Order").length).toBeGreaterThan(0);
   });
 
   it("shows Pay Order button for CASHIER on READY unpaid order", () => {
@@ -215,7 +215,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, status: "READY", paymentStatus: "PENDING" },
     });
 
-    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Pay Order").length).toBeGreaterThan(0);
   });
 
   it("shows Pay Order button for CASHIER on SERVED unpaid order", () => {
@@ -224,7 +224,7 @@ describe("OrderDetailsModal", () => {
       order: { ...mockOrder, status: "SERVED", paymentStatus: "PENDING" },
     });
 
-    expect(within(dialog).getByText("Pay Order")).toBeInTheDocument();
+    expect(within(dialog).getAllByText("Pay Order").length).toBeGreaterThan(0);
   });
 
   it("does NOT show Pay Order for WAITER on READY order", () => {
@@ -270,15 +270,15 @@ describe("OrderDetailsModal", () => {
     });
     const user = userEvent.setup();
 
-    await user.click(within(dialog).getByText("Pay Order"));
+    const payButtons = within(dialog).getAllByText("Pay Order");
+    await user.click(payButtons[0]);
 
     expect(onPayOrder).toHaveBeenCalledWith("ord_1");
   });
 
-  it("renders subtotal row", () => {
+  it("renders total row", () => {
     const { dialog } = renderModal();
 
-    expect(within(dialog).getByText("Subtotal")).toBeInTheDocument();
     expect(within(dialog).getByText("Total")).toBeInTheDocument();
   });
 

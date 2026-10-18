@@ -11,7 +11,7 @@ describe("AddCategoryModal", () => {
     const submit = screen.getByRole("button", { name: /create/i });
     await userEvent.click(submit);
     expect(screen.getByText("Name is required")).toBeInTheDocument();
-    const name = screen.getByLabelText("Category name");
+    const name = screen.getByLabelText("Name");
     await userEvent.type(name, "Desserts");
     await userEvent.click(submit);
     expect(onSubmit).toHaveBeenCalledWith({ name: "Desserts", description: "" });

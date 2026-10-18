@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
@@ -88,7 +88,7 @@ function createWrapper() {
 describe("CategoriesPage", () => {
   it("renders loading skeleton then categories list", async () => {
     render(<CategoriesPage />, { wrapper: createWrapper() });
-    expect(screen.getByLabelText("Loading categories")).toBeInTheDocument();
+    expect(document.querySelector(".menu-table-skeleton")).toBeInTheDocument();
     await waitFor(() => {
       expect(screen.getByText("Burgers")).toBeInTheDocument();
     });
@@ -98,12 +98,12 @@ describe("CategoriesPage", () => {
   it("opens create modal and submits new category", async () => {
     render(<CategoriesPage />, { wrapper: createWrapper() });
     await waitFor(() => screen.getByText("Burgers"));
-    await userEvent.click(screen.getByRole("button", { name: /add category/i }));
-    const nameInput = await screen.findByLabelText("Category name");
+    await userEvent.click(screen.getByRole("button", { name: /\+ add/i }));
+    const nameInput = await screen.findByLabelText("Name");
     await userEvent.type(nameInput, "Sides");
     await userEvent.click(screen.getByRole("button", { name: /create/i }));
     await waitFor(() => {
-      expect(screen.queryByText("Create category")).not.toBeInTheDocument();
+      expect(screen.queryByText("Add Category")).not.toBeInTheDocument();
     });
   });
 
@@ -116,18 +116,19 @@ describe("CategoriesPage", () => {
     await userEvent.type(nameInput, "Beef Burgers");
     await userEvent.click(screen.getByRole("button", { name: /save/i }));
     await waitFor(() => {
-      expect(screen.queryByText("Edit category")).not.toBeInTheDocument();
+      expect(screen.queryByText("Edit Category")).not.toBeInTheDocument();
     });
   });
 
   it("toggles category active state via dialog", async () => {
     render(<CategoriesPage />, { wrapper: createWrapper() });
     await waitFor(() => screen.getByText("Burgers"));
-    await userEvent.click(screen.getAllByRole("button", { name: /disable/i })[0]);
-    await screen.findByText(/disable this category/i);
-    await userEvent.click(screen.getByRole("button", { name: /disable/i }));
+    await userEvent.click(screen.getAllByRole("button", { name: /^disable$/i })[0]);
+    const dialog = await screen.findByRole("dialog", { name: "Disable Category" });
+    await within(dialog).findByText(/disable the category/i);
+    await userEvent.click(within(dialog).getByRole("button", { name: "Disable" }));
     await waitFor(() => {
-      expect(screen.queryByText("Disable category")).not.toBeInTheDocument();
+      expect(screen.queryByText("Disable Category")).not.toBeInTheDocument();
     });
   });
 
@@ -145,7 +146,7 @@ describe("CategoriesPage", () => {
     server.use(http.get("*/api/v1/categories", () => new HttpResponse(null, { status: 500 })));
     render(<CategoriesPage />, { wrapper: createWrapper() });
     await waitFor(() => {
-      expect(screen.getByText("Unable to load categories")).toBeInTheDocument();
+      expect(screen.getByText("Failed to load categories")).toBeInTheDocument();
     });
   });
 });

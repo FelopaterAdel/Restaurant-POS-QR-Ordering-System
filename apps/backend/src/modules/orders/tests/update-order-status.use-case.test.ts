@@ -1,6 +1,10 @@
 import { OrderStatus, UserRole } from "@restaurant/database";
 import { describe, expect, it, vi } from "vitest";
 import { OrderRepository } from "../repositories/order.repository.js";
+
+vi.mock("../../notifications/services/notification.service.js", () => ({
+  createNotificationForRoles: vi.fn(async () => undefined),
+}));
 import {
   ForbiddenStatusTransitionError,
   InvalidStatusTransitionError,

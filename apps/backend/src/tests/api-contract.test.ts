@@ -1,10 +1,25 @@
 import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import request from "supertest";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { errorHandler } from "../errors/http-error-handler.js";
 import { sendPaginated, sendSuccess } from "../http/response.js";
+import { TableNotFoundError } from "../modules/public-menu/use-cases/get-public-menu.use-case.js";
 import publicMenuRouter from "../modules/public-menu/routes/public-menu.routes.js";
+
+vi.mock("../modules/public-menu/controllers/public-menu.controller.js", () => ({
+  getPublicMenu: async (
+    req: Request<{ qrCode: string }>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    if (req.params.qrCode === "tbl_does-not-exist") {
+      next(new TableNotFoundError());
+      return;
+    }
+    res.status(200).json({ success: true, data: {} });
+  },
+}));
 
 function buildApp() {
   const app = express();

@@ -272,13 +272,13 @@ describe("TablesPage", () => {
 
     expect(
       document.querySelector(".table-qr-modal__url")?.textContent,
-    ).toBe("http://localhost:3000/menu/table/qr-1");
+    ).toBe("http://localhost:5173/public/menu/qr-1");
 
     await user.click(findButton(document.body, "Copy URL") as HTMLElement);
 
     await waitFor(() => {
       expect(writeText).toHaveBeenCalledWith(
-        "http://localhost:3000/menu/table/qr-1",
+        "http://localhost:5173/public/menu/qr-1",
       );
     });
     expect(findButton(document.body, "Copied!")).toBeDefined();
@@ -314,7 +314,7 @@ describe("TablesPage", () => {
       expect(document.querySelector(".qr-print-sheet")).toBeInTheDocument();
       expect(
         document.querySelector(".qr-print-sheet__url")?.textContent,
-      ).toBe("http://localhost:3000/menu/table/qr-1");
+      ).toBe("http://localhost:5173/public/menu/qr-1");
     });
 
     printSpy.mockRestore();
