@@ -40,7 +40,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @restaurant/database generate
-      - run: pnpm --filter @restaurant/database deploy
+      - run: pnpm --filter @restaurant/database run deploy
       - run: pnpm typecheck
       - run: pnpm --filter backend test
       - run: pnpm --filter frontend run lint
